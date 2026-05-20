@@ -175,4 +175,28 @@ public class TransactionRepository {
                      "AND transaction_date BETWEEN ? AND ?";
         return jdbcTemplate.queryForObject(sql, BigDecimal.class, userId, categoryId, Date.valueOf(startDate), Date.valueOf(endDate));
     }
+
+    public BigDecimal getMonthlyTotalByType(Integer userId, String type, LocalDate startDate, LocalDate endDate) {
+        String sql = "SELECT COALESCE(SUM(t.amount), 0) " +
+                "FROM transactions t JOIN categories c ON t.category_id = c.category_id " +
+                "WHERE t.user_id = ? AND UPPER(c.type) = ? AND t.transaction_date BETWEEN ? AND ?";
+        return jdbcTemplate.queryForObject(sql, BigDecimal.class, userId, type.toUpperCase(), Date.valueOf(startDate), Date.valueOf(endDate));
+    }
+
+    public BigDecimal getTotalExpenseByCategoryAndPeriod(Integer userId, Integer categoryId, LocalDate startDate, LocalDate endDate) {
+        String sql = "SELECT COALESCE(SUM(t.amount), 0) " +
+                "FROM transactions t JOIN categories c ON t.category_id = c.category_id " +
+                "WHERE t.user_id = ? AND t.category_id = ? AND UPPER(c.type) = 'EXPENSE' " +
+                "AND t.transaction_date BETWEEN ? AND ?";
+        return jdbcTemplate.queryForObject(sql, BigDecimal.class, userId, categoryId, Date.valueOf(startDate), Date.valueOf(endDate));
+    }
+
+    public List<java.util.Map<String, Object>> getTopExpenseCategories(Integer userId, LocalDate startDate, LocalDate endDate, int limit) {
+        String sql = "SELECT c.category_id, c.name, COALESCE(SUM(t.amount), 0) AS total_spent " +
+                "FROM transactions t JOIN categories c ON t.category_id = c.category_id " +
+                "WHERE t.user_id = ? AND UPPER(c.type) = 'EXPENSE' AND t.transaction_date BETWEEN ? AND ? " +
+                "GROUP BY c.category_id, c.name " +
+                "ORDER BY total_spent DESC LIMIT ?";
+        return jdbcTemplate.queryForList(sql, userId, Date.valueOf(startDate), Date.valueOf(endDate), limit);
+    }
 }
