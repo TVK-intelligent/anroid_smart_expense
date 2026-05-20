@@ -6,6 +6,7 @@ import com.example.smartexpense.models.SavingsSuggestion;
 import com.example.smartexpense.models.Wallet;
 import com.example.smartexpense.models.Transaction;
 import com.example.smartexpense.models.Notification;
+import com.example.smartexpense.models.Category;
 import com.example.smartexpense.models.User;
 
 import java.math.BigDecimal;
@@ -81,6 +82,40 @@ public interface ApiService {
     @POST("api/transactions")
     Call<Transaction> createTransaction(
             @Body Transaction transaction
+    );
+
+    @GET("api/transactions/recent")
+    Call<List<Transaction>> getRecentTransactions(
+            @Query("userId") Integer userId,
+            @Query("limit") Integer limit
+    );
+
+    @GET("api/transactions/filter")
+    Call<List<Transaction>> filterTransactions(
+            @Query("userId") Integer userId,
+            @Query("startDate") String startDate,
+            @Query("endDate") String endDate,
+            @Query("walletId") Integer walletId,
+            @Query("categoryId") Integer categoryId,
+            @Query("type") String type
+    );
+
+    @PUT("api/transactions/{transactionId}")
+    Call<Transaction> updateTransaction(
+            @retrofit2.http.Path("transactionId") Integer transactionId,
+            @Query("userId") Integer userId,
+            @Body Transaction transaction
+    );
+
+    @DELETE("api/transactions/{transactionId}")
+    Call<Void> deleteTransaction(
+            @retrofit2.http.Path("transactionId") Integer transactionId,
+            @Query("userId") Integer userId
+    );
+
+    @GET("api/categories")
+    Call<List<Category>> getCategories(
+            @Query("userId") Integer userId
     );
 
     @GET("api/budgets")

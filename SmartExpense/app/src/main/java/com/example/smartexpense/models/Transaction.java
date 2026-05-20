@@ -16,6 +16,9 @@ public class Transaction {
     @SerializedName("categoryId")
     private Integer categoryId;
 
+    @SerializedName("type")
+    private String type; // "INCOME" or "EXPENSE"
+
     @SerializedName("amount")
     private BigDecimal amount;
 
@@ -37,6 +40,9 @@ public class Transaction {
 
     public Integer getCategoryId() { return categoryId; }
     public void setCategoryId(Integer categoryId) { this.categoryId = categoryId; }
+
+    public String getType() { return type; }
+    public void setType(String type) { this.type = type; }
 
     public BigDecimal getAmount() { return amount; }
     public void setAmount(BigDecimal amount) { this.amount = amount; }

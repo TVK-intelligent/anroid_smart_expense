@@ -16,9 +16,11 @@ import java.util.List;
 public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.ViewHolder> {
     private final List<Transaction> transactionList;
     private final DecimalFormat formatter = new DecimalFormat("#,###");
+    private final OnTransactionActionListener listener;
 
-    public TransactionAdapter(List<Transaction> transactionList) {
+    public TransactionAdapter(List<Transaction> transactionList, OnTransactionActionListener listener) {
         this.transactionList = transactionList;
+        this.listener = listener;
     }
 
     @NonNull
@@ -69,9 +71,13 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         holder.tvNote.setText(transaction.getNote() != null ? transaction.getNote() : "");
         holder.ivIcon.setImageResource(iconRes);
 
-        // Simple color coding: assume positive categories as income (e.g. above 10, or customized logic, or negative sign)
-        // In rule-based, let's prefix minus for expense
-        boolean isExpense = categoryId != 6; // Standard categories are expenses, 6 is other/income for testing
+        boolean isExpense = true;
+        if (transaction.getType() != null) {
+            isExpense = "EXPENSE".equalsIgnoreCase(transaction.getType());
+        } else {
+            // fallback: old mock mapping
+            isExpense = categoryId != 6;
+        }
         java.math.BigDecimal amount = transaction.getAmount() != null ? transaction.getAmount() : java.math.BigDecimal.ZERO;
         if (isExpense) {
             holder.tvAmount.setText("-" + formatter.format(amount) + "đ");
@@ -80,6 +86,14 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
             holder.tvAmount.setText("+" + formatter.format(amount) + "đ");
             holder.tvAmount.setTextColor(holder.itemView.getContext().getResources().getColor(R.color.emerald_income));
         }
+
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) listener.onTransactionClick(transaction);
+        });
+        holder.itemView.setOnLongClickListener(v -> {
+            if (listener != null) listener.onTransactionLongClick(transaction);
+            return true;
+        });
     }
 
     @Override
@@ -100,5 +114,10 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
             tvAmount = itemView.findViewById(R.id.tv_trans_amount);
             cardIconBg = itemView.findViewById(R.id.card_trans_icon_bg);
         }
+    }
+
+    public interface OnTransactionActionListener {
+        void onTransactionClick(Transaction transaction);
+        void onTransactionLongClick(Transaction transaction);
     }
 }
