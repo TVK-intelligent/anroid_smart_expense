@@ -1,30 +1,37 @@
 package com.example.smartexpense.fragments;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.smartexpense.R;
+import com.example.smartexpense.adapters.TransactionAdapter;
 import com.example.smartexpense.adapters.WalletAdapter;
 import com.example.smartexpense.api.ApiClient;
 import com.example.smartexpense.models.Notification;
+import com.example.smartexpense.models.Transaction;
 import com.example.smartexpense.models.Wallet;
+import com.example.smartexpense.models.dashboard.BudgetWarning;
+import com.example.smartexpense.models.dashboard.DashboardResponse;
+import com.example.smartexpense.models.dashboard.TopExpenseCategory;
+
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -32,14 +39,30 @@ import retrofit2.Response;
 public class DashboardFragment extends Fragment {
 
     private TextView tvGreetingName, tvTotalBalance, tvMonthlyIncome, tvMonthlyExpense;
+    private TextView tvMonthlyNet;
+    private TextView tvDashboardState;
+    private View progressDashboard;
+    private LinearLayout layoutGuidance;
+    private TextView btnGuidanceAddWallet;
+    private TextView btnGuidanceAddTransaction;
+
     private RecyclerView rvWallets;
     private View progressWallets;
     private TextView tvWalletsState;
-    private LinearLayout layoutAlerts;
-    private TextView tvEmptyAlerts;
     private TextView btnAddWallet;
     private WalletAdapter walletAdapter;
-    private List<Wallet> walletList = new ArrayList<>();
+    private final List<Wallet> walletList = new ArrayList<>();
+
+    private RecyclerView rvRecentTransactions;
+    private TransactionAdapter recentTransactionAdapter;
+    private final List<Transaction> recentTransactionList = new ArrayList<>();
+
+    private TextView tvTopExpenseCategories;
+    private TextView tvBudgetWarnings;
+
+    private LinearLayout layoutAlerts;
+    private TextView tvEmptyAlerts;
+
     private final DecimalFormat formatter = new DecimalFormat("#,###");
 
     @Nullable
@@ -51,12 +74,22 @@ public class DashboardFragment extends Fragment {
         tvTotalBalance = view.findViewById(R.id.tv_total_balance);
         tvMonthlyIncome = view.findViewById(R.id.tv_monthly_income);
         tvMonthlyExpense = view.findViewById(R.id.tv_monthly_expense);
+        tvMonthlyNet = view.findViewById(R.id.tv_monthly_net);
+        progressDashboard = view.findViewById(R.id.progress_dashboard);
+        tvDashboardState = view.findViewById(R.id.tv_dashboard_state);
+        layoutGuidance = view.findViewById(R.id.layout_dashboard_guidance);
+        btnGuidanceAddWallet = view.findViewById(R.id.btn_guidance_add_wallet);
+        btnGuidanceAddTransaction = view.findViewById(R.id.btn_guidance_add_transaction);
+
         rvWallets = view.findViewById(R.id.rv_wallets);
         progressWallets = view.findViewById(R.id.progress_wallets);
         tvWalletsState = view.findViewById(R.id.tv_wallets_state);
         layoutAlerts = view.findViewById(R.id.layout_alerts);
         tvEmptyAlerts = view.findViewById(R.id.tv_empty_alerts);
         btnAddWallet = view.findViewById(R.id.btn_add_wallet);
+        rvRecentTransactions = view.findViewById(R.id.rv_recent_transactions);
+        tvTopExpenseCategories = view.findViewById(R.id.tv_top_expense_categories);
+        tvBudgetWarnings = view.findViewById(R.id.tv_budget_warnings);
 
         rvWallets.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
         walletAdapter = new WalletAdapter(walletList, new WalletAdapter.OnWalletActionListener() {
@@ -72,8 +105,36 @@ public class DashboardFragment extends Fragment {
         });
         rvWallets.setAdapter(walletAdapter);
 
+        rvRecentTransactions.setLayoutManager(new LinearLayoutManager(getContext()));
+        recentTransactionAdapter = new TransactionAdapter(recentTransactionList, new TransactionAdapter.OnTransactionActionListener() {
+            @Override
+            public void onTransactionClick(Transaction transaction) {
+                // read-only on dashboard
+            }
+
+            @Override
+            public void onTransactionLongClick(Transaction transaction) {
+                // read-only on dashboard
+            }
+        });
+        rvRecentTransactions.setAdapter(recentTransactionAdapter);
+
         if (btnAddWallet != null) {
             btnAddWallet.setOnClickListener(v -> showAddWalletDialog());
+        }
+        if (btnGuidanceAddWallet != null) {
+            btnGuidanceAddWallet.setOnClickListener(v -> showAddWalletDialog());
+        }
+        if (btnGuidanceAddTransaction != null) {
+            btnGuidanceAddTransaction.setOnClickListener(v -> {
+                if (getActivity() == null) return;
+                // Switch to AddTransactionFragment (same as bottom nav add)
+                getActivity().getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.fragment_container, new AddTransactionFragment())
+                        .addToBackStack(null)
+                        .commit();
+            });
         }
 
         loadDashboardData();
@@ -85,38 +146,26 @@ public class DashboardFragment extends Fragment {
         if (getContext() == null) return;
 
         int userId = requireActivity()
-                .getSharedPreferences("smart_expense_prefs", android.content.Context.MODE_PRIVATE)
+                .getSharedPreferences("smart_expense_prefs", Context.MODE_PRIVATE)
                 .getInt("user_id", 1);
 
-        setWalletsLoading(true);
-        // Get wallets
-        ApiClient.getApiService().getWallets(userId).enqueue(new Callback<List<Wallet>>() {
+        setDashboardLoading(true);
+
+        ApiClient.getApiService().getDashboard(userId).enqueue(new Callback<DashboardResponse>() {
             @Override
-            public void onResponse(Call<List<Wallet>> call, Response<List<Wallet>> response) {
-                setWalletsLoading(false);
+            public void onResponse(Call<DashboardResponse> call, Response<DashboardResponse> response) {
+                setDashboardLoading(false);
                 if (response.isSuccessful() && response.body() != null) {
-                    walletList.clear();
-                    walletList.addAll(response.body());
-                    walletAdapter.notifyDataSetChanged();
-
-                    BigDecimal sum = BigDecimal.ZERO;
-                    for (Wallet w : walletList) {
-                        if (w.getBalance() != null) {
-                            sum = sum.add(w.getBalance());
-                        }
-                    }
-                    tvTotalBalance.setText(formatter.format(sum) + "đ");
-
-                    updateWalletsState();
+                    bindDashboard(response.body());
                 } else {
-                    setWalletsError("Không tải được danh sách ví");
+                    setDashboardError("Không tải được dashboard");
                 }
             }
 
             @Override
-            public void onFailure(Call<List<Wallet>> call, Throwable t) {
-                setWalletsLoading(false);
-                setWalletsError("Lỗi mạng khi tải ví");
+            public void onFailure(Call<DashboardResponse> call, Throwable t) {
+                setDashboardLoading(false);
+                setDashboardError("Lỗi mạng khi tải dashboard");
             }
         });
 
@@ -133,6 +182,105 @@ public class DashboardFragment extends Fragment {
             @Override
             public void onFailure(Call<List<Notification>> call, Throwable t) {}
         });
+
+        // Wallet list is still needed for the wallet carousel
+        setWalletsLoading(true);
+        ApiClient.getApiService().getWallets(userId).enqueue(new Callback<List<Wallet>>() {
+            @Override
+            public void onResponse(Call<List<Wallet>> call, Response<List<Wallet>> response) {
+                setWalletsLoading(false);
+                if (response.isSuccessful() && response.body() != null) {
+                    walletList.clear();
+                    walletList.addAll(response.body());
+                    walletAdapter.notifyDataSetChanged();
+                    updateWalletsState();
+                    updateGuidanceVisibility();
+                } else {
+                    setWalletsError("Không tải được danh sách ví");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Wallet>> call, Throwable t) {
+                setWalletsLoading(false);
+                setWalletsError("Lỗi mạng khi tải ví");
+            }
+        });
+    }
+
+    private void bindDashboard(DashboardResponse dashboard) {
+        BigDecimal totalBalance = dashboard.getTotalBalance() != null ? dashboard.getTotalBalance() : BigDecimal.ZERO;
+        BigDecimal income = dashboard.getMonthlyIncome() != null ? dashboard.getMonthlyIncome() : BigDecimal.ZERO;
+        BigDecimal expense = dashboard.getMonthlyExpense() != null ? dashboard.getMonthlyExpense() : BigDecimal.ZERO;
+        BigDecimal net = dashboard.getMonthlyNet() != null ? dashboard.getMonthlyNet() : income.subtract(expense);
+
+        tvTotalBalance.setText(formatter.format(totalBalance) + "đ");
+        tvMonthlyIncome.setText("+" + formatter.format(income) + "đ");
+        tvMonthlyExpense.setText("-" + formatter.format(expense) + "đ");
+        if (tvMonthlyNet != null) {
+            String prefix = net.compareTo(BigDecimal.ZERO) >= 0 ? "+" : "";
+            tvMonthlyNet.setText("Net this month: " + prefix + formatter.format(net) + "đ");
+        }
+
+        recentTransactionList.clear();
+        if (dashboard.getRecentTransactions() != null) {
+            recentTransactionList.addAll(dashboard.getRecentTransactions());
+        }
+        recentTransactionAdapter.notifyDataSetChanged();
+
+        tvTopExpenseCategories.setText(formatTopExpenseCategories(dashboard.getTopExpenseCategories()));
+        tvBudgetWarnings.setText(formatBudgetWarnings(dashboard.getBudgetWarnings()));
+
+        updateGuidanceVisibility();
+        if (tvDashboardState != null) tvDashboardState.setVisibility(View.GONE);
+    }
+
+    private String formatTopExpenseCategories(List<TopExpenseCategory> items) {
+        if (items == null || items.isEmpty()) return "Chưa có dữ liệu";
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < items.size(); i++) {
+            TopExpenseCategory c = items.get(i);
+            String name = c.getCategoryName() != null ? c.getCategoryName() : "Category";
+            BigDecimal spent = c.getTotalSpent() != null ? c.getTotalSpent() : BigDecimal.ZERO;
+            sb.append(i + 1).append(". ").append(name).append(" - ").append(formatter.format(spent)).append("đ");
+            if (i < items.size() - 1) sb.append("\n");
+        }
+        return sb.toString();
+    }
+
+    private String formatBudgetWarnings(List<BudgetWarning> items) {
+        if (items == null || items.isEmpty()) return "Không có cảnh báo";
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < items.size(); i++) {
+            BudgetWarning w = items.get(i);
+            String name = w.getCategoryName() != null ? w.getCategoryName() : "Category";
+            BigDecimal percent = w.getSpentPercent() != null ? w.getSpentPercent() : BigDecimal.ZERO;
+            String status = w.getStatus() != null ? w.getStatus() : "";
+            sb.append("- ").append(name).append(": ").append(percent.setScale(0, RoundingMode.HALF_UP)).append("% (").append(status).append(")");
+            if (i < items.size() - 1) sb.append("\n");
+        }
+        return sb.toString();
+    }
+
+    private void setDashboardLoading(boolean loading) {
+        if (progressDashboard == null) return;
+        progressDashboard.setVisibility(loading ? View.VISIBLE : View.GONE);
+        if (tvDashboardState != null) tvDashboardState.setVisibility(View.GONE);
+        if (layoutGuidance != null) layoutGuidance.setVisibility(View.GONE);
+    }
+
+    private void setDashboardError(String message) {
+        if (tvDashboardState == null) return;
+        tvDashboardState.setText(message);
+        tvDashboardState.setVisibility(View.VISIBLE);
+        if (layoutGuidance != null) layoutGuidance.setVisibility(View.GONE);
+    }
+
+    private void updateGuidanceVisibility() {
+        if (layoutGuidance == null) return;
+        boolean noWallet = walletList.isEmpty();
+        boolean noTransactions = recentTransactionList.isEmpty();
+        layoutGuidance.setVisibility((noWallet || noTransactions) ? View.VISIBLE : View.GONE);
     }
 
     private void updateAlertsUI(List<Notification> notifications) {

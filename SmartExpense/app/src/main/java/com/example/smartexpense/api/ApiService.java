@@ -8,6 +8,7 @@ import com.example.smartexpense.models.Transaction;
 import com.example.smartexpense.models.Notification;
 import com.example.smartexpense.models.Category;
 import com.example.smartexpense.models.User;
+import com.example.smartexpense.models.dashboard.DashboardResponse;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -115,6 +116,11 @@ public interface ApiService {
 
     @GET("api/categories")
     Call<List<Category>> getCategories(
+            @Query("userId") Integer userId
+    );
+
+    @GET("api/dashboard")
+    Call<DashboardResponse> getDashboard(
             @Query("userId") Integer userId
     );
 
