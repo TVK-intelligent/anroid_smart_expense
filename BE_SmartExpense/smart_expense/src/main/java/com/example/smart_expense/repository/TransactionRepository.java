@@ -15,6 +15,7 @@ import java.sql.Statement;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Repository
@@ -198,5 +199,25 @@ public class TransactionRepository {
                 "GROUP BY c.category_id, c.name " +
                 "ORDER BY total_spent DESC LIMIT ?";
         return jdbcTemplate.queryForList(sql, userId, Date.valueOf(startDate), Date.valueOf(endDate), limit);
+    }
+
+    public List<Map<String, Object>> getIncomeExpenseByDay(Integer userId, LocalDate startDate, LocalDate endDate) {
+        String sql = "SELECT t.transaction_date, " +
+                "COALESCE(SUM(CASE WHEN UPPER(c.type) = 'INCOME' THEN t.amount ELSE 0 END), 0) AS total_income, " +
+                "COALESCE(SUM(CASE WHEN UPPER(c.type) = 'EXPENSE' THEN t.amount ELSE 0 END), 0) AS total_expense " +
+                "FROM transactions t JOIN categories c ON t.category_id = c.category_id " +
+                "WHERE t.user_id = ? AND t.transaction_date BETWEEN ? AND ? " +
+                "GROUP BY t.transaction_date " +
+                "ORDER BY t.transaction_date ASC";
+        return jdbcTemplate.queryForList(sql, userId, Date.valueOf(startDate), Date.valueOf(endDate));
+    }
+
+    public List<Map<String, Object>> getExpenseByCategory(Integer userId, LocalDate startDate, LocalDate endDate) {
+        String sql = "SELECT c.category_id, c.name, COALESCE(SUM(t.amount), 0) AS total_spent " +
+                "FROM transactions t JOIN categories c ON t.category_id = c.category_id " +
+                "WHERE t.user_id = ? AND UPPER(c.type) = 'EXPENSE' AND t.transaction_date BETWEEN ? AND ? " +
+                "GROUP BY c.category_id, c.name " +
+                "ORDER BY total_spent DESC";
+        return jdbcTemplate.queryForList(sql, userId, Date.valueOf(startDate), Date.valueOf(endDate));
     }
 }
