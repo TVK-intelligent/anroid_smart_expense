@@ -33,6 +33,8 @@ public class DashboardFragment extends Fragment {
 
     private TextView tvGreetingName, tvTotalBalance, tvMonthlyIncome, tvMonthlyExpense;
     private RecyclerView rvWallets;
+    private View progressWallets;
+    private TextView tvWalletsState;
     private LinearLayout layoutAlerts;
     private TextView tvEmptyAlerts;
     private TextView btnAddWallet;
@@ -50,12 +52,24 @@ public class DashboardFragment extends Fragment {
         tvMonthlyIncome = view.findViewById(R.id.tv_monthly_income);
         tvMonthlyExpense = view.findViewById(R.id.tv_monthly_expense);
         rvWallets = view.findViewById(R.id.rv_wallets);
+        progressWallets = view.findViewById(R.id.progress_wallets);
+        tvWalletsState = view.findViewById(R.id.tv_wallets_state);
         layoutAlerts = view.findViewById(R.id.layout_alerts);
         tvEmptyAlerts = view.findViewById(R.id.tv_empty_alerts);
         btnAddWallet = view.findViewById(R.id.btn_add_wallet);
 
         rvWallets.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
-        walletAdapter = new WalletAdapter(walletList);
+        walletAdapter = new WalletAdapter(walletList, new WalletAdapter.OnWalletActionListener() {
+            @Override
+            public void onWalletClick(Wallet wallet) {
+                showEditWalletDialog(wallet);
+            }
+
+            @Override
+            public void onWalletLongClick(Wallet wallet) {
+                showWalletActionsDialog(wallet);
+            }
+        });
         rvWallets.setAdapter(walletAdapter);
 
         if (btnAddWallet != null) {
@@ -70,10 +84,16 @@ public class DashboardFragment extends Fragment {
     public void loadDashboardData() {
         if (getContext() == null) return;
 
-        // Get total wallets balance
-        ApiClient.getApiService().getWallets(1).enqueue(new Callback<List<Wallet>>() {
+        int userId = requireActivity()
+                .getSharedPreferences("smart_expense_prefs", android.content.Context.MODE_PRIVATE)
+                .getInt("user_id", 1);
+
+        setWalletsLoading(true);
+        // Get wallets
+        ApiClient.getApiService().getWallets(userId).enqueue(new Callback<List<Wallet>>() {
             @Override
             public void onResponse(Call<List<Wallet>> call, Response<List<Wallet>> response) {
+                setWalletsLoading(false);
                 if (response.isSuccessful() && response.body() != null) {
                     walletList.clear();
                     walletList.addAll(response.body());
@@ -86,15 +106,22 @@ public class DashboardFragment extends Fragment {
                         }
                     }
                     tvTotalBalance.setText(formatter.format(sum) + "đ");
+
+                    updateWalletsState();
+                } else {
+                    setWalletsError("Không tải được danh sách ví");
                 }
             }
 
             @Override
-            public void onFailure(Call<List<Wallet>> call, Throwable t) {}
+            public void onFailure(Call<List<Wallet>> call, Throwable t) {
+                setWalletsLoading(false);
+                setWalletsError("Lỗi mạng khi tải ví");
+            }
         });
 
         // Get dynamic notifications / warnings
-        ApiClient.getApiService().getNotifications(1).enqueue(new Callback<List<Notification>>() {
+        ApiClient.getApiService().getNotifications(userId).enqueue(new Callback<List<Notification>>() {
             @Override
             public void onResponse(Call<List<Notification>> call, Response<List<Notification>> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -263,16 +290,28 @@ public class DashboardFragment extends Fragment {
             String type = etType.getText() != null ? etType.getText().toString().trim() : "";
             String balStr = etBal.getText() != null ? etBal.getText().toString().trim() : "";
 
-            if (name.isEmpty() || type.isEmpty() || balStr.isEmpty()) {
-                Toast.makeText(getContext(), "Không được để trống thông tin!", Toast.LENGTH_SHORT).show();
+            if (name.isEmpty() || type.isEmpty()) {
+                Toast.makeText(getContext(), "Không được để trống tên/loại ví!", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             Wallet wallet = new Wallet();
-            wallet.setUserId(1); // Seed User ID matching backend
+            int userId = requireActivity()
+                    .getSharedPreferences("smart_expense_prefs", android.content.Context.MODE_PRIVATE)
+                    .getInt("user_id", 1);
+            wallet.setUserId(userId);
             wallet.setName(name);
             wallet.setType(type);
-            wallet.setBalance(new BigDecimal(balStr));
+            if (balStr.isEmpty()) {
+                wallet.setBalance(BigDecimal.ZERO);
+            } else {
+                try {
+                    wallet.setBalance(new BigDecimal(balStr));
+                } catch (Exception ignored) {
+                    Toast.makeText(getContext(), "Số dư không hợp lệ!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            }
 
             ApiClient.getApiService().createWallet(wallet).enqueue(new Callback<Wallet>() {
                 @Override
@@ -294,5 +333,187 @@ public class DashboardFragment extends Fragment {
 
         builder.setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss());
         builder.show();
+    }
+
+    private void setWalletsLoading(boolean loading) {
+        if (rvWallets == null || progressWallets == null || tvWalletsState == null) return;
+        if (loading) {
+            progressWallets.setVisibility(View.VISIBLE);
+            tvWalletsState.setVisibility(View.GONE);
+            rvWallets.setVisibility(View.GONE);
+        } else {
+            progressWallets.setVisibility(View.GONE);
+            updateWalletsState();
+        }
+    }
+
+    private void setWalletsError(String message) {
+        if (rvWallets == null || tvWalletsState == null) return;
+        tvWalletsState.setText(message);
+        tvWalletsState.setVisibility(View.VISIBLE);
+        rvWallets.setVisibility(View.GONE);
+    }
+
+    private void updateWalletsState() {
+        if (rvWallets == null || tvWalletsState == null) return;
+        if (walletList.isEmpty()) {
+            tvWalletsState.setText("Chưa có ví nào");
+            tvWalletsState.setVisibility(View.VISIBLE);
+            rvWallets.setVisibility(View.GONE);
+        } else {
+            tvWalletsState.setVisibility(View.GONE);
+            rvWallets.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void showWalletActionsDialog(Wallet wallet) {
+        if (getContext() == null) return;
+        String[] items = new String[]{"Sửa ví", "Xóa ví"};
+        new android.app.AlertDialog.Builder(getContext())
+                .setTitle(wallet.getName() != null ? wallet.getName() : "Ví")
+                .setItems(items, (dialog, which) -> {
+                    if (which == 0) {
+                        showEditWalletDialog(wallet);
+                    } else {
+                        confirmDeleteWallet(wallet);
+                    }
+                })
+                .show();
+    }
+
+    private void showEditWalletDialog(Wallet wallet) {
+        if (getContext() == null || wallet == null) return;
+
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(getContext());
+        builder.setTitle("Sửa ví");
+
+        LinearLayout layoutContainer = new LinearLayout(getContext());
+        layoutContainer.setOrientation(LinearLayout.VERTICAL);
+        int padding = (int) (16 * getResources().getDisplayMetrics().density);
+        layoutContainer.setPadding(padding, padding, padding, padding);
+
+        com.google.android.material.textfield.TextInputLayout layoutName = new com.google.android.material.textfield.TextInputLayout(getContext());
+        layoutName.setBoxBackgroundMode(com.google.android.material.textfield.TextInputLayout.BOX_BACKGROUND_OUTLINE);
+        layoutName.setHint("Tên ví");
+        com.google.android.material.textfield.TextInputEditText etName = new com.google.android.material.textfield.TextInputEditText(getContext());
+        etName.setText(wallet.getName() != null ? wallet.getName() : "");
+        layoutName.addView(etName);
+        layoutContainer.addView(layoutName);
+
+        View space = new View(getContext());
+        space.setLayoutParams(new LinearLayout.LayoutParams(1, (int) (8 * getResources().getDisplayMetrics().density)));
+        layoutContainer.addView(space);
+
+        com.google.android.material.textfield.TextInputLayout layoutType = new com.google.android.material.textfield.TextInputLayout(getContext());
+        layoutType.setBoxBackgroundMode(com.google.android.material.textfield.TextInputLayout.BOX_BACKGROUND_OUTLINE);
+        layoutType.setHint("Loại ví");
+        com.google.android.material.textfield.TextInputEditText etType = new com.google.android.material.textfield.TextInputEditText(getContext());
+        etType.setText(wallet.getType() != null ? wallet.getType() : "");
+        layoutType.addView(etType);
+        layoutContainer.addView(layoutType);
+
+        View space2 = new View(getContext());
+        space2.setLayoutParams(new LinearLayout.LayoutParams(1, (int) (8 * getResources().getDisplayMetrics().density)));
+        layoutContainer.addView(space2);
+
+        com.google.android.material.textfield.TextInputLayout layoutBal = new com.google.android.material.textfield.TextInputLayout(getContext());
+        layoutBal.setBoxBackgroundMode(com.google.android.material.textfield.TextInputLayout.BOX_BACKGROUND_OUTLINE);
+        layoutBal.setHint("Số dư khởi tạo (chỉ sửa được khi ví chưa có giao dịch)");
+        com.google.android.material.textfield.TextInputEditText etBal = new com.google.android.material.textfield.TextInputEditText(getContext());
+        etBal.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+        etBal.setText(wallet.getBalance() != null ? wallet.getBalance().toPlainString() : "");
+        layoutBal.addView(etBal);
+        layoutContainer.addView(layoutBal);
+
+        builder.setView(layoutContainer);
+
+        builder.setPositiveButton("Lưu", (dialog, which) -> {
+            String name = etName.getText() != null ? etName.getText().toString().trim() : "";
+            String type = etType.getText() != null ? etType.getText().toString().trim() : "";
+            String balStr = etBal.getText() != null ? etBal.getText().toString().trim() : "";
+
+            if (name.isEmpty() || type.isEmpty()) {
+                Toast.makeText(getContext(), "Không được để trống tên/loại ví!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            Wallet payload = new Wallet();
+            payload.setName(name);
+            payload.setType(type);
+            if (!balStr.isEmpty()) {
+                try {
+                    payload.setBalance(new BigDecimal(balStr));
+                } catch (Exception ignored) {
+                    Toast.makeText(getContext(), "Số dư không hợp lệ!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            }
+
+            int userId = requireActivity()
+                    .getSharedPreferences("smart_expense_prefs", android.content.Context.MODE_PRIVATE)
+                    .getInt("user_id", 1);
+
+            ApiClient.getApiService().updateWallet(wallet.getWalletId(), userId, payload).enqueue(new Callback<Wallet>() {
+                @Override
+                public void onResponse(Call<Wallet> call, Response<Wallet> response) {
+                    if (response.isSuccessful()) {
+                        Toast.makeText(getContext(), "Đã cập nhật ví!", Toast.LENGTH_SHORT).show();
+                        loadDashboardData();
+                    } else {
+                        String msg = "Không cập nhật được ví";
+                        try {
+                            if (response.errorBody() != null) msg = response.errorBody().string();
+                        } catch (Exception ignored) {}
+                        Toast.makeText(getContext(), msg, Toast.LENGTH_LONG).show();
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<Wallet> call, Throwable t) {
+                    Toast.makeText(getContext(), "Lỗi mạng khi cập nhật ví!", Toast.LENGTH_SHORT).show();
+                }
+            });
+        });
+
+        builder.setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss());
+        builder.show();
+    }
+
+    private void confirmDeleteWallet(Wallet wallet) {
+        if (getContext() == null) return;
+        new android.app.AlertDialog.Builder(getContext())
+                .setTitle("Xóa ví")
+                .setMessage("Bạn chắc chắn muốn xóa ví này?")
+                .setPositiveButton("Xóa", (dialog, which) -> deleteWallet(wallet))
+                .setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss())
+                .show();
+    }
+
+    private void deleteWallet(Wallet wallet) {
+        if (getContext() == null || wallet == null) return;
+        int userId = requireActivity()
+                .getSharedPreferences("smart_expense_prefs", android.content.Context.MODE_PRIVATE)
+                .getInt("user_id", 1);
+
+        ApiClient.getApiService().deleteWallet(wallet.getWalletId(), userId).enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    Toast.makeText(getContext(), "Đã xóa ví!", Toast.LENGTH_SHORT).show();
+                    loadDashboardData();
+                } else {
+                    String msg = "Không xóa được ví";
+                    try {
+                        if (response.errorBody() != null) msg = response.errorBody().string();
+                    } catch (Exception ignored) {}
+                    Toast.makeText(getContext(), msg, Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                Toast.makeText(getContext(), "Lỗi mạng khi xóa ví!", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }

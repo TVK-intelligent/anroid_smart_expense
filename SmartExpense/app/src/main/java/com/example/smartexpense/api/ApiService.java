@@ -13,9 +13,11 @@ import java.util.List;
 import java.util.Map;
 
 import retrofit2.Call;
+import retrofit2.http.DELETE;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
+import retrofit2.http.PUT;
 import retrofit2.http.Query;
 
 public interface ApiService {
@@ -46,6 +48,24 @@ public interface ApiService {
     @POST("api/wallets")
     Call<Wallet> createWallet(
             @Body Wallet wallet
+    );
+
+    @GET("api/wallets/total-balance")
+    Call<Map<String, BigDecimal>> getTotalWalletBalance(
+            @Query("userId") Integer userId
+    );
+
+    @PUT("api/wallets/{walletId}")
+    Call<Wallet> updateWallet(
+            @retrofit2.http.Path("walletId") Integer walletId,
+            @Query("userId") Integer userId,
+            @Body Wallet wallet
+    );
+
+    @DELETE("api/wallets/{walletId}")
+    Call<Void> deleteWallet(
+            @retrofit2.http.Path("walletId") Integer walletId,
+            @Query("userId") Integer userId
     );
 
     @GET("api/notifications")
