@@ -17,6 +17,9 @@ public class Transaction {
     private Integer userId;
     private Integer walletId;
     private Integer categoryId;
+    // Optional: if DB doesn't store this, service will derive from category.type
+    // and populate it in responses where possible.
+    private String type; // "INCOME" or "EXPENSE"
     private BigDecimal amount;
     private LocalDate transactionDate;
     private String note;

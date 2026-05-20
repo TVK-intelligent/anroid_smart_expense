@@ -12,6 +12,8 @@ import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -66,15 +68,90 @@ public class TransactionRepository {
         }
     }
 
+    public Optional<Transaction> findByIdAndUserId(Integer transactionId, Integer userId) {
+        String sql = "SELECT * FROM transactions WHERE transaction_id = ? AND user_id = ?";
+        try {
+            Transaction transaction = jdbcTemplate.queryForObject(sql, transactionRowMapper, transactionId, userId);
+            return Optional.ofNullable(transaction);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
+    }
+
     public List<Transaction> findByUserId(Integer userId) {
         String sql = "SELECT * FROM transactions WHERE user_id = ? ORDER BY transaction_date DESC, created_at DESC";
         return jdbcTemplate.query(sql, transactionRowMapper, userId);
+    }
+
+    public List<Transaction> findRecentByUserId(Integer userId, int limit) {
+        String sql = "SELECT * FROM transactions WHERE user_id = ? " +
+                "ORDER BY transaction_date DESC, created_at DESC LIMIT ?";
+        return jdbcTemplate.query(sql, transactionRowMapper, userId, limit);
+    }
+
+    public List<Transaction> findFiltered(Integer userId,
+                                          LocalDate startDate,
+                                          LocalDate endDate,
+                                          Integer walletId,
+                                          Integer categoryId,
+                                          String type) {
+        StringBuilder sql = new StringBuilder(
+                "SELECT t.* FROM transactions t " +
+                        "JOIN categories c ON t.category_id = c.category_id " +
+                        "WHERE t.user_id = ?");
+        List<Object> params = new ArrayList<>();
+        params.add(userId);
+
+        if (startDate != null) {
+            sql.append(" AND t.transaction_date >= ?");
+            params.add(Date.valueOf(startDate));
+        }
+        if (endDate != null) {
+            sql.append(" AND t.transaction_date <= ?");
+            params.add(Date.valueOf(endDate));
+        }
+        if (walletId != null) {
+            sql.append(" AND t.wallet_id = ?");
+            params.add(walletId);
+        }
+        if (categoryId != null) {
+            sql.append(" AND t.category_id = ?");
+            params.add(categoryId);
+        }
+        if (type != null && !type.isBlank()) {
+            sql.append(" AND UPPER(c.type) = ?");
+            params.add(type.trim().toUpperCase());
+        }
+
+        sql.append(" ORDER BY t.transaction_date DESC, t.created_at DESC");
+        return jdbcTemplate.query(sql.toString(), transactionRowMapper, params.toArray());
     }
 
     public int countByWalletIdAndUserId(Integer walletId, Integer userId) {
         String sql = "SELECT COUNT(*) FROM transactions WHERE wallet_id = ? AND user_id = ?";
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class, walletId, userId);
         return count != null ? count : 0;
+    }
+
+    public Transaction update(Integer transactionId, Integer userId, Transaction transaction) {
+        String sql = "UPDATE transactions SET wallet_id = ?, category_id = ?, amount = ?, transaction_date = ?, note = ? " +
+                "WHERE transaction_id = ? AND user_id = ?";
+        jdbcTemplate.update(sql,
+                transaction.getWalletId(),
+                transaction.getCategoryId(),
+                transaction.getAmount(),
+                Date.valueOf(transaction.getTransactionDate()),
+                transaction.getNote(),
+                transactionId,
+                userId);
+        transaction.setTransactionId(transactionId);
+        transaction.setUserId(userId);
+        return transaction;
+    }
+
+    public int deleteByIdAndUserId(Integer transactionId, Integer userId) {
+        String sql = "DELETE FROM transactions WHERE transaction_id = ? AND user_id = ?";
+        return jdbcTemplate.update(sql, transactionId, userId);
     }
 
     /**
