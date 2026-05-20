@@ -114,6 +114,22 @@
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
+
+    <!-- Quản lý Giao dịch định kỳ button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_recurring_transactions"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="Quản Lý Giao Dịch Định Kỳ"
+        android:textColor="@color/text_primary"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:backgroundTint="@color/surface_white"
+        app:strokeColor="@color/text_secondary"
+        app:strokeWidth="1dp"
+        app:cornerRadius="16dp"
+        android:layout_marginBottom="12dp" />
+
     <!-- Logout button: height 48dp, corner radius 16dp -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_logout"

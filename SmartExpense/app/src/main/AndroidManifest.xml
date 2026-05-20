@@ -45,6 +45,12 @@
             android:exported="false"
             android:theme="@style/Theme.SmartExpense" />
 
+        <!-- Recurring Transactions Activity -->
+        <activity
+            android:name=".activities.RecurringTransactionsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.SmartExpense" />
+
     </application>
 
 </manifest>

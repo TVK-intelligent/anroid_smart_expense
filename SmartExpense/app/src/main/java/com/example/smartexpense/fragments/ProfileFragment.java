@@ -13,12 +13,14 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import com.example.smartexpense.R;
 import com.example.smartexpense.activities.LoginActivity;
+import com.example.smartexpense.activities.RecurringTransactionsActivity;
 import com.google.android.material.button.MaterialButton;
 
 public class ProfileFragment extends Fragment {
 
     private TextView tvAvatarChar, tvProfileName, tvProfileEmail;
     private MaterialButton btnLogout;
+    private MaterialButton btnRecurring;
 
     @Nullable
     @Override
@@ -29,8 +31,14 @@ public class ProfileFragment extends Fragment {
         tvProfileName = view.findViewById(R.id.tv_profile_name);
         tvProfileEmail = view.findViewById(R.id.tv_profile_email);
         btnLogout = view.findViewById(R.id.btn_logout);
+        btnRecurring = view.findViewById(R.id.btn_recurring_transactions);
 
         loadProfileData();
+
+        btnRecurring.setOnClickListener(v -> {
+            Intent intent = new Intent(getActivity(), RecurringTransactionsActivity.class);
+            startActivity(intent);
+        });
 
         btnLogout.setOnClickListener(v -> {
             SharedPreferences sp = requireActivity().getSharedPreferences("smart_expense_prefs", Context.MODE_PRIVATE);

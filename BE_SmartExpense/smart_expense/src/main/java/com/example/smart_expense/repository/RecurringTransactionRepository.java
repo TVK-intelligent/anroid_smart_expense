@@ -83,4 +83,36 @@ public class RecurringTransactionRepository {
                      "WHERE rt.user_id = ? AND rt.is_active = TRUE AND c.type = 'INCOME'";
         return jdbcTemplate.queryForObject(sql, BigDecimal.class, userId);
     }
+
+    /**
+     * Tìm tất cả các giao dịch định kỳ đang hoạt động và đến hạn.
+     */
+    public List<RecurringTransaction> findActiveAndDue() {
+        String sql = "SELECT * FROM recurring_transactions WHERE is_active = TRUE AND next_due_date <= CURDATE()";
+        return jdbcTemplate.query(sql, recurringRowMapper);
+    }
+
+    /**
+     * Cập nhật ngày đến hạn tiếp theo của giao dịch định kỳ.
+     */
+    public void updateNextDueDate(Integer recurringId, java.time.LocalDate nextDueDate) {
+        String sql = "UPDATE recurring_transactions SET next_due_date = ? WHERE recurring_id = ?";
+        jdbcTemplate.update(sql, Date.valueOf(nextDueDate), recurringId);
+    }
+
+    /**
+     * Xóa giao dịch định kỳ của người dùng.
+     */
+    public int deleteByIdAndUserId(Integer recurringId, Integer userId) {
+        String sql = "DELETE FROM recurring_transactions WHERE recurring_id = ? AND user_id = ?";
+        return jdbcTemplate.update(sql, recurringId, userId);
+    }
+
+    /**
+     * Cập nhật trạng thái kích hoạt của giao dịch định kỳ.
+     */
+    public int updateStatus(Integer recurringId, Integer userId, boolean isActive) {
+        String sql = "UPDATE recurring_transactions SET is_active = ? WHERE recurring_id = ? AND user_id = ?";
+        return jdbcTemplate.update(sql, isActive, recurringId, userId);
+    }
 }

@@ -1,7 +1,9 @@
 package com.example.smartexpense.api;
 
 import com.example.smartexpense.models.AnomalyResponse;
+import com.example.smartexpense.models.BudgetDetailResponse;
 import com.example.smartexpense.models.BurnRateResponse;
+import com.example.smartexpense.models.RecurringTransaction;
 import com.example.smartexpense.models.SavingsSuggestion;
 import com.example.smartexpense.models.Wallet;
 import com.example.smartexpense.models.Transaction;
@@ -129,6 +131,11 @@ public interface ApiService {
             @Query("userId") Integer userId
     );
 
+    @GET("api/budgets/details")
+    Call<List<BudgetDetailResponse>> getBudgetDetails(
+            @Query("userId") Integer userId
+    );
+
     @POST("api/budgets")
     Call<com.example.smartexpense.models.Budget> createBudget(
             @Body com.example.smartexpense.models.Budget budget
@@ -148,6 +155,29 @@ public interface ApiService {
     Call<Map<String, Object>> addFundsToGoal(
             @retrofit2.http.Path("goalId") Integer goalId,
             @Query("amount") java.math.BigDecimal amount
+    );
+
+    @GET("api/recurring-transactions")
+    Call<List<RecurringTransaction>> getRecurringTransactions(
+            @Query("userId") Integer userId
+    );
+
+    @POST("api/recurring-transactions")
+    Call<RecurringTransaction> createRecurringTransaction(
+            @Body RecurringTransaction rt
+    );
+
+    @PUT("api/recurring-transactions/{id}/status")
+    Call<Void> updateRecurringTransactionStatus(
+            @retrofit2.http.Path("id") Integer id,
+            @Query("userId") Integer userId,
+            @Query("active") boolean active
+    );
+
+    @DELETE("api/recurring-transactions/{id}")
+    Call<Void> deleteRecurringTransaction(
+            @retrofit2.http.Path("id") Integer id,
+            @Query("userId") Integer userId
     );
 
     @POST("api/seed")

@@ -437,168 +437,14 @@
                     android:textStyle="bold"
                     android:layout_marginBottom="12dp" />
 
-                <!-- Dining & Food (Near Limit - 97%) -->
-                <com.google.android.material.card.MaterialCardView
+
+                <!-- Dynamic Category Budgets Container -->
+                <LinearLayout
+                    android:id="@+id/layout_budgets_container"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="1dp"
-                    app:cardBackgroundColor="@color/surface_white"
-                    android:layout_marginBottom="8dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
-
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content">
-
-                            <TextView
-                                android:id="@+id/tv_cat1_title"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Ăn Uống (Dining &amp; Food)"
-                                android:textColor="@color/text_primary"
-                                android:textSize="13sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_below="@id/tv_cat1_title"
-                                android:text="⚠️ Sắp chạm hạn mức"
-                                android:textColor="@color/crimson_expense"
-                                android:textSize="10sp"
-                                android:textStyle="bold"
-                                android:layout_marginTop="2dp" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_alignParentRight="true"
-                                android:text="780,000đ / 800,000đ"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="11sp" />
-                        </RelativeLayout>
-
-                        <ProgressBar
-                            style="@android:style/Widget.ProgressBar.Horizontal"
-                            android:layout_width="match_parent"
-                            android:layout_height="4dp"
-                            android:layout_marginTop="8dp"
-                            android:progress="97"
-                            android:progressTint="@color/crimson_expense"
-                            android:progressBackgroundTint="@color/progress_track" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <!-- Transport (Healthy - 46%) -->
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="1dp"
-                    app:cardBackgroundColor="@color/surface_white"
-                    android:layout_marginBottom="8dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
-
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Di Chuyển (Transport)"
-                                android:textColor="@color/text_primary"
-                                android:textSize="13sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_alignParentRight="true"
-                                android:text="210,000đ / 450,000đ"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="11sp" />
-                        </RelativeLayout>
-
-                        <ProgressBar
-                            style="@android:style/Widget.ProgressBar.Horizontal"
-                            android:layout_width="match_parent"
-                            android:layout_height="4dp"
-                            android:layout_marginTop="8dp"
-                            android:progress="46"
-                            android:progressTint="@color/accent_blue"
-                            android:progressBackgroundTint="@color/progress_track" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <!-- Entertainment (Over budget - 100%) -->
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="1dp"
-                    app:cardBackgroundColor="@color/surface_white"
-                    android:layout_marginBottom="16dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
-
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content">
-
-                            <TextView
-                                android:id="@+id/tv_cat3_title"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Giải Trí (Entertainment)"
-                                android:textColor="@color/text_primary"
-                                android:textSize="13sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_below="@id/tv_cat3_title"
-                                android:text="❌ Vượt ngân sách +40,000đ"
-                                android:textColor="@color/crimson_expense"
-                                android:textSize="10sp"
-                                android:textStyle="bold"
-                                android:layout_marginTop="2dp" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_alignParentRight="true"
-                                android:text="340,000đ / 300,000đ"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="11sp" />
-                        </RelativeLayout>
-
-                        <ProgressBar
-                            style="@android:style/Widget.ProgressBar.Horizontal"
-                            android:layout_width="match_parent"
-                            android:layout_height="4dp"
-                            android:layout_marginTop="8dp"
-                            android:progress="100"
-                            android:progressTint="@color/crimson_expense"
-                            android:progressBackgroundTint="@color/progress_track" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
+                    android:orientation="vertical"
+                    android:layout_marginBottom="8dp" />
 
                 <!-- Add new budget category button -->
                 <com.google.android.material.button.MaterialButton
@@ -649,9 +495,10 @@
                             android:letterSpacing="0.1" />
 
                         <TextView
+                            android:id="@+id/tv_savings_total_current"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="42,850,000đ"
+                            android:text="0đ"
                             android:textColor="@color/primary"
                             android:textSize="22sp"
                             android:textStyle="bold"
@@ -664,31 +511,80 @@
                             android:layout_marginBottom="6dp">
 
                             <TextView
+                                android:id="@+id/tv_savings_total_percent"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Đã đạt 68% mục tiêu chung"
+                                android:text="Đã đạt 0% mục tiêu chung"
                                 android:textColor="@color/text_secondary"
                                 android:textSize="12sp" />
 
                             <TextView
+                                android:id="@+id/tv_savings_total_target"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_alignParentRight="true"
-                                android:text="Mục tiêu: 63,000,000đ"
+                                android:text="Mục tiêu: 0đ"
                                 android:textColor="@color/text_primary"
                                 android:textSize="12sp"
                                 android:textStyle="bold" />
                         </RelativeLayout>
 
                         <ProgressBar
+                            android:id="@+id/pb_savings_total"
                             style="@android:style/Widget.ProgressBar.Horizontal"
                             android:layout_width="match_parent"
                             android:layout_height="6dp"
-                            android:progress="68"
+                            android:progress="0"
                             android:progressTint="@color/accent_blue"
                             android:progressBackgroundTint="@color/progress_track" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
+
+                <!-- AI Smart Suggestion Overview Container -->
+                <LinearLayout
+                    android:id="@+id/layout_ai_surplus_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="@drawable/bg_pill_chip_active"
+                    android:padding="12dp"
+                    android:layout_marginBottom="16dp"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="AI SAVINGS SUGGESTION (GỢI Ý TỪ AI)"
+                        android:textColor="@color/accent_blue"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:letterSpacing="0.1" />
+
+                    <TextView
+                        android:id="@+id/tv_ai_surplus_amount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="💡 Dòng tiền nhàn rỗi dự kiến tháng này: +0đ"
+                        android:textColor="@color/text_primary"
+                        android:textSize="12sp"
+                        android:layout_marginTop="4dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_ai_auto_allocate"
+                        android:layout_width="match_parent"
+                        android:layout_height="40dp"
+                        android:text="💡 Tự động phân bổ bằng AI (Một click)"
+                        android:textColor="@color/surface_white"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:backgroundTint="@color/primary"
+                        android:layout_marginTop="8dp"
+                        app:cornerRadius="8dp"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:clickable="true"
+                        android:focusable="true" />
+                </LinearLayout>
 
                 <!-- Active Goals section -->
                 <TextView
@@ -705,194 +601,8 @@
                     android:id="@+id/layout_savings_suggestions"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical">
-
-                    <!-- Default suggestion item for laptop -->
-                    <com.google.android.material.card.MaterialCardView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        app:cardCornerRadius="16dp"
-                        app:cardElevation="1dp"
-                        app:cardBackgroundColor="@color/surface_white"
-                        android:layout_marginBottom="8dp">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:padding="16dp">
-
-                            <RelativeLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginBottom="8dp">
-
-                                <TextView
-                                    android:id="@+id/tv_goal_laptop_title"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Tích Lũy Mua Laptop Workstation"
-                                    android:textColor="@color/text_primary"
-                                    android:textSize="13sp"
-                                    android:textStyle="bold" />
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_below="@id/tv_goal_laptop_title"
-                                    android:text="Hạn chót: Tháng 12/2026"
-                                    android:textColor="@color/text_secondary"
-                                    android:textSize="10sp"
-                                    android:layout_marginTop="2dp" />
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_alignParentRight="true"
-                                    android:text="82%"
-                                    android:textColor="@color/accent_blue"
-                                    android:textSize="15sp"
-                                    android:textStyle="bold" />
-                            </RelativeLayout>
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Đã tích lũy: 24,600,000đ / 30,000,000đ"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="11sp"
-                                android:layout_marginBottom="8dp" />
-
-                            <ProgressBar
-                                style="@android:style/Widget.ProgressBar.Horizontal"
-                                android:layout_width="match_parent"
-                                android:layout_height="4dp"
-                                android:progress="82"
-                                android:progressTint="@color/accent_blue"
-                                android:progressBackgroundTint="@color/progress_track"
-                                android:layout_marginBottom="12dp"/>
-
-                            <RelativeLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_centerVertical="true"
-                                    android:text="💡 Gợi ý trích: +1,500,000đ/tháng"
-                                    android:textColor="@color/primary"
-                                    android:textSize="10sp"
-                                    android:textStyle="bold" />
-
-                                <com.google.android.material.button.MaterialButton
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="32dp"
-                                    android:layout_alignParentRight="true"
-                                    android:text="Nạp Quỹ"
-                                    android:textColor="@color/surface_white"
-                                    android:textSize="10sp"
-                                    android:textStyle="bold"
-                                    android:padding="0dp"
-                                    android:backgroundTint="@color/primary"
-                                    app:cornerRadius="8dp" />
-                            </RelativeLayout>
-                        </LinearLayout>
-                    </com.google.android.material.card.MaterialCardView>
-
-                    <!-- Default suggestion item for Travel -->
-                    <com.google.android.material.card.MaterialCardView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        app:cardCornerRadius="16dp"
-                        app:cardElevation="1dp"
-                        app:cardBackgroundColor="@color/surface_white"
-                        android:layout_marginBottom="16dp">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:padding="16dp">
-
-                            <RelativeLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginBottom="8dp">
-
-                                <TextView
-                                    android:id="@+id/tv_goal_travel_title"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Đi Du Lịch Phú Quốc"
-                                    android:textColor="@color/text_primary"
-                                    android:textSize="13sp"
-                                    android:textStyle="bold" />
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_below="@id/tv_goal_travel_title"
-                                    android:text="Hạn chót: Tháng 08/2026"
-                                    android:textColor="@color/text_secondary"
-                                    android:textSize="10sp"
-                                    android:layout_marginTop="2dp" />
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_alignParentRight="true"
-                                    android:text="45%"
-                                    android:textColor="@color/accent_blue"
-                                    android:textSize="15sp"
-                                    android:textStyle="bold" />
-                            </RelativeLayout>
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Đã tích lũy: 3,600,000đ / 8,000,000đ"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="11sp"
-                                android:layout_marginBottom="8dp" />
-
-                            <ProgressBar
-                                style="@android:style/Widget.ProgressBar.Horizontal"
-                                android:layout_width="match_parent"
-                                android:layout_height="4dp"
-                                android:progress="45"
-                                android:progressTint="@color/accent_blue"
-                                android:progressBackgroundTint="@color/progress_track"
-                                android:layout_marginBottom="12dp"/>
-
-                            <RelativeLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_centerVertical="true"
-                                    android:text="💡 Gợi ý trích: +800,000đ/tháng"
-                                    android:textColor="@color/primary"
-                                    android:textSize="10sp"
-                                    android:textStyle="bold" />
-
-                                <com.google.android.material.button.MaterialButton
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="32dp"
-                                    android:layout_alignParentRight="true"
-                                    android:text="Nạp Quỹ"
-                                    android:textColor="@color/surface_white"
-                                    android:textSize="10sp"
-                                    android:textStyle="bold"
-                                    android:padding="0dp"
-                                    android:backgroundTint="@color/primary"
-                                    app:cornerRadius="8dp" />
-                            </RelativeLayout>
-                        </LinearLayout>
-                    </com.google.android.material.card.MaterialCardView>
-                </LinearLayout>
+                    android:orientation="vertical"
+                    android:layout_marginBottom="16dp" />
 
                 <!-- Create new goal category button -->
                 <com.google.android.material.button.MaterialButton

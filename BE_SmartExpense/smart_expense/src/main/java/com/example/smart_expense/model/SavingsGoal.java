@@ -20,6 +20,7 @@ public class SavingsGoal {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer goalId;
     private Integer userId;
+    private String goalName; // Tên mục tiêu tích lũy do người dùng đặt
     private BigDecimal targetAmount;
     private BigDecimal currentAmount;
     private LocalDate deadline;
