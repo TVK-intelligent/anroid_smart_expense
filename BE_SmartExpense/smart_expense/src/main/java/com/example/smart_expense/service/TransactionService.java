@@ -49,8 +49,14 @@ public class TransactionService {
                 amountChange = amountChange.negate();
             }
 
-            // Cập nhật số dư ví tương ứng
-            walletRepository.updateBalance(transaction.getWalletId(), amountChange);
+            // Cập nhật số dư đúng ví của người dùng đang tạo giao dịch.
+            int updatedWallets = walletRepository.updateBalance(
+                    transaction.getWalletId(),
+                    transaction.getUserId(),
+                    amountChange);
+            if (updatedWallets == 0) {
+                throw new IllegalArgumentException("Wallet not found for this user");
+            }
 
             // 3. Áp dụng phân tích thông minh cho các khoản chi tiêu
             if ("EXPENSE".equalsIgnoreCase(category.getType())) {

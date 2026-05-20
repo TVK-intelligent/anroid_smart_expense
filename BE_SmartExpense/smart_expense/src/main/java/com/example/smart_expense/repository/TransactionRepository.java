@@ -71,6 +71,12 @@ public class TransactionRepository {
         return jdbcTemplate.query(sql, transactionRowMapper, userId);
     }
 
+    public int countByWalletIdAndUserId(Integer walletId, Integer userId) {
+        String sql = "SELECT COUNT(*) FROM transactions WHERE wallet_id = ? AND user_id = ?";
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, walletId, userId);
+        return count != null ? count : 0;
+    }
+
     /**
      * Tính toán số tiền chi tiêu trung bình cho một danh mục trong N ngày gần nhất.
      * Sử dụng cho thuật toán Phát hiện Bất thường (Anomaly Detection).

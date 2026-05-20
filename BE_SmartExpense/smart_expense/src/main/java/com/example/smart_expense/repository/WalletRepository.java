@@ -51,10 +51,10 @@ public class WalletRepository {
         return wallet;
     }
 
-    public Optional<Wallet> findById(Integer walletId) {
-        String sql = "SELECT * FROM wallets WHERE wallet_id = ?";
+    public Optional<Wallet> findByIdAndUserId(Integer walletId, Integer userId) {
+        String sql = "SELECT * FROM wallets WHERE wallet_id = ? AND user_id = ?";
         try {
-            Wallet wallet = jdbcTemplate.queryForObject(sql, walletRowMapper, walletId);
+            Wallet wallet = jdbcTemplate.queryForObject(sql, walletRowMapper, walletId, userId);
             return Optional.ofNullable(wallet);
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
@@ -66,8 +66,29 @@ public class WalletRepository {
         return jdbcTemplate.query(sql, walletRowMapper, userId);
     }
 
-    public void updateBalance(Integer walletId, BigDecimal amountChange) {
-        String sql = "UPDATE wallets SET balance = balance + ? WHERE wallet_id = ?";
-        jdbcTemplate.update(sql, amountChange, walletId);
+    public Wallet update(Wallet wallet) {
+        String sql = "UPDATE wallets SET name = ?, type = ?, balance = ? WHERE wallet_id = ? AND user_id = ?";
+        jdbcTemplate.update(sql,
+                wallet.getName(),
+                wallet.getType(),
+                wallet.getBalance() != null ? wallet.getBalance() : BigDecimal.ZERO,
+                wallet.getWalletId(),
+                wallet.getUserId());
+        return wallet;
+    }
+
+    public int deleteByIdAndUserId(Integer walletId, Integer userId) {
+        String sql = "DELETE FROM wallets WHERE wallet_id = ? AND user_id = ?";
+        return jdbcTemplate.update(sql, walletId, userId);
+    }
+
+    public BigDecimal getTotalBalanceByUserId(Integer userId) {
+        String sql = "SELECT COALESCE(SUM(balance), 0) FROM wallets WHERE user_id = ?";
+        return jdbcTemplate.queryForObject(sql, BigDecimal.class, userId);
+    }
+
+    public int updateBalance(Integer walletId, Integer userId, BigDecimal amountChange) {
+        String sql = "UPDATE wallets SET balance = balance + ? WHERE wallet_id = ? AND user_id = ?";
+        return jdbcTemplate.update(sql, amountChange, walletId, userId);
     }
 }
