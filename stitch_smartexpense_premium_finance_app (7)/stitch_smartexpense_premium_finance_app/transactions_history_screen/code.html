@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SmartExpense - Transaction History</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed-dim": "#4edea3",
+                        "on-primary": "#ffffff",
+                        "outline": "#757682",
+                        "on-error-container": "#93000a",
+                        "surface-bright": "#f8f9ff",
+                        "outline-variant": "#c5c5d3",
+                        "on-secondary-fixed": "#001a42",
+                        "surface-dim": "#cbdbf5",
+                        "inverse-primary": "#b6c4ff",
+                        "tertiary": "#00311f",
+                        "background": "#f8f9ff",
+                        "secondary-fixed-dim": "#adc6ff",
+                        "inverse-on-surface": "#eaf1ff",
+                        "on-surface": "#0b1c30",
+                        "secondary": "#0058be",
+                        "surface-container-highest": "#d3e4fe",
+                        "error": "#ba1a1a",
+                        "on-surface-variant": "#444651",
+                        "surface": "#f8f9ff",
+                        "tertiary-container": "#004a31",
+                        "on-primary-fixed-variant": "#264191",
+                        "surface-container-high": "#dce9ff",
+                        "primary-container": "#1e3a8a",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-fixed": "#002113",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-container": "#27c38a",
+                        "surface-tint": "#4059aa",
+                        "surface-container": "#e5eeff",
+                        "secondary-container": "#2170e4",
+                        "surface-container-low": "#eff4ff",
+                        "on-primary-fixed": "#00164e",
+                        "surface-variant": "#d3e4fe",
+                        "on-background": "#0b1c30",
+                        "on-error": "#ffffff",
+                        "primary-fixed-dim": "#b6c4ff",
+                        "on-secondary-container": "#fefcff",
+                        "on-primary-container": "#90a8ff",
+                        "on-tertiary-fixed-variant": "#005236",
+                        "on-secondary": "#ffffff",
+                        "primary": "#00236f",
+                        "inverse-surface": "#213145",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed-variant": "#004395",
+                        "tertiary-fixed": "#6ffbbe",
+                        "primary-fixed": "#dce1ff",
+                        "secondary-fixed": "#d8e2ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-space-lg": "24px",
+                        "base": "8px",
+                        "container-padding": "16px",
+                        "margin-horizontal": "16px",
+                        "stack-space-md": "12px",
+                        "stack-space-sm": "4px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Inter"],
+                        "display-lg-mobile": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "title-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "display-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                        "display-lg": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "title-md": ["16px", {"lineHeight": "24px", "fontWeight": "500"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen flex flex-col">
+<!-- Top App Bar -->
+<header class="w-full top-0 sticky z-50 bg-surface flex items-center justify-between px-margin-horizontal h-14 transition-opacity duration-150">
+<div class="flex items-center gap-4">
+<button class="text-primary hover:bg-surface-container-low transition-colors p-2 rounded-full active:opacity-80">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+</button>
+<h1 class="font-headline-md text-headline-md font-bold text-primary">SmartExpense</h1>
+</div>
+<div class="flex items-center">
+<button class="text-primary hover:bg-surface-container-low transition-colors p-2 rounded-full active:opacity-80">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+</div>
+</header>
+<main class="flex-1 pb-24 overflow-y-auto">
+<!-- Search & Filter Section -->
+<div class="px-margin-horizontal mt-stack-space-md space-y-stack-space-md">
+<!-- Search Bar -->
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline" data-icon="search">search</span>
+<input class="w-full h-14 pl-12 pr-4 bg-surface-container-lowest border border-outline-variant rounded-xl focus:border-secondary focus:ring-1 focus:ring-secondary transition-all font-body-md text-body-md outline-none" placeholder="Search transactions..." type="text"/>
+</div>
+<!-- Chips Container -->
+<div class="flex gap-2 overflow-x-auto hide-scrollbar -mx-margin-horizontal px-margin-horizontal pb-1">
+<button class="flex-none h-8 px-4 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm flex items-center justify-center transition-all shadow-sm">
+                    All
+                </button>
+<button class="flex-none h-8 px-4 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm flex items-center justify-center hover:bg-surface-container-highest transition-all">
+                    Food
+                </button>
+<button class="flex-none h-8 px-4 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm flex items-center justify-center hover:bg-surface-container-highest transition-all">
+                    Rent
+                </button>
+<button class="flex-none h-8 px-4 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm flex items-center justify-center hover:bg-surface-container-highest transition-all">
+                    Salary
+                </button>
+<button class="flex-none h-8 px-4 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm flex items-center justify-center hover:bg-surface-container-highest transition-all">
+                    Shopping
+                </button>
+<button class="flex-none h-8 px-4 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm flex items-center justify-center hover:bg-surface-container-highest transition-all">
+                    Transport
+                </button>
+</div>
+</div>
+<!-- Transaction Groups -->
+<div class="mt-stack-space-lg px-margin-horizontal">
+<!-- Today Group -->
+<div class="mb-stack-space-lg">
+<h3 class="font-label-sm text-label-sm text-outline uppercase tracking-widest mb-stack-space-md">Today</h3>
+<div class="space-y-stack-space-md">
+<!-- Transaction Card -->
+<div class="flex items-center h-20 bg-surface-container-lowest rounded-xl px-4 shadow-[0px_2px_8px_rgba(15,23,42,0.05)] hover:bg-surface-container-low transition-colors cursor-pointer group">
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-primary-container group-hover:bg-primary-container group-hover:text-on-primary-container transition-colors">
+<span class="material-symbols-outlined" data-icon="restaurant">restaurant</span>
+</div>
+<div class="flex-1 ml-4">
+<p class="font-title-md text-title-md text-on-surface">Whole Foods Market</p>
+<p class="font-label-sm text-label-sm text-outline-variant">Food &amp; Dining</p>
+</div>
+<div class="text-right">
+<p class="font-headline-md text-headline-md text-error">- $84.20</p>
+<p class="font-label-sm text-label-sm text-outline-variant">02:30 PM</p>
+</div>
+</div>
+<!-- Transaction Card (Income) -->
+<div class="flex items-center h-20 bg-surface-container-lowest rounded-xl px-4 shadow-[0px_2px_8px_rgba(15,23,42,0.05)] hover:bg-surface-container-low transition-colors cursor-pointer group">
+<div class="w-12 h-12 rounded-full bg-tertiary-fixed-dim/20 flex items-center justify-center text-on-tertiary-fixed-variant transition-colors">
+<span class="material-symbols-outlined" data-icon="payments" data-weight="fill" style="font-variation-settings: 'FILL' 1;">payments</span>
+</div>
+<div class="flex-1 ml-4">
+<p class="font-title-md text-title-md text-on-surface">Monthly Salary</p>
+<p class="font-label-sm text-label-sm text-outline-variant">Salary</p>
+</div>
+<div class="text-right">
+<p class="font-headline-md text-headline-md text-on-tertiary-container">+ $5,200.00</p>
+<p class="font-label-sm text-label-sm text-outline-variant">09:00 AM</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Yesterday Group -->
+<div>
+<h3 class="font-label-sm text-label-sm text-outline uppercase tracking-widest mb-stack-space-md">Yesterday</h3>
+<div class="space-y-stack-space-md">
+<!-- Transaction Card -->
+<div class="flex items-center h-20 bg-surface-container-lowest rounded-xl px-4 shadow-[0px_2px_8px_rgba(15,23,42,0.05)] hover:bg-surface-container-low transition-colors cursor-pointer group">
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-primary-container group-hover:bg-primary-container group-hover:text-on-primary-container transition-colors">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+</div>
+<div class="flex-1 ml-4">
+<p class="font-title-md text-title-md text-on-surface">Monthly Rent</p>
+<p class="font-label-sm text-label-sm text-outline-variant">Rent</p>
+</div>
+<div class="text-right">
+<p class="font-headline-md text-headline-md text-error">- $1,850.00</p>
+<p class="font-label-sm text-label-sm text-outline-variant">10:15 PM</p>
+</div>
+</div>
+<!-- Transaction Card -->
+<div class="flex items-center h-20 bg-surface-container-lowest rounded-xl px-4 shadow-[0px_2px_8px_rgba(15,23,42,0.05)] hover:bg-surface-container-low transition-colors cursor-pointer group">
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-primary-container group-hover:bg-primary-container group-hover:text-on-primary-container transition-colors">
+<span class="material-symbols-outlined" data-icon="shopping_bag">shopping_bag</span>
+</div>
+<div class="flex-1 ml-4">
+<p class="font-title-md text-title-md text-on-surface">Apple Store</p>
+<p class="font-label-sm text-label-sm text-outline-variant">Electronics</p>
+</div>
+<div class="text-right">
+<p class="font-headline-md text-headline-md text-error">- $129.00</p>
+<p class="font-label-sm text-label-sm text-outline-variant">04:45 PM</p>
+</div>
+</div>
+<!-- Transaction Card -->
+<div class="flex items-center h-20 bg-surface-container-lowest rounded-xl px-4 shadow-[0px_2px_8px_rgba(15,23,42,0.05)] hover:bg-surface-container-low transition-colors cursor-pointer group">
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-primary-container group-hover:bg-primary-container group-hover:text-on-primary-container transition-colors">
+<span class="material-symbols-outlined" data-icon="commute">commute</span>
+</div>
+<div class="flex-1 ml-4">
+<p class="font-title-md text-title-md text-on-surface">Uber Ride</p>
+<p class="font-label-sm text-label-sm text-outline-variant">Transport</p>
+</div>
+<div class="text-right">
+<p class="font-headline-md text-headline-md text-error">- $24.50</p>
+<p class="font-label-sm text-label-sm text-outline-variant">08:20 AM</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 rounded-t-xl bg-surface-container shadow-[0px_-2px_8px_rgba(15,23,42,0.05)] flex justify-around items-center px-4 h-20">
+<a class="flex flex-col items-center justify-center text-on-surface-variant py-2 hover:bg-surface-container-high transition-all active:scale-95 duration-100 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="grid_view">grid_view</span>
+<span class="font-label-sm text-label-sm mt-1">Dashboard</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-full px-5 py-1 transition-all active:scale-95 duration-100 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="receipt_long" data-weight="fill" style="font-variation-settings: 'FILL' 1;">receipt_long</span>
+<span class="font-label-sm text-label-sm">History</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant py-2 hover:bg-surface-container-high transition-all active:scale-95 duration-100 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+<span class="font-label-sm text-label-sm mt-1">Add</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant py-2 hover:bg-surface-container-high transition-all active:scale-95 duration-100 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="font-label-sm text-label-sm mt-1">Analytics</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant py-2 hover:bg-surface-container-high transition-all active:scale-95 duration-100 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-sm text-label-sm mt-1">Profile</span>
+</a>
+</nav>
+<script>
+        // Simple Interaction logic for chips
+        const chips = document.querySelectorAll('.flex-none.h-8.px-4.rounded-full');
+        chips.forEach(chip => {
+            chip.addEventListener('click', () => {
+                chips.forEach(c => {
+                    c.classList.remove('bg-secondary-container', 'text-on-secondary-container', 'shadow-sm');
+                    c.classList.add('bg-surface-container-high', 'text-on-surface-variant');
+                });
+                chip.classList.remove('bg-surface-container-high', 'text-on-surface-variant');
+                chip.classList.add('bg-secondary-container', 'text-on-secondary-container', 'shadow-sm');
+            });
+        });
+
+        // Search highlight micro-interaction
+        const searchInput = document.querySelector('input[type="text"]');
+        searchInput.addEventListener('focus', () => {
+            searchInput.parentElement.querySelector('.material-symbols-outlined').classList.replace('text-outline', 'text-secondary');
+        });
+        searchInput.addEventListener('blur', () => {
+            searchInput.parentElement.querySelector('.material-symbols-outlined').classList.replace('text-secondary', 'text-outline');
+        });
+    </script>
+</body></html>

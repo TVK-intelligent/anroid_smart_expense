@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SmartExpense Analytics</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed-dim": "#4edea3",
+                    "on-primary": "#ffffff",
+                    "outline": "#757682",
+                    "on-error-container": "#93000a",
+                    "surface-bright": "#f8f9ff",
+                    "outline-variant": "#c5c5d3",
+                    "on-secondary-fixed": "#001a42",
+                    "surface-dim": "#cbdbf5",
+                    "inverse-primary": "#b6c4ff",
+                    "tertiary": "#00311f",
+                    "background": "#f8f9ff",
+                    "secondary-fixed-dim": "#adc6ff",
+                    "inverse-on-surface": "#eaf1ff",
+                    "on-surface": "#0b1c30",
+                    "secondary": "#0058be",
+                    "surface-container-highest": "#d3e4fe",
+                    "error": "#ba1a1a",
+                    "on-surface-variant": "#444651",
+                    "surface": "#f8f9ff",
+                    "tertiary-container": "#004a31",
+                    "on-primary-fixed-variant": "#264191",
+                    "surface-container-high": "#dce9ff",
+                    "primary-container": "#1e3a8a",
+                    "error-container": "#ffdad6",
+                    "on-tertiary-fixed": "#002113",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary-container": "#27c38a",
+                    "surface-tint": "#4059aa",
+                    "surface-container": "#e5eeff",
+                    "secondary-container": "#2170e4",
+                    "surface-container-low": "#eff4ff",
+                    "on-primary-fixed": "#00164e",
+                    "surface-variant": "#d3e4fe",
+                    "on-background": "#0b1c30",
+                    "on-error": "#ffffff",
+                    "primary-fixed-dim": "#b6c4ff",
+                    "on-secondary-container": "#fefcff",
+                    "on-primary-container": "#90a8ff",
+                    "on-tertiary-fixed-variant": "#005236",
+                    "on-secondary": "#ffffff",
+                    "primary": "#00236f",
+                    "inverse-surface": "#213145",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary-fixed-variant": "#004395",
+                    "tertiary-fixed": "#6ffbbe",
+                    "primary-fixed": "#dce1ff",
+                    "secondary-fixed": "#d8e2ff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-space-lg": "24px",
+                    "base": "8px",
+                    "container-padding": "16px",
+                    "margin-horizontal": "16px",
+                    "stack-space-md": "12px",
+                    "stack-space-sm": "4px",
+                    "gutter": "16px"
+            },
+            "fontFamily": {
+                    "headline-md": ["Inter"],
+                    "display-lg-mobile": ["Inter"],
+                    "display-lg": ["Inter"],
+                    "title-md": ["Inter"],
+                    "body-md": ["Inter"],
+                    "label-sm": ["Inter"]
+            },
+            "fontSize": {
+                    "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "display-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                    "display-lg": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "title-md": ["16px", {"lineHeight": "24px", "fontWeight": "500"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .chart-gradient { background: linear-gradient(180deg, rgba(33, 112, 228, 0.1) 0%, rgba(33, 112, 228, 0) 100%); }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen pb-24">
+<!-- Top App Bar -->
+<header class="flex items-center justify-between px-margin-horizontal h-14 w-full bg-surface dark:bg-surface top-0 sticky z-40">
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-primary dark:text-primary-fixed-dim hover:bg-surface-container-low transition-colors p-2 rounded-full" data-icon="arrow_back">arrow_back</button>
+<h1 class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed-dim">SmartExpense</h1>
+</div>
+<button class="material-symbols-outlined text-primary dark:text-primary-fixed-dim hover:bg-surface-container-low transition-colors p-2 rounded-full" data-icon="notifications">notifications</button>
+</header>
+<main class="px-margin-horizontal mt-6 space-y-6">
+<!-- Timeframe Selector -->
+<section class="flex bg-surface-container rounded-xl p-1 shadow-sm">
+<button class="flex-1 py-2 text-center rounded-lg font-title-md text-title-md transition-all bg-surface-container-lowest text-primary shadow-sm">Week</button>
+<button class="flex-1 py-2 text-center rounded-lg font-title-md text-title-md transition-all text-on-surface-variant hover:bg-surface-container-high">Month</button>
+<button class="flex-1 py-2 text-center rounded-lg font-title-md text-title-md transition-all text-on-surface-variant hover:bg-surface-container-high">Year</button>
+</section>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+<!-- Health Score Gauge -->
+<div class="bg-surface-container-lowest p-6 rounded-xl shadow-[0px_2px_8px_rgba(15,23,42,0.05)] border border-surface-container-high flex flex-col items-center justify-center">
+<h3 class="font-title-md text-title-md text-on-surface-variant mb-4 w-full">Financial Health</h3>
+<div class="relative w-40 h-40 flex items-center justify-center">
+<svg class="w-full h-full transform -rotate-90">
+<circle class="text-surface-container" cx="80" cy="80" fill="transparent" r="70" stroke="currentColor" stroke-width="12"></circle>
+<circle class="text-tertiary-fixed-dim transition-all duration-1000" cx="80" cy="80" fill="transparent" r="70" stroke="currentColor" stroke-dasharray="440" stroke-dashoffset="110" stroke-width="12"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="text-display-lg font-display-lg text-primary">84</span>
+<span class="text-label-sm font-label-sm text-tertiary-container uppercase tracking-widest">Excellent</span>
+</div>
+</div>
+<p class="mt-4 text-body-md font-body-md text-on-surface-variant text-center">Your saving habit is in the top 5% of users this week.</p>
+</div>
+<!-- Spending Trends Line Chart -->
+<div class="bg-surface-container-lowest p-6 rounded-xl shadow-[0px_2px_8px_rgba(15,23,42,0.05)] border border-surface-container-high md:col-span-2">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-title-md text-title-md text-on-surface">Spending Trends</h3>
+<span class="text-label-sm font-label-sm text-secondary flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]" data-icon="trending_down">trending_down</span> -12.4% vs last week
+                    </span>
+</div>
+<div class="h-48 w-full relative">
+<!-- Simple SVG Line Chart Simulation -->
+<svg class="w-full h-full overflow-visible" preserveaspectratio="none">
+<path d="M0,80 Q50,40 100,60 T200,30 T300,50 T400,20 T500,40" fill="none" stroke="#2170e4" stroke-width="3"></path>
+<path class="fill-secondary/10" d="M0,80 Q50,40 100,60 T200,30 T300,50 T400,20 T500,40 V150 H0 Z"></path>
+</svg>
+<div class="absolute bottom-0 left-0 w-full flex justify-between text-label-sm text-outline px-2">
+<span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+</div>
+</div>
+</div>
+<!-- Categorical Pie Chart -->
+<div class="bg-surface-container-lowest p-6 rounded-xl shadow-[0px_2px_8px_rgba(15,23,42,0.05)] border border-surface-container-high lg:row-span-2">
+<h3 class="font-title-md text-title-md text-on-surface mb-6">Categorical Split</h3>
+<div class="relative aspect-square mb-6">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 100 100">
+<circle cx="50" cy="50" fill="transparent" r="40" stroke="#1E3A8A" stroke-dasharray="251" stroke-dashoffset="60" stroke-width="20"></circle>
+<circle cx="50" cy="50" fill="transparent" r="40" stroke="#2170E4" stroke-dasharray="251" stroke-dashoffset="180" stroke-width="20"></circle>
+<circle cx="50" cy="50" fill="transparent" r="40" stroke="#4edea3" stroke-dasharray="251" stroke-dashoffset="230" stroke-width="20"></circle>
+</svg>
+</div>
+<div class="space-y-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-primary-container"></span>
+<span class="text-body-md font-body-md">Housing</span>
+</div>
+<span class="text-body-md font-body-md font-bold">$1,200</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-secondary-container"></span>
+<span class="text-body-md font-body-md">Food &amp; Dining</span>
+</div>
+<span class="text-body-md font-body-md font-bold">$450</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-tertiary-fixed-dim"></span>
+<span class="text-body-md font-body-md">Transport</span>
+</div>
+<span class="text-body-md font-body-md font-bold">$180</span>
+</div>
+</div>
+</div>
+<!-- AI Smart Suggestions -->
+<div class="md:col-span-2 bg-gradient-to-br from-primary to-primary-container p-6 rounded-xl shadow-lg relative overflow-hidden group">
+<div class="relative z-10 flex flex-col md:flex-row md:items-center gap-6">
+<div class="bg-surface-container-lowest/20 p-4 rounded-full w-fit">
+<span class="material-symbols-outlined text-white text-[32px] animate-pulse" data-icon="lightbulb" style="font-variation-settings: 'FILL' 1;">lightbulb</span>
+</div>
+<div>
+<h4 class="text-white font-title-md text-title-md mb-1">AI Smart Insight</h4>
+<p class="text-on-primary-container font-body-md leading-relaxed">
+                            "You saved 10% on groceries this month by shopping at Wholesale Club. If you maintain this, you'll reach your 'New Car' goal 2 months early."
+                        </p>
+</div>
+<button class="bg-white text-primary px-6 py-2 rounded-full font-title-md text-title-md ml-auto hover:bg-secondary-fixed transition-colors">
+                        View Plan
+                    </button>
+</div>
+<!-- Decorative background elements -->
+<div class="absolute top-0 right-0 -mr-16 -mt-16 w-48 h-48 bg-white/5 rounded-full blur-3xl"></div>
+<div class="absolute bottom-0 left-0 -ml-8 -mb-8 w-32 h-32 bg-secondary/10 rounded-full blur-2xl"></div>
+</div>
+<!-- Recent Big Purchases -->
+<div class="md:col-span-2 bg-surface-container-lowest p-6 rounded-xl shadow-[0px_2px_8px_rgba(15,23,42,0.05)] border border-surface-container-high">
+<h3 class="font-title-md text-title-md text-on-surface mb-4">Notable Transactions</h3>
+<div class="space-y-4">
+<div class="flex items-center justify-between p-3 hover:bg-surface-container-low transition-colors rounded-lg cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-secondary-fixed flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined" data-icon="shopping_bag">shopping_bag</span>
+</div>
+<div>
+<p class="font-title-md text-title-md">Apple Store</p>
+<p class="text-label-sm font-label-sm text-outline">Oct 24 • Tech Gadgets</p>
+</div>
+</div>
+<span class="font-title-md text-title-md text-error">-$1,299.00</span>
+</div>
+<div class="flex items-center justify-between p-3 hover:bg-surface-container-low transition-colors rounded-lg cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-tertiary-fixed flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+</div>
+<div>
+<p class="font-title-md text-title-md">Client Payment</p>
+<p class="text-label-sm font-label-sm text-outline">Oct 22 • Income</p>
+</div>
+</div>
+<span class="font-title-md text-title-md text-tertiary-container">+$4,500.00</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 h-20 bg-surface-container dark:bg-surface-container shadow-[0px_-2px_8px_rgba(15,23,42,0.05)] rounded-t-xl z-50">
+<div class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant py-2 cursor-pointer hover:bg-surface-container-high transition-all">
+<span class="material-symbols-outlined" data-icon="grid_view">grid_view</span>
+<span class="font-label-sm text-label-sm">Dashboard</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant py-2 cursor-pointer hover:bg-surface-container-high transition-all">
+<span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
+<span class="font-label-sm text-label-sm">History</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant py-2 cursor-pointer active:scale-95 duration-100 ease-in-out">
+<div class="bg-primary text-white rounded-full p-3 shadow-lg -mt-8">
+<span class="material-symbols-outlined text-[28px]" data-icon="add">add</span>
+</div>
+<span class="font-label-sm text-label-sm mt-1">Add</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-secondary-container dark:bg-secondary text-on-secondary-container dark:text-on-secondary-container rounded-full px-5 py-1 transition-all">
+<span class="material-symbols-outlined" data-icon="analytics" style="font-variation-settings: 'FILL' 1;">analytics</span>
+<span class="font-label-sm text-label-sm">Analytics</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant py-2 cursor-pointer hover:bg-surface-container-high transition-all">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-sm text-label-sm">Profile</span>
+</div>
+</nav>
+<script>
+        // Micro-interaction for gauge animation on scroll
+        window.addEventListener('load', () => {
+            const circle = document.querySelector('circle.text-tertiary-fixed-dim');
+            if (circle) {
+                circle.style.strokeDashoffset = '110';
+            }
+        });
+
+        // Tab selection logic
+        const tabs = document.querySelectorAll('section button');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => {
+                    t.classList.remove('bg-surface-container-lowest', 'text-primary', 'shadow-sm');
+                    t.classList.add('text-on-surface-variant', 'hover:bg-surface-container-high');
+                });
+                tab.classList.add('bg-surface-container-lowest', 'text-primary', 'shadow-sm');
+                tab.classList.remove('text-on-surface-variant', 'hover:bg-surface-container-high');
+            });
+        });
+    </script>
+</body></html>

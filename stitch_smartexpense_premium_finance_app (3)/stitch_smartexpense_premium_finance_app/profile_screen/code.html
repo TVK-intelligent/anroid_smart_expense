@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Profile - SmartExpense</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed-dim": "#4edea3",
+                    "on-primary": "#ffffff",
+                    "outline": "#757682",
+                    "on-error-container": "#93000a",
+                    "surface-bright": "#f8f9ff",
+                    "outline-variant": "#c5c5d3",
+                    "on-secondary-fixed": "#001a42",
+                    "surface-dim": "#cbdbf5",
+                    "inverse-primary": "#b6c4ff",
+                    "tertiary": "#00311f",
+                    "background": "#f8f9ff",
+                    "secondary-fixed-dim": "#adc6ff",
+                    "inverse-on-surface": "#eaf1ff",
+                    "on-surface": "#0b1c30",
+                    "secondary": "#0058be",
+                    "surface-container-highest": "#d3e4fe",
+                    "error": "#ba1a1a",
+                    "on-surface-variant": "#444651",
+                    "surface": "#f8f9ff",
+                    "tertiary-container": "#004a31",
+                    "on-primary-fixed-variant": "#264191",
+                    "surface-container-high": "#dce9ff",
+                    "primary-container": "#1e3a8a",
+                    "error-container": "#ffdad6",
+                    "on-tertiary-fixed": "#002113",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary-container": "#27c38a",
+                    "surface-tint": "#4059aa",
+                    "surface-container": "#e5eeff",
+                    "secondary-container": "#2170e4",
+                    "surface-container-low": "#eff4ff",
+                    "on-primary-fixed": "#00164e",
+                    "surface-variant": "#d3e4fe",
+                    "on-background": "#0b1c30",
+                    "on-error": "#ffffff",
+                    "primary-fixed-dim": "#b6c4ff",
+                    "on-secondary-container": "#fefcff",
+                    "on-primary-container": "#90a8ff",
+                    "on-tertiary-fixed-variant": "#005236",
+                    "on-secondary": "#ffffff",
+                    "primary": "#00236f",
+                    "inverse-surface": "#213145",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary-fixed-variant": "#004395",
+                    "tertiary-fixed": "#6ffbbe",
+                    "primary-fixed": "#dce1ff",
+                    "secondary-fixed": "#d8e2ff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-space-lg": "24px",
+                    "base": "8px",
+                    "container-padding": "16px",
+                    "margin-horizontal": "16px",
+                    "stack-space-md": "12px",
+                    "stack-space-sm": "4px",
+                    "gutter": "16px"
+            },
+            "fontFamily": {
+                    "headline-md": ["Inter"],
+                    "display-lg-mobile": ["Inter"],
+                    "display-lg": ["Inter"],
+                    "title-md": ["Inter"],
+                    "body-md": ["Inter"],
+                    "label-sm": ["Inter"]
+            },
+            "fontSize": {
+                    "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "display-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                    "display-lg": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "title-md": ["16px", {"lineHeight": "24px", "fontWeight": "500"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen flex flex-col">
+<!-- Top App Bar -->
+<header class="w-full top-0 sticky flex items-center justify-between px-margin-horizontal h-14 w-full bg-surface z-40">
+<div class="flex items-center gap-4">
+<button class="active:opacity-80 transition-opacity duration-150 p-2 rounded-full hover:bg-surface-container-low">
+<span class="material-symbols-outlined text-primary">arrow_back</span>
+</button>
+<h1 class="font-headline-md text-headline-md font-bold text-primary">SmartExpense</h1>
+</div>
+<button class="active:opacity-80 transition-opacity duration-150 p-2 rounded-full hover:bg-surface-container-low">
+<span class="material-symbols-outlined text-primary">notifications</span>
+</button>
+</header>
+<main class="flex-grow px-margin-horizontal pb-24">
+<!-- User Header Profile Section -->
+<section class="mt-stack-space-lg flex flex-col items-center py-6">
+<div class="relative group">
+<div class="w-24 h-24 rounded-full overflow-hidden border-4 border-surface-container-high shadow-lg">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="A professional headshot of a middle-aged man with a friendly expression, wearing a clean white shirt against a neutral studio background. The lighting is soft and high-key, aligning with a premium light-mode UI aesthetic. The overall mood is professional, trustworthy, and calm, reflecting the corporate fintech atmosphere of the application." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAOwLtM8PolZ1wWxovUsQPCstLyBHrVVjpPVBgRTP45vP6Za8MNBBSl11zJcecfd_t1MsREiq5WCiEsdRScTFhSvOTdN346g94p8_WtuWc9EopZWf7Dn_DzdcbwrM_5zE6_cq_sFhv2KaIc3Og0utlOD4PGTteQlMsEgC6nyufdYWU6vkiSf1rtHI-BUfggMJd7XPsBGklud-uvmBqSGDo0sznrwtwZmoC3Tyy_qYwTZ1zi_eRGz3Qemx96BzByckB0CqVgyr_P2vBH"/>
+</div>
+<button class="absolute bottom-0 right-0 bg-primary text-on-primary p-2 rounded-full shadow-md active:scale-90 transition-transform">
+<span class="material-symbols-outlined" style="font-size: 18px;">edit</span>
+</button>
+</div>
+<div class="mt-4 text-center">
+<h2 class="font-display-lg-mobile text-display-lg-mobile text-on-surface">Alex Thompson</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">alex.thompson@fintech-pro.com</p>
+</div>
+</section>
+<!-- Settings List Container -->
+<div class="mt-stack-space-lg space-y-2">
+<!-- Section Label -->
+<p class="font-label-sm text-label-sm text-outline px-2 uppercase tracking-widest mb-2">General Settings</p>
+<!-- User Info Item -->
+<div class="bg-surface-container-lowest p-4 rounded-xl flex items-center justify-between shadow-[0px_2px_8px_rgba(15,23,42,0.05)] hover:bg-surface-container-low transition-colors cursor-pointer group">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center text-on-primary-fixed-variant">
+<span class="material-symbols-outlined">person</span>
+</div>
+<div>
+<p class="font-title-md text-title-md text-on-surface">User Info</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Manage personal details</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:translate-x-1 transition-transform">chevron_right</span>
+</div>
+<!-- Currency Item -->
+<div class="bg-surface-container-lowest p-4 rounded-xl flex items-center justify-between shadow-[0px_2px_8px_rgba(15,23,42,0.05)] hover:bg-surface-container-low transition-colors cursor-pointer group">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed-variant">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<div>
+<p class="font-title-md text-title-md text-on-surface">Currency</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">USD ($)</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:translate-x-1 transition-transform">chevron_right</span>
+</div>
+<!-- Security Item -->
+<div class="bg-surface-container-lowest p-4 rounded-xl flex items-center justify-between shadow-[0px_2px_8px_rgba(15,23,42,0.05)] hover:bg-surface-container-low transition-colors cursor-pointer group">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-tertiary-fixed flex items-center justify-center text-on-tertiary-fixed-variant">
+<span class="material-symbols-outlined">security</span>
+</div>
+<div>
+<p class="font-title-md text-title-md text-on-surface">Security</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Biometrics and Passcode</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:translate-x-1 transition-transform">chevron_right</span>
+</div>
+<!-- Theme Toggle Item -->
+<div class="bg-surface-container-lowest p-4 rounded-xl flex items-center justify-between shadow-[0px_2px_8px_rgba(15,23,42,0.05)] hover:bg-surface-container-low transition-colors cursor-pointer" onclick="toggleDarkMode()">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined" id="theme-icon">light_mode</span>
+</div>
+<div>
+<p class="font-title-md text-title-md text-on-surface">Theme</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant" id="theme-status">Light Mode</p>
+</div>
+</div>
+<div class="w-12 h-6 bg-outline-variant rounded-full relative transition-colors duration-300 flex items-center px-1" id="toggle-bg">
+<div class="w-4 h-4 bg-white rounded-full shadow transition-transform duration-300 translate-x-0" id="toggle-dot"></div>
+</div>
+</div>
+<!-- Notifications Item -->
+<div class="bg-surface-container-lowest p-4 rounded-xl flex items-center justify-between shadow-[0px_2px_8px_rgba(15,23,42,0.05)] hover:bg-surface-container-low transition-colors cursor-pointer group">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center text-on-primary-fixed-variant">
+<span class="material-symbols-outlined">notifications_active</span>
+</div>
+<div>
+<p class="font-title-md text-title-md text-on-surface">Notifications</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Alerts and reminders</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:translate-x-1 transition-transform">chevron_right</span>
+</div>
+<!-- Logout Button -->
+<div class="pt-stack-space-lg">
+<button class="w-full py-4 bg-error-container text-on-error-container rounded-xl flex items-center justify-center gap-2 active:scale-95 transition-all font-title-md shadow-[0px_2px_8px_rgba(147,0,10,0.05)]">
+<span class="material-symbols-outlined">logout</span>
+                    Logout
+                </button>
+</div>
+<!-- App Version Info -->
+<div class="text-center py-6">
+<p class="font-label-sm text-label-sm text-outline">SmartExpense v2.4.1</p>
+<p class="font-label-sm text-label-sm text-outline-variant mt-1">Made with precision for your finances</p>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 h-20 bg-surface-container rounded-t-xl shadow-[0px_-2px_8px_rgba(15,23,42,0.05)] z-50">
+<!-- Dashboard -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant py-2 hover:bg-surface-container-high transition-all active:scale-95 duration-100 ease-in-out" href="#">
+<span class="material-symbols-outlined">grid_view</span>
+<span class="font-label-sm text-label-sm">Dashboard</span>
+</a>
+<!-- History -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant py-2 hover:bg-surface-container-high transition-all active:scale-95 duration-100 ease-in-out" href="#">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="font-label-sm text-label-sm">History</span>
+</a>
+<!-- Add (FAB-like Center) -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant py-2 hover:bg-surface-container-high transition-all active:scale-95 duration-100 ease-in-out" href="#">
+<span class="material-symbols-outlined">add</span>
+<span class="font-label-sm text-label-sm">Add</span>
+</a>
+<!-- Analytics -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant py-2 hover:bg-surface-container-high transition-all active:scale-95 duration-100 ease-in-out" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-label-sm text-label-sm">Analytics</span>
+</a>
+<!-- Profile (Active) -->
+<a class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-full px-5 py-1 active:scale-95 duration-100 ease-in-out" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="font-label-sm text-label-sm">Profile</span>
+</a>
+</nav>
+<script>
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            const toggleBg = document.getElementById('toggle-bg');
+            const toggleDot = document.getElementById('toggle-dot');
+            const themeIcon = document.getElementById('theme-icon');
+            const themeStatus = document.getElementById('theme-status');
+
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                toggleBg.classList.replace('bg-secondary', 'bg-outline-variant');
+                toggleDot.classList.replace('translate-x-6', 'translate-x-0');
+                themeIcon.innerText = 'light_mode';
+                themeStatus.innerText = 'Light Mode';
+            } else {
+                html.classList.add('dark');
+                toggleBg.classList.replace('bg-outline-variant', 'bg-secondary');
+                toggleDot.classList.replace('translate-x-0', 'translate-x-6');
+                themeIcon.innerText = 'dark_mode';
+                themeStatus.innerText = 'Dark Mode';
+            }
+        }
+
+        // Add active state visual cues to list items
+        document.querySelectorAll('.cursor-pointer').forEach(item => {
+            item.addEventListener('mousedown', () => item.classList.add('opacity-70'));
+            item.addEventListener('mouseup', () => item.classList.remove('opacity-70'));
+            item.addEventListener('mouseleave', () => item.classList.remove('opacity-70'));
+        });
+    </script>
+</body></html>

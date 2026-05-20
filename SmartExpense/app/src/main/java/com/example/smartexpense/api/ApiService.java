@@ -1,0 +1,100 @@
+package com.example.smartexpense.api;
+
+import com.example.smartexpense.models.AnomalyResponse;
+import com.example.smartexpense.models.BurnRateResponse;
+import com.example.smartexpense.models.SavingsSuggestion;
+import com.example.smartexpense.models.Wallet;
+import com.example.smartexpense.models.Transaction;
+import com.example.smartexpense.models.Notification;
+import com.example.smartexpense.models.User;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+
+import retrofit2.Call;
+import retrofit2.http.Body;
+import retrofit2.http.GET;
+import retrofit2.http.POST;
+import retrofit2.http.Query;
+
+public interface ApiService {
+
+    @GET("api/analytics/anomaly-check")
+    Call<AnomalyResponse> checkAnomaly(
+            @Query("userId") Integer userId,
+            @Query("categoryId") Integer categoryId,
+            @Query("amount") BigDecimal amount
+    );
+
+    @GET("api/analytics/burn-rate")
+    Call<BurnRateResponse> checkBurnRate(
+            @Query("userId") Integer userId,
+            @Query("categoryId") Integer categoryId
+    );
+
+    @GET("api/analytics/savings-suggestions")
+    Call<List<SavingsSuggestion>> getSavingsSuggestions(
+            @Query("userId") Integer userId
+    );
+
+    @GET("api/wallets")
+    Call<List<Wallet>> getWallets(
+            @Query("userId") Integer userId
+    );
+
+    @POST("api/wallets")
+    Call<Wallet> createWallet(
+            @Body Wallet wallet
+    );
+
+    @GET("api/notifications")
+    Call<List<Notification>> getNotifications(
+            @Query("userId") Integer userId
+    );
+
+    @GET("api/transactions")
+    Call<List<Transaction>> getTransactions(
+            @Query("userId") Integer userId
+    );
+
+    @POST("api/transactions")
+    Call<Transaction> createTransaction(
+            @Body Transaction transaction
+    );
+
+    @GET("api/budgets")
+    Call<List<com.example.smartexpense.models.Budget>> getBudgets(
+            @Query("userId") Integer userId
+    );
+
+    @POST("api/budgets")
+    Call<com.example.smartexpense.models.Budget> createBudget(
+            @Body com.example.smartexpense.models.Budget budget
+    );
+
+    @GET("api/savings-goals")
+    Call<List<com.example.smartexpense.models.SavingsGoal>> getSavingsGoals(
+            @Query("userId") Integer userId
+    );
+
+    @POST("api/savings-goals")
+    Call<com.example.smartexpense.models.SavingsGoal> createSavingsGoal(
+            @Body com.example.smartexpense.models.SavingsGoal goal
+    );
+
+    @POST("api/savings-goals/{goalId}/add-funds")
+    Call<Map<String, Object>> addFundsToGoal(
+            @retrofit2.http.Path("goalId") Integer goalId,
+            @Query("amount") java.math.BigDecimal amount
+    );
+
+    @POST("api/seed")
+    Call<Map<String, Object>> seedDatabase();
+
+    @POST("api/users/register")
+    Call<User> register(@Body User user);
+
+    @POST("api/users/login")
+    Call<User> login(@Body Map<String, String> credentials);
+}

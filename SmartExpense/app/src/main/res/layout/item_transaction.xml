@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="72dp"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingHorizontal="16dp"
+    android:background="@color/surface_white"
+    android:layout_marginBottom="1dp">
+
+    <!-- Left-aligned icon inside soft-tinted circle -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/card_trans_icon_bg"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        app:cardCornerRadius="22dp"
+        app:cardElevation="0dp"
+        app:cardBackgroundColor="@color/chip_bg"
+        android:layout_marginEnd="16dp">
+
+        <ImageView
+            android:id="@+id/iv_trans_icon"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_gravity="center"
+            android:src="@android:drawable/ic_menu_today"
+            app:tint="@color/primary" />
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Center text category + note -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tv_trans_category"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Category"
+            android:textColor="@color/text_primary"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_trans_note"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Note details..."
+            android:textColor="@color/text_secondary"
+            android:textSize="11sp"
+            android:layout_marginTop="2dp"
+            android:maxLines="1"
+            android:ellipsize="end" />
+    </LinearLayout>
+
+    <!-- Right-aligned amount -->
+    <TextView
+        android:id="@+id/tv_trans_amount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="-0đ"
+        android:textColor="@color/crimson_expense"
+        android:textSize="15sp"
+        android:textStyle="bold" />
+
+</LinearLayout>

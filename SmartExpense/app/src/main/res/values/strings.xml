@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">SmartExpense</string>
+    <string name="title_dashboard">Overview</string>
+    <string name="title_history">History</string>
+    <string name="title_add">Add Transaction</string>
+    <string name="title_analytics">Analytics</string>
+    <string name="title_profile">Profile</string>
+</resources>
