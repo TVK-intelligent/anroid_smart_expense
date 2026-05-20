@@ -29,9 +29,9 @@ public class WalletAdapter extends RecyclerView.Adapter<WalletAdapter.ViewHolder
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Wallet wallet = walletList.get(position);
-        holder.tvWalletType.setText(wallet.getType().toUpperCase());
-        holder.tvWalletName.setText(wallet.getName());
-        holder.tvWalletBalance.setText(formatter.format(wallet.getBalance()) + "đ");
+        holder.tvWalletType.setText(wallet.getType() != null ? wallet.getType().toUpperCase() : "");
+        holder.tvWalletName.setText(wallet.getName() != null ? wallet.getName() : "");
+        holder.tvWalletBalance.setText(wallet.getBalance() != null ? formatter.format(wallet.getBalance()) + "đ" : "0đ");
     }
 
     @Override

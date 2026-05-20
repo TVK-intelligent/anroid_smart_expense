@@ -81,7 +81,9 @@ public class DashboardFragment extends Fragment {
 
                     BigDecimal sum = BigDecimal.ZERO;
                     for (Wallet w : walletList) {
-                        sum = sum.add(w.getBalance());
+                        if (w.getBalance() != null) {
+                            sum = sum.add(w.getBalance());
+                        }
                     }
                     tvTotalBalance.setText(formatter.format(sum) + "đ");
                 }
@@ -109,11 +111,19 @@ public class DashboardFragment extends Fragment {
     private void updateAlertsUI(List<Notification> notifications) {
         if (getContext() == null || layoutAlerts == null) return;
 
-        // Clear previous except empty placeholder
+        // Clear previous views
         layoutAlerts.removeAllViews();
 
         if (notifications.isEmpty()) {
-            layoutAlerts.addView(tvEmptyAlerts);
+            // Re-create empty placeholder since removeAllViews detached it
+            TextView emptyView = new TextView(getContext());
+            emptyView.setLayoutParams(new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, (int) (72 * getResources().getDisplayMetrics().density)));
+            emptyView.setGravity(android.view.Gravity.CENTER);
+            emptyView.setText("No active warnings. System running smoothly.");
+            emptyView.setTextColor(getResources().getColor(R.color.text_secondary));
+            emptyView.setTextSize(12);
+            layoutAlerts.addView(emptyView);
             return;
         }
 
@@ -130,7 +140,8 @@ public class DashboardFragment extends Fragment {
             if (count >= 3) break;
             count++;
 
-            boolean isAnomaly = noti.getTitle().toLowerCase().contains("bất thường");
+            String notiTitle = noti.getTitle() != null ? noti.getTitle() : "";
+            boolean isAnomaly = notiTitle.toLowerCase().contains("bất thường");
 
             View item = LayoutInflater.from(getContext()).inflate(R.layout.item_transaction, layoutAlerts, false);
             

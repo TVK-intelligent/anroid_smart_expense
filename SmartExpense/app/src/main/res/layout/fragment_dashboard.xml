@@ -260,7 +260,7 @@
                         android:progressBackgroundTint="@color/progress_track" />
                 </LinearLayout>
 
-                <Spacer
+                <Space
                     android:layout_width="match_parent"
                     android:layout_height="16dp" />
 

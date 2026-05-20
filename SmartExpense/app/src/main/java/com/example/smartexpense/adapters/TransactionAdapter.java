@@ -37,7 +37,8 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         int iconRes = android.util.TypedValue.applyDimension(1, 1, holder.itemView.getResources().getDisplayMetrics()) > 0 
                 ? android.R.drawable.ic_menu_today : android.R.drawable.ic_menu_today; // Fallback
         
-        switch (transaction.getCategoryId()) {
+        int categoryId = transaction.getCategoryId() != null ? transaction.getCategoryId() : 0;
+        switch (categoryId) {
             case 1:
                 categoryName = "Dining & Food";
                 iconRes = android.R.drawable.ic_menu_compass; // Mock icons
@@ -65,17 +66,18 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         }
 
         holder.tvCategory.setText(categoryName);
-        holder.tvNote.setText(transaction.getNote());
+        holder.tvNote.setText(transaction.getNote() != null ? transaction.getNote() : "");
         holder.ivIcon.setImageResource(iconRes);
 
         // Simple color coding: assume positive categories as income (e.g. above 10, or customized logic, or negative sign)
         // In rule-based, let's prefix minus for expense
-        boolean isExpense = transaction.getCategoryId() != 6; // Standard categories are expenses, 6 is other/income for testing
+        boolean isExpense = categoryId != 6; // Standard categories are expenses, 6 is other/income for testing
+        java.math.BigDecimal amount = transaction.getAmount() != null ? transaction.getAmount() : java.math.BigDecimal.ZERO;
         if (isExpense) {
-            holder.tvAmount.setText("-" + formatter.format(transaction.getAmount()) + "đ");
+            holder.tvAmount.setText("-" + formatter.format(amount) + "đ");
             holder.tvAmount.setTextColor(holder.itemView.getContext().getResources().getColor(R.color.crimson_expense));
         } else {
-            holder.tvAmount.setText("+" + formatter.format(transaction.getAmount()) + "đ");
+            holder.tvAmount.setText("+" + formatter.format(amount) + "đ");
             holder.tvAmount.setTextColor(holder.itemView.getContext().getResources().getColor(R.color.emerald_income));
         }
     }
