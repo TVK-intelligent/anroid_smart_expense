@@ -47,6 +47,26 @@ public class MainActivity extends AppCompatActivity {
 
         setupNavigation();
         setupSeeder();
+        loadCategoriesFromServer();
+    }
+
+    private void loadCategoriesFromServer() {
+        int userId = getSharedPreferences("smart_expense_prefs", MODE_PRIVATE)
+                .getInt("user_id", 1);
+
+        ApiClient.getApiService().getCategories(userId).enqueue(new Callback<java.util.List<com.example.smartexpense.models.Category>>() {
+            @Override
+            public void onResponse(Call<java.util.List<com.example.smartexpense.models.Category>> call, Response<java.util.List<com.example.smartexpense.models.Category>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    com.example.smartexpense.api.CategoryCache.setCategories(response.body());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<java.util.List<com.example.smartexpense.models.Category>> call, Throwable t) {
+                // Fail silently
+            }
+        });
     }
 
     private void setupNavigation() {
@@ -90,6 +110,7 @@ public class MainActivity extends AppCompatActivity {
 
                     if (response.isSuccessful()) {
                         Toast.makeText(MainActivity.this, "Khởi tạo dữ liệu mẫu thành công!", Toast.LENGTH_SHORT).show();
+                        loadCategoriesFromServer();
                         // Refresh if current is Dashboard
                         if (currentFragment instanceof DashboardFragment) {
                             ((DashboardFragment) currentFragment).loadDashboardData();

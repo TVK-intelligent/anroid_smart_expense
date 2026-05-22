@@ -5,9 +5,9 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -40,7 +40,8 @@ public class AddTransactionFragment extends Fragment {
 
     private TextView btnToggleExpense, btnToggleIncome;
     private EditText etAmount, etNote;
-    private Spinner spWallet, spCategory;
+    private TextView tvAmountSymbol;
+    private AutoCompleteTextView actWallet, actCategory;
     private TextView tvDate;
     private MaterialButton btnScanAnomaly, btnSaveTransaction;
 
@@ -51,6 +52,10 @@ public class AddTransactionFragment extends Fragment {
     private boolean isExpense = true;
     private final List<Wallet> wallets = new ArrayList<>();
     private final List<Category> categories = new ArrayList<>();
+    
+    private Wallet selectedWallet = null;
+    private Category selectedCategory = null;
+
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
     private String selectedDate = dateFormat.format(new Date());
 
@@ -62,9 +67,10 @@ public class AddTransactionFragment extends Fragment {
         btnToggleExpense = view.findViewById(R.id.btn_toggle_expense);
         btnToggleIncome = view.findViewById(R.id.btn_toggle_income);
         etAmount = view.findViewById(R.id.et_amount);
+        tvAmountSymbol = view.findViewById(R.id.tv_amount_symbol);
         etNote = view.findViewById(R.id.et_note);
-        spWallet = view.findViewById(R.id.sp_wallet);
-        spCategory = view.findViewById(R.id.sp_category);
+        actWallet = view.findViewById(R.id.act_wallet);
+        actCategory = view.findViewById(R.id.act_category);
         tvDate = view.findViewById(R.id.tv_transaction_date);
 
         btnScanAnomaly = view.findViewById(R.id.btn_scan_anomaly);
@@ -92,18 +98,44 @@ public class AddTransactionFragment extends Fragment {
     private void setupToggles() {
         btnToggleExpense.setOnClickListener(v -> {
             isExpense = true;
-            btnToggleExpense.setBackgroundResource(R.drawable.bg_active_pill);
+            btnToggleExpense.setBackgroundResource(R.drawable.bg_toggle_expense_active);
             btnToggleExpense.setTextColor(getResources().getColor(R.color.surface_white));
             btnToggleIncome.setBackground(null);
             btnToggleIncome.setTextColor(getResources().getColor(R.color.text_secondary));
+
+            // Dynamic color changes for Expense
+            etAmount.setTextColor(getResources().getColor(R.color.crimson_expense));
+            if (tvAmountSymbol != null) {
+                tvAmountSymbol.setTextColor(getResources().getColor(R.color.crimson_expense));
+            }
+            if (btnSaveTransaction != null) {
+                btnSaveTransaction.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getResources().getColor(R.color.crimson_expense)));
+            }
+            if (btnScanAnomaly != null) {
+                btnScanAnomaly.setTextColor(getResources().getColor(R.color.crimson_expense));
+                btnScanAnomaly.setStrokeColor(android.content.res.ColorStateList.valueOf(getResources().getColor(R.color.crimson_expense)));
+            }
         });
 
         btnToggleIncome.setOnClickListener(v -> {
             isExpense = false;
-            btnToggleIncome.setBackgroundResource(R.drawable.bg_active_pill);
+            btnToggleIncome.setBackgroundResource(R.drawable.bg_toggle_income_active);
             btnToggleIncome.setTextColor(getResources().getColor(R.color.surface_white));
             btnToggleExpense.setBackground(null);
             btnToggleExpense.setTextColor(getResources().getColor(R.color.text_secondary));
+
+            // Dynamic color changes for Income
+            etAmount.setTextColor(getResources().getColor(R.color.emerald_income));
+            if (tvAmountSymbol != null) {
+                tvAmountSymbol.setTextColor(getResources().getColor(R.color.emerald_income));
+            }
+            if (btnSaveTransaction != null) {
+                btnSaveTransaction.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getResources().getColor(R.color.emerald_income)));
+            }
+            if (btnScanAnomaly != null) {
+                btnScanAnomaly.setTextColor(getResources().getColor(R.color.text_secondary));
+                btnScanAnomaly.setStrokeColor(android.content.res.ColorStateList.valueOf(getResources().getColor(R.color.outline_border)));
+            }
         });
     }
 
@@ -144,10 +176,14 @@ public class AddTransactionFragment extends Fragment {
                     wallets.addAll(response.body());
                     android.widget.ArrayAdapter<Wallet> adapter = new android.widget.ArrayAdapter<>(
                             getContext(),
-                            android.R.layout.simple_spinner_dropdown_item,
+                            android.R.layout.simple_dropdown_item_1line,
                             wallets
                     );
-                    spWallet.setAdapter(adapter);
+                    actWallet.setAdapter(adapter);
+                    if (!wallets.isEmpty()) {
+                        selectedWallet = wallets.get(0);
+                        actWallet.setText(selectedWallet.getName(), false);
+                    }
                 }
             }
 
@@ -164,15 +200,28 @@ public class AddTransactionFragment extends Fragment {
                     categories.addAll(response.body());
                     android.widget.ArrayAdapter<Category> adapter = new android.widget.ArrayAdapter<>(
                             getContext(),
-                            android.R.layout.simple_spinner_dropdown_item,
+                            android.R.layout.simple_dropdown_item_1line,
                             categories
                     );
-                    spCategory.setAdapter(adapter);
+                    actCategory.setAdapter(adapter);
+                    if (!categories.isEmpty()) {
+                        selectedCategory = categories.get(0);
+                        actCategory.setText(selectedCategory.getName(), false);
+                    }
                 }
             }
 
             @Override
             public void onFailure(Call<List<Category>> call, Throwable t) {}
+        });
+
+        // Set listeners on dropdown selection
+        actWallet.setOnItemClickListener((parent, view, position, id) -> {
+            selectedWallet = wallets.get(position);
+        });
+
+        actCategory.setOnItemClickListener((parent, view, position, id) -> {
+            selectedCategory = categories.get(position);
         });
     }
 
@@ -196,13 +245,12 @@ public class AddTransactionFragment extends Fragment {
                 return;
             }
 
-            Category category = (Category) (spCategory != null ? spCategory.getSelectedItem() : null);
-            if (category == null || category.getCategoryId() == null) {
+            if (selectedCategory == null || selectedCategory.getCategoryId() == null) {
                 Toast.makeText(getContext(), "Vui lòng chọn danh mục", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            ApiClient.getApiService().checkAnomaly(getUserId(), category.getCategoryId(), amount).enqueue(new Callback<AnomalyResponse>() {
+            ApiClient.getApiService().checkAnomaly(getUserId(), selectedCategory.getCategoryId(), amount).enqueue(new Callback<AnomalyResponse>() {
                 @Override
                 public void onResponse(Call<AnomalyResponse> call, Response<AnomalyResponse> response) {
                     if (!isAdded()) return;
@@ -252,20 +300,18 @@ public class AddTransactionFragment extends Fragment {
                 return;
             }
 
-            Wallet wallet = (Wallet) (spWallet != null ? spWallet.getSelectedItem() : null);
-            if (wallet == null || wallet.getWalletId() == null) {
+            if (selectedWallet == null || selectedWallet.getWalletId() == null) {
                 Toast.makeText(getContext(), "Vui lòng chọn ví", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            Category category = (Category) (spCategory != null ? spCategory.getSelectedItem() : null);
-            if (category == null || category.getCategoryId() == null) {
+            if (selectedCategory == null || selectedCategory.getCategoryId() == null) {
                 Toast.makeText(getContext(), "Vui lòng chọn danh mục", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             String desiredType = isExpense ? "EXPENSE" : "INCOME";
-            if (category.getType() != null && !desiredType.equalsIgnoreCase(category.getType())) {
+            if (selectedCategory.getType() != null && !desiredType.equalsIgnoreCase(selectedCategory.getType())) {
                 Toast.makeText(getContext(), "Danh mục không khớp loại thu/chi", Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -275,8 +321,8 @@ public class AddTransactionFragment extends Fragment {
 
             Transaction t = new Transaction();
             t.setUserId(getUserId());
-            t.setWalletId(wallet.getWalletId());
-            t.setCategoryId(category.getCategoryId());
+            t.setWalletId(selectedWallet.getWalletId());
+            t.setCategoryId(selectedCategory.getCategoryId());
             t.setType(desiredType);
             t.setAmount(amount);
             t.setTransactionDate(selectedDate);
@@ -309,4 +355,3 @@ public class AddTransactionFragment extends Fragment {
         });
     }
 }
-

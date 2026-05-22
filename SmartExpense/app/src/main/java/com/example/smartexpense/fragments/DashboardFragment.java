@@ -2,11 +2,16 @@ package com.example.smartexpense.fragments;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AutoCompleteTextView;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -20,6 +25,7 @@ import com.example.smartexpense.R;
 import com.example.smartexpense.adapters.TransactionAdapter;
 import com.example.smartexpense.adapters.WalletAdapter;
 import com.example.smartexpense.api.ApiClient;
+import com.example.smartexpense.models.Category;
 import com.example.smartexpense.models.Notification;
 import com.example.smartexpense.models.Transaction;
 import com.example.smartexpense.models.Wallet;
@@ -155,6 +161,20 @@ public class DashboardFragment extends Fragment {
 
         setDashboardLoading(true);
 
+        // Fetch categories dynamically to populate CategoryCache and refresh adapters
+        ApiClient.getApiService().getCategories(userId).enqueue(new Callback<List<Category>>() {
+            @Override
+            public void onResponse(Call<List<Category>> call, Response<List<Category>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    com.example.smartexpense.api.CategoryCache.setCategories(response.body());
+                    recentTransactionAdapter.notifyDataSetChanged();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Category>> call, Throwable t) {}
+        });
+
         ApiClient.getApiService().getDashboard(userId).enqueue(new Callback<DashboardResponse>() {
             @Override
             public void onResponse(Call<DashboardResponse> call, Response<DashboardResponse> response) {
@@ -232,36 +252,57 @@ public class DashboardFragment extends Fragment {
         }
         recentTransactionAdapter.notifyDataSetChanged();
 
-        tvTopExpenseCategories.setText(formatTopExpenseCategories(dashboard.getTopExpenseCategories()));
-        tvBudgetWarnings.setText(formatBudgetWarnings(dashboard.getBudgetWarnings()));
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+            tvTopExpenseCategories.setText(android.text.Html.fromHtml(formatTopExpenseCategories(dashboard.getTopExpenseCategories()), android.text.Html.FROM_HTML_MODE_LEGACY));
+            tvBudgetWarnings.setText(android.text.Html.fromHtml(formatBudgetWarnings(dashboard.getBudgetWarnings()), android.text.Html.FROM_HTML_MODE_LEGACY));
+        } else {
+            tvTopExpenseCategories.setText(android.text.Html.fromHtml(formatTopExpenseCategories(dashboard.getTopExpenseCategories())));
+            tvBudgetWarnings.setText(android.text.Html.fromHtml(formatBudgetWarnings(dashboard.getBudgetWarnings())));
+        }
 
         updateGuidanceVisibility();
         if (tvDashboardState != null) tvDashboardState.setVisibility(View.GONE);
     }
 
     private String formatTopExpenseCategories(List<TopExpenseCategory> items) {
-        if (items == null || items.isEmpty()) return "Chưa có dữ liệu";
+        if (items == null || items.isEmpty()) return "<i>Chưa có dữ liệu</i>";
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < items.size(); i++) {
             TopExpenseCategory c = items.get(i);
-            String name = c.getCategoryName() != null ? c.getCategoryName() : "Category";
+            String name = c.getCategoryName() != null ? c.getCategoryName() : "Hạng mục";
             BigDecimal spent = c.getTotalSpent() != null ? c.getTotalSpent() : BigDecimal.ZERO;
-            sb.append(i + 1).append(". ").append(name).append(" - ").append(formatter.format(spent)).append("đ");
-            if (i < items.size() - 1) sb.append("\n");
+            sb.append("<font color='#0B1C30'><b>")
+              .append(i + 1)
+              .append(". ")
+              .append(name)
+              .append("</b></font>: <font color='#2170E4'><b>")
+              .append(formatter.format(spent))
+              .append("đ</b></font>");
+            if (i < items.size() - 1) sb.append("<br/>");
         }
         return sb.toString();
     }
 
     private String formatBudgetWarnings(List<BudgetWarning> items) {
-        if (items == null || items.isEmpty()) return "Không có cảnh báo";
+        if (items == null || items.isEmpty()) return "<font color='#27C38A'><b>✓ Không có cảnh báo hạn mức</b></font>";
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < items.size(); i++) {
             BudgetWarning w = items.get(i);
-            String name = w.getCategoryName() != null ? w.getCategoryName() : "Category";
+            String name = w.getCategoryName() != null ? w.getCategoryName() : "Hạng mục";
             BigDecimal percent = w.getSpentPercent() != null ? w.getSpentPercent() : BigDecimal.ZERO;
             String status = w.getStatus() != null ? w.getStatus() : "";
-            sb.append("- ").append(name).append(": ").append(percent.setScale(0, RoundingMode.HALF_UP)).append("% (").append(status).append(")");
-            if (i < items.size() - 1) sb.append("\n");
+
+            String color = "#F59E0B"; // orange for warning
+            String statusText = "Sắp chạm hạn mức";
+            if ("OVER_LIMIT".equalsIgnoreCase(status) || percent.compareTo(new BigDecimal("100")) >= 0) {
+                color = "#BA1A1A"; // crimson for over limit
+                statusText = "Vượt ngân sách";
+            }
+
+            sb.append("<font color='").append(color).append("'><b>• ").append(name).append("</b>: ")
+              .append(percent.setScale(0, RoundingMode.HALF_UP)).append("% (")
+              .append(statusText).append(")</font>");
+            if (i < items.size() - 1) sb.append("<br/>");
         }
         return sb.toString();
     }
@@ -388,59 +429,102 @@ public class DashboardFragment extends Fragment {
         }
     }
 
+    private void updateCardPreview(String name, String type, String balanceStr, RelativeLayout layoutBg, TextView tvType, TextView tvName, TextView tvBalance) {
+        if (tvName != null) {
+            tvName.setText(name.isEmpty() ? "Tên Ví Tài Khoản" : name);
+        }
+        if (tvType != null) {
+            tvType.setText(type.isEmpty() ? "BANK ACCOUNT" : type.toUpperCase());
+        }
+        if (tvBalance != null) {
+            if (balanceStr.isEmpty()) {
+                tvBalance.setText("0đ");
+            } else {
+                try {
+                    BigDecimal val = new BigDecimal(balanceStr);
+                    tvBalance.setText(formatter.format(val) + "đ");
+                } catch (Exception e) {
+                    tvBalance.setText("0đ");
+                }
+            }
+        }
+        if (layoutBg != null) {
+            String cleanType = type.toLowerCase().trim();
+            int bgResId = R.drawable.grad_wallet_default;
+            if (cleanType.contains("bank")) {
+                bgResId = R.drawable.grad_wallet_bank;
+            } else if (cleanType.contains("credit")) {
+                bgResId = R.drawable.grad_wallet_credit;
+            } else if (cleanType.contains("cash") || cleanType.contains("tiền mặt")) {
+                bgResId = R.drawable.grad_wallet_cash;
+            } else if (cleanType.contains("e-wallet") || cleanType.contains("ewallet") || cleanType.contains("ví") || cleanType.contains("momo") || cleanType.contains("pay")) {
+                bgResId = R.drawable.grad_wallet_ewallet;
+            }
+            layoutBg.setBackgroundResource(bgResId);
+        }
+    }
+
     private void showAddWalletDialog() {
         if (getContext() == null) return;
 
+        View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_wallet_form, null);
+        
+        RelativeLayout layoutPreviewBg = dialogView.findViewById(R.id.layout_preview_bg);
+        TextView tvPreviewType = dialogView.findViewById(R.id.tv_preview_wallet_type);
+        TextView tvPreviewName = dialogView.findViewById(R.id.tv_preview_wallet_name);
+        TextView tvPreviewBalance = dialogView.findViewById(R.id.tv_preview_wallet_balance);
+
+        EditText etName = dialogView.findViewById(R.id.et_wallet_name);
+        AutoCompleteTextView actType = dialogView.findViewById(R.id.act_wallet_type);
+        EditText etBal = dialogView.findViewById(R.id.et_wallet_balance);
+
+        // Prepopulate wallet types list
+        String[] typesList = new String[]{"Bank", "Credit", "Cash", "E-Wallet"};
+        android.widget.ArrayAdapter<String> typeAdapter = new android.widget.ArrayAdapter<>(
+                getContext(),
+                android.R.layout.simple_dropdown_item_1line,
+                typesList
+        );
+        actType.setAdapter(typeAdapter);
+        actType.setText("Bank", false);
+
+        // Default card preview state
+        updateCardPreview("", "Bank", "", layoutPreviewBg, tvPreviewType, tvPreviewName, tvPreviewBalance);
+
+        // TextWatcher to update preview in real-time
+        TextWatcher watcher = new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                updateCardPreview(
+                        etName.getText().toString().trim(),
+                        actType.getText().toString().trim(),
+                        etBal.getText().toString().trim(),
+                        layoutPreviewBg, tvPreviewType, tvPreviewName, tvPreviewBalance
+                );
+            }
+            @Override public void afterTextChanged(Editable s) {}
+        };
+        etName.addTextChangedListener(watcher);
+        etBal.addTextChangedListener(watcher);
+
+        actType.setOnItemClickListener((parent, view, position, id) -> {
+            updateCardPreview(
+                    etName.getText().toString().trim(),
+                    parent.getItemAtPosition(position).toString(),
+                    etBal.getText().toString().trim(),
+                    layoutPreviewBg, tvPreviewType, tvPreviewName, tvPreviewBalance
+            );
+        });
+
         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(getContext());
         builder.setTitle("Thêm ví tài khoản mới");
-
-        LinearLayout layoutContainer = new LinearLayout(getContext());
-        layoutContainer.setOrientation(LinearLayout.VERTICAL);
-        int padding = (int) (16 * getResources().getDisplayMetrics().density);
-        layoutContainer.setPadding(padding, padding, padding, padding);
-
-        // Wallet Name TextInputLayout
-        com.google.android.material.textfield.TextInputLayout layoutName = new com.google.android.material.textfield.TextInputLayout(getContext());
-        layoutName.setBoxBackgroundMode(com.google.android.material.textfield.TextInputLayout.BOX_BACKGROUND_OUTLINE);
-        layoutName.setHint("Tên tài khoản / Ví (Ví dụ: Techcombank, MoMo)");
-        com.google.android.material.textfield.TextInputEditText etName = new com.google.android.material.textfield.TextInputEditText(getContext());
-        layoutName.addView(etName);
-        layoutContainer.addView(layoutName);
-
-        // Spacer
-        View space = new View(getContext());
-        space.setLayoutParams(new LinearLayout.LayoutParams(1, (int)(8 * getResources().getDisplayMetrics().density)));
-        layoutContainer.addView(space);
-
-        // Wallet Type TextInputLayout
-        com.google.android.material.textfield.TextInputLayout layoutType = new com.google.android.material.textfield.TextInputLayout(getContext());
-        layoutType.setBoxBackgroundMode(com.google.android.material.textfield.TextInputLayout.BOX_BACKGROUND_OUTLINE);
-        layoutType.setHint("Loại ví (Cash, Bank, Credit, E-Wallet)");
-        com.google.android.material.textfield.TextInputEditText etType = new com.google.android.material.textfield.TextInputEditText(getContext());
-        etType.setText("Bank");
-        layoutType.addView(etType);
-        layoutContainer.addView(layoutType);
-
-        // Spacer 2
-        View space2 = new View(getContext());
-        space2.setLayoutParams(new LinearLayout.LayoutParams(1, (int)(8 * getResources().getDisplayMetrics().density)));
-        layoutContainer.addView(space2);
-
-        // Wallet Balance TextInputLayout
-        com.google.android.material.textfield.TextInputLayout layoutBal = new com.google.android.material.textfield.TextInputLayout(getContext());
-        layoutBal.setBoxBackgroundMode(com.google.android.material.textfield.TextInputLayout.BOX_BACKGROUND_OUTLINE);
-        layoutBal.setHint("Số dư khởi tạo (VND)");
-        com.google.android.material.textfield.TextInputEditText etBal = new com.google.android.material.textfield.TextInputEditText(getContext());
-        etBal.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
-        layoutBal.addView(etBal);
-        layoutContainer.addView(layoutBal);
-
-        builder.setView(layoutContainer);
+        builder.setView(dialogView);
 
         builder.setPositiveButton("Tạo ví", (dialog, which) -> {
-            String name = etName.getText() != null ? etName.getText().toString().trim() : "";
-            String type = etType.getText() != null ? etType.getText().toString().trim() : "";
-            String balStr = etBal.getText() != null ? etBal.getText().toString().trim() : "";
+            String name = etName.getText().toString().trim();
+            String type = actType.getText().toString().trim();
+            String balStr = etBal.getText().toString().trim();
 
             if (name.isEmpty() || type.isEmpty()) {
                 Toast.makeText(getContext(), "Không được để trống tên/loại ví!", Toast.LENGTH_SHORT).show();
@@ -470,7 +554,7 @@ public class DashboardFragment extends Fragment {
                 public void onResponse(Call<Wallet> call, Response<Wallet> response) {
                     if (response.isSuccessful()) {
                         Toast.makeText(getContext(), "Đã tạo ví " + name + " thành công!", Toast.LENGTH_SHORT).show();
-                        loadDashboardData(); // Instantly reload wallets list & total balance!
+                        loadDashboardData();
                     } else {
                         Toast.makeText(getContext(), "Không tạo được ví, vui lòng thử lại!", Toast.LENGTH_SHORT).show();
                     }
@@ -479,6 +563,126 @@ public class DashboardFragment extends Fragment {
                 @Override
                 public void onFailure(Call<Wallet> call, Throwable t) {
                     Toast.makeText(getContext(), "Lỗi mạng kết nối tới Spring Boot!", Toast.LENGTH_SHORT).show();
+                }
+            });
+        });
+
+        builder.setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss());
+        builder.show();
+    }
+
+    private void showEditWalletDialog(Wallet wallet) {
+        if (getContext() == null || wallet == null) return;
+
+        View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_wallet_form, null);
+
+        RelativeLayout layoutPreviewBg = dialogView.findViewById(R.id.layout_preview_bg);
+        TextView tvPreviewType = dialogView.findViewById(R.id.tv_preview_wallet_type);
+        TextView tvPreviewName = dialogView.findViewById(R.id.tv_preview_wallet_name);
+        TextView tvPreviewBalance = dialogView.findViewById(R.id.tv_preview_wallet_balance);
+
+        EditText etName = dialogView.findViewById(R.id.et_wallet_name);
+        AutoCompleteTextView actType = dialogView.findViewById(R.id.act_wallet_type);
+        EditText etBal = dialogView.findViewById(R.id.et_wallet_balance);
+
+        // Prepopulate wallet types list
+        String[] typesList = new String[]{"Bank", "Credit", "Cash", "E-Wallet"};
+        android.widget.ArrayAdapter<String> typeAdapter = new android.widget.ArrayAdapter<>(
+                getContext(),
+                android.R.layout.simple_dropdown_item_1line,
+                typesList
+        );
+        actType.setAdapter(typeAdapter);
+
+        // Seed with current wallet data
+        etName.setText(wallet.getName() != null ? wallet.getName() : "");
+        String currentType = wallet.getType() != null ? wallet.getType() : "Bank";
+        actType.setText(currentType, false);
+        String currentBal = wallet.getBalance() != null ? wallet.getBalance().toPlainString() : "0";
+        etBal.setText(currentBal);
+
+        // Initial preview binding
+        updateCardPreview(
+                etName.getText().toString().trim(),
+                actType.getText().toString().trim(),
+                etBal.getText().toString().trim(),
+                layoutPreviewBg, tvPreviewType, tvPreviewName, tvPreviewBalance
+        );
+
+        // TextWatcher to update preview in real-time
+        TextWatcher watcher = new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                updateCardPreview(
+                        etName.getText().toString().trim(),
+                        actType.getText().toString().trim(),
+                        etBal.getText().toString().trim(),
+                        layoutPreviewBg, tvPreviewType, tvPreviewName, tvPreviewBalance
+                );
+            }
+            @Override public void afterTextChanged(Editable s) {}
+        };
+        etName.addTextChangedListener(watcher);
+        etBal.addTextChangedListener(watcher);
+
+        actType.setOnItemClickListener((parent, view, position, id) -> {
+            updateCardPreview(
+                    etName.getText().toString().trim(),
+                    parent.getItemAtPosition(position).toString(),
+                    etBal.getText().toString().trim(),
+                    layoutPreviewBg, tvPreviewType, tvPreviewName, tvPreviewBalance
+            );
+        });
+
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(getContext());
+        builder.setTitle("Sửa ví");
+        builder.setView(dialogView);
+
+        builder.setPositiveButton("Lưu", (dialog, which) -> {
+            String name = etName.getText().toString().trim();
+            String type = actType.getText().toString().trim();
+            String balStr = etBal.getText().toString().trim();
+
+            if (name.isEmpty() || type.isEmpty()) {
+                Toast.makeText(getContext(), "Không được để trống tên/loại ví!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            Wallet payload = new Wallet();
+            payload.setName(name);
+            payload.setType(type);
+            if (!balStr.isEmpty()) {
+                try {
+                    payload.setBalance(new BigDecimal(balStr));
+                } catch (Exception ignored) {
+                    Toast.makeText(getContext(), "Số dư không hợp lệ!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            }
+
+            int userId = requireActivity()
+                    .getSharedPreferences("smart_expense_prefs", android.content.Context.MODE_PRIVATE)
+                    .getInt("user_id", 1);
+
+            ApiClient.getApiService().updateWallet(wallet.getWalletId(), userId, payload).enqueue(new Callback<Wallet>() {
+                @Override
+                public void onResponse(Call<Wallet> call, Response<Wallet> response) {
+                    if (response.isSuccessful()) {
+                        Toast.makeText(getContext(), "Đã cập nhật ví!", Toast.LENGTH_SHORT).show();
+                        loadDashboardData();
+                    } else {
+                        String msg = "Không cập nhật được ví";
+                        try {
+                            if (response.errorBody() != null) msg = response.errorBody().string();
+                        } catch (Exception ignored) {}
+                        Toast.makeText(getContext(), msg, Toast.LENGTH_LONG).show();
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<Wallet> call, Throwable t) {
+                    Toast.makeText(getContext(), "Lỗi mạng khi cập nhật ví!", Toast.LENGTH_SHORT).show();
                 }
             });
         });
@@ -531,104 +735,6 @@ public class DashboardFragment extends Fragment {
                     }
                 })
                 .show();
-    }
-
-    private void showEditWalletDialog(Wallet wallet) {
-        if (getContext() == null || wallet == null) return;
-
-        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(getContext());
-        builder.setTitle("Sửa ví");
-
-        LinearLayout layoutContainer = new LinearLayout(getContext());
-        layoutContainer.setOrientation(LinearLayout.VERTICAL);
-        int padding = (int) (16 * getResources().getDisplayMetrics().density);
-        layoutContainer.setPadding(padding, padding, padding, padding);
-
-        com.google.android.material.textfield.TextInputLayout layoutName = new com.google.android.material.textfield.TextInputLayout(getContext());
-        layoutName.setBoxBackgroundMode(com.google.android.material.textfield.TextInputLayout.BOX_BACKGROUND_OUTLINE);
-        layoutName.setHint("Tên ví");
-        com.google.android.material.textfield.TextInputEditText etName = new com.google.android.material.textfield.TextInputEditText(getContext());
-        etName.setText(wallet.getName() != null ? wallet.getName() : "");
-        layoutName.addView(etName);
-        layoutContainer.addView(layoutName);
-
-        View space = new View(getContext());
-        space.setLayoutParams(new LinearLayout.LayoutParams(1, (int) (8 * getResources().getDisplayMetrics().density)));
-        layoutContainer.addView(space);
-
-        com.google.android.material.textfield.TextInputLayout layoutType = new com.google.android.material.textfield.TextInputLayout(getContext());
-        layoutType.setBoxBackgroundMode(com.google.android.material.textfield.TextInputLayout.BOX_BACKGROUND_OUTLINE);
-        layoutType.setHint("Loại ví");
-        com.google.android.material.textfield.TextInputEditText etType = new com.google.android.material.textfield.TextInputEditText(getContext());
-        etType.setText(wallet.getType() != null ? wallet.getType() : "");
-        layoutType.addView(etType);
-        layoutContainer.addView(layoutType);
-
-        View space2 = new View(getContext());
-        space2.setLayoutParams(new LinearLayout.LayoutParams(1, (int) (8 * getResources().getDisplayMetrics().density)));
-        layoutContainer.addView(space2);
-
-        com.google.android.material.textfield.TextInputLayout layoutBal = new com.google.android.material.textfield.TextInputLayout(getContext());
-        layoutBal.setBoxBackgroundMode(com.google.android.material.textfield.TextInputLayout.BOX_BACKGROUND_OUTLINE);
-        layoutBal.setHint("Số dư khởi tạo (chỉ sửa được khi ví chưa có giao dịch)");
-        com.google.android.material.textfield.TextInputEditText etBal = new com.google.android.material.textfield.TextInputEditText(getContext());
-        etBal.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
-        etBal.setText(wallet.getBalance() != null ? wallet.getBalance().toPlainString() : "");
-        layoutBal.addView(etBal);
-        layoutContainer.addView(layoutBal);
-
-        builder.setView(layoutContainer);
-
-        builder.setPositiveButton("Lưu", (dialog, which) -> {
-            String name = etName.getText() != null ? etName.getText().toString().trim() : "";
-            String type = etType.getText() != null ? etType.getText().toString().trim() : "";
-            String balStr = etBal.getText() != null ? etBal.getText().toString().trim() : "";
-
-            if (name.isEmpty() || type.isEmpty()) {
-                Toast.makeText(getContext(), "Không được để trống tên/loại ví!", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            Wallet payload = new Wallet();
-            payload.setName(name);
-            payload.setType(type);
-            if (!balStr.isEmpty()) {
-                try {
-                    payload.setBalance(new BigDecimal(balStr));
-                } catch (Exception ignored) {
-                    Toast.makeText(getContext(), "Số dư không hợp lệ!", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-            }
-
-            int userId = requireActivity()
-                    .getSharedPreferences("smart_expense_prefs", android.content.Context.MODE_PRIVATE)
-                    .getInt("user_id", 1);
-
-            ApiClient.getApiService().updateWallet(wallet.getWalletId(), userId, payload).enqueue(new Callback<Wallet>() {
-                @Override
-                public void onResponse(Call<Wallet> call, Response<Wallet> response) {
-                    if (response.isSuccessful()) {
-                        Toast.makeText(getContext(), "Đã cập nhật ví!", Toast.LENGTH_SHORT).show();
-                        loadDashboardData();
-                    } else {
-                        String msg = "Không cập nhật được ví";
-                        try {
-                            if (response.errorBody() != null) msg = response.errorBody().string();
-                        } catch (Exception ignored) {}
-                        Toast.makeText(getContext(), msg, Toast.LENGTH_LONG).show();
-                    }
-                }
-
-                @Override
-                public void onFailure(Call<Wallet> call, Throwable t) {
-                    Toast.makeText(getContext(), "Lỗi mạng khi cập nhật ví!", Toast.LENGTH_SHORT).show();
-                }
-            });
-        });
-
-        builder.setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss());
-        builder.show();
     }
 
     private void confirmDeleteWallet(Wallet wallet) {

@@ -138,6 +138,10 @@ public class AnalyticsFragment extends Fragment {
         tabSavings.setOnClickListener(v -> selectTab(2));
     }
 
+    private void setupChart() {
+        loadWeeklySpendingChart();
+    }
+
     private void selectTab(int index) {
         if (index == 0) {
             tabAnalytics.setBackgroundResource(R.drawable.bg_pill_chip_active);
@@ -177,18 +181,61 @@ public class AnalyticsFragment extends Fragment {
         }
     }
 
-    private void setupChart() {
-        if (chartSpendingTrends == null) return;
+    private void loadWeeklySpendingChart() {
+        if (chartSpendingTrends == null || getContext() == null) return;
 
-        // Populate beautiful dummy entries for Monday - Sunday spending
+        // Compute current week's Monday and Sunday
+        java.time.LocalDate today = java.time.LocalDate.now();
+        java.time.LocalDate startOfWeek = today.with(java.time.DayOfWeek.MONDAY);
+        java.time.LocalDate endOfWeek = today.with(java.time.DayOfWeek.SUNDAY);
+
+        java.time.format.DateTimeFormatter dtf = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        String startStr = startOfWeek.format(dtf);
+        String endStr = endOfWeek.format(dtf);
+
+        ApiClient.getApiService().filterTransactions(CURRENT_USER_ID, startStr, endStr, null, null, "EXPENSE")
+                .enqueue(new Callback<List<com.example.smartexpense.models.Transaction>>() {
+                    @Override
+                    public void onResponse(Call<List<com.example.smartexpense.models.Transaction>> call, Response<List<com.example.smartexpense.models.Transaction>> response) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            populateChartWithRealData(response.body(), startOfWeek);
+                        } else {
+                            populateChartWithRealData(new ArrayList<>(), startOfWeek);
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<List<com.example.smartexpense.models.Transaction>> call, Throwable t) {
+                        populateChartWithRealData(new ArrayList<>(), startOfWeek);
+                    }
+                });
+    }
+
+    private void populateChartWithRealData(List<com.example.smartexpense.models.Transaction> transactions, java.time.LocalDate startOfWeek) {
+        if (chartSpendingTrends == null || getContext() == null) return;
+
+        BigDecimal[] daySums = new BigDecimal[7];
+        for (int i = 0; i < 7; i++) {
+            daySums[i] = BigDecimal.ZERO;
+        }
+
+        java.time.format.DateTimeFormatter parser = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        for (com.example.smartexpense.models.Transaction t : transactions) {
+            if (t.getTransactionDate() != null && t.getAmount() != null) {
+                try {
+                    java.time.LocalDate date = java.time.LocalDate.parse(t.getTransactionDate(), parser);
+                    int dayIndex = date.getDayOfWeek().getValue() - 1; // MONDAY is 1, SUNDAY is 7 -> index 0 to 6
+                    if (dayIndex >= 0 && dayIndex < 7) {
+                        daySums[dayIndex] = daySums[dayIndex].add(t.getAmount());
+                    }
+                } catch (Exception ignored) {}
+            }
+        }
+
         List<BarEntry> entries = new ArrayList<>();
-        entries.add(new BarEntry(0f, 600000f));
-        entries.add(new BarEntry(1f, 800000f));
-        entries.add(new BarEntry(2f, 400000f));
-        entries.add(new BarEntry(3f, 950000f));
-        entries.add(new BarEntry(4f, 300000f));
-        entries.add(new BarEntry(5f, 500000f));
-        entries.add(new BarEntry(6f, 200000f));
+        for (int i = 0; i < 7; i++) {
+            entries.add(new BarEntry(i, daySums[i].floatValue()));
+        }
 
         BarDataSet dataSet = new BarDataSet(entries, "Chi tiêu ngày (đ)");
         
@@ -197,7 +244,7 @@ public class AnalyticsFragment extends Fragment {
         
         List<Integer> colors = new ArrayList<>();
         for (int i = 0; i < entries.size(); i++) {
-            if (i == 1 || i == 3) {
+            if (entries.get(i).getY() > 0) {
                 colors.add(primaryColor);
             } else {
                 colors.add(secondaryColor);
@@ -206,6 +253,13 @@ public class AnalyticsFragment extends Fragment {
         dataSet.setColors(colors);
         dataSet.setValueTextColor(getResources().getColor(R.color.text_secondary));
         dataSet.setValueTextSize(8f);
+        dataSet.setValueFormatter(new ValueFormatter() {
+            @Override
+            public String getFormattedValue(float value) {
+                if (value == 0f) return "";
+                return formatter.format(value) + "đ";
+            }
+        });
 
         BarData barData = new BarData(dataSet);
         barData.setBarWidth(0.45f);
@@ -238,7 +292,7 @@ public class AnalyticsFragment extends Fragment {
             }
         });
 
-        // Y Axis customization (Keep grid clean and minimalist)
+        // Y Axis customization
         YAxis leftAxis = chartSpendingTrends.getAxisLeft();
         leftAxis.setDrawGridLines(false);
         leftAxis.setDrawAxisLine(false);

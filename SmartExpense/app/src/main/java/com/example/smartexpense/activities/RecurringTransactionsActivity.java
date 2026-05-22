@@ -4,6 +4,8 @@ import android.app.AlertDialog;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -12,6 +14,8 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.smartexpense.R;
 import com.example.smartexpense.api.ApiClient;
+import com.example.smartexpense.api.CategoryCache;
+import com.example.smartexpense.models.Category;
 import com.example.smartexpense.models.RecurringTransaction;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
@@ -19,6 +23,7 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.List;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -260,89 +265,33 @@ public class RecurringTransactionsActivity extends AppCompatActivity {
 
     private void showAddRecurringDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Thêm giao dịch định kỳ mới");
+        
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_recurring_transaction, null);
+        builder.setView(dialogView);
 
-        LinearLayout layoutContainer = new LinearLayout(this);
-        layoutContainer.setOrientation(LinearLayout.VERTICAL);
-        float density = getResources().getDisplayMetrics().density;
-        int padding = (int) (16 * density);
-        layoutContainer.setPadding(padding, padding, padding, padding);
+        AutoCompleteTextView actCategory = dialogView.findViewById(R.id.act_dialog_category);
+        TextInputEditText etAmount = dialogView.findViewById(R.id.et_dialog_amount);
+        AutoCompleteTextView actFrequency = dialogView.findViewById(R.id.act_dialog_frequency);
+        TextInputEditText etNote = dialogView.findViewById(R.id.et_dialog_note);
 
-        LinearLayout.LayoutParams itemParams = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-        );
-        itemParams.setMargins(0, 0, 0, (int) (12 * density));
+        // Load Categories from Cache
+        List<Category> categoriesList = CategoryCache.getCategories();
+        ArrayAdapter<Category> catAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, categoriesList);
+        actCategory.setAdapter(catAdapter);
+        if (!categoriesList.isEmpty()) {
+            actCategory.setText(categoriesList.get(0).getName(), false);
+        }
 
-        // Input Category ID (Selection Dropdown style)
-        TextInputLayout layoutCat = new TextInputLayout(this);
-        layoutCat.setBoxBackgroundMode(TextInputLayout.BOX_BACKGROUND_OUTLINE);
-        layoutCat.setHint("Chọn Hạng Mục Chi Tiêu");
-        layoutCat.setLayoutParams(itemParams);
-        TextInputEditText etCat = new TextInputEditText(this);
-        etCat.setFocusable(false);
-        etCat.setClickable(true);
-        etCat.setText("1: Ăn uống"); // Default
-        layoutCat.addView(etCat);
-        layoutContainer.addView(layoutCat);
-
-        String[] categories = {"1: Ăn uống", "2: Di chuyển", "3: Giải trí", "4: Giáo dục", "5: Sức khỏe"};
-        etCat.setOnClickListener(v -> {
-            new AlertDialog.Builder(this)
-                .setTitle("Chọn hạng mục")
-                .setItems(categories, (dialog, which) -> {
-                    etCat.setText(categories[which]);
-                })
-                .show();
-        });
-
-        // Input Amount
-        TextInputLayout layoutAmt = new TextInputLayout(this);
-        layoutAmt.setBoxBackgroundMode(TextInputLayout.BOX_BACKGROUND_OUTLINE);
-        layoutAmt.setHint("Số tiền giao dịch (VND)");
-        layoutAmt.setLayoutParams(itemParams);
-        TextInputEditText etAmt = new TextInputEditText(this);
-        etAmt.setInputType(InputType.TYPE_CLASS_NUMBER);
-        layoutAmt.addView(etAmt);
-        layoutContainer.addView(layoutAmt);
-
-        // Input Frequency (Selection Dropdown style)
-        TextInputLayout layoutFreq = new TextInputLayout(this);
-        layoutFreq.setBoxBackgroundMode(TextInputLayout.BOX_BACKGROUND_OUTLINE);
-        layoutFreq.setHint("Chọn Tần Suất Lặp Lại");
-        layoutFreq.setLayoutParams(itemParams);
-        TextInputEditText etFreq = new TextInputEditText(this);
-        etFreq.setFocusable(false);
-        etFreq.setClickable(true);
-        etFreq.setText("MONTHLY (Hằng tháng)"); // Default
-        layoutFreq.addView(etFreq);
-        layoutContainer.addView(layoutFreq);
-
-        String[] frequencies = {"DAILY (Hằng ngày)", "WEEKLY (Hằng tuần)", "MONTHLY (Hằng tháng)", "YEARLY (Hằng năm)"};
-        etFreq.setOnClickListener(v -> {
-            new AlertDialog.Builder(this)
-                .setTitle("Chọn tần suất")
-                .setItems(frequencies, (dialog, which) -> {
-                    etFreq.setText(frequencies[which]);
-                })
-                .show();
-        });
-
-        // Input Note
-        TextInputLayout layoutNote = new TextInputLayout(this);
-        layoutNote.setBoxBackgroundMode(TextInputLayout.BOX_BACKGROUND_OUTLINE);
-        layoutNote.setHint("Ghi chú");
-        layoutNote.setLayoutParams(itemParams);
-        TextInputEditText etNote = new TextInputEditText(this);
-        layoutNote.addView(etNote);
-        layoutContainer.addView(layoutNote);
-
-        builder.setView(layoutContainer);
+        // Set frequencies
+        String[] frequencies = {"DAILY", "WEEKLY", "MONTHLY", "YEARLY"};
+        ArrayAdapter<String> freqAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, frequencies);
+        actFrequency.setAdapter(freqAdapter);
+        actFrequency.setText(frequencies[2], false); // MONTHLY default
 
         builder.setPositiveButton("Lên lịch", (dialog, which) -> {
-            String catText = etCat.getText() != null ? etCat.getText().toString().trim() : "";
-            String amtStr = etAmt.getText() != null ? etAmt.getText().toString().trim() : "";
-            String freqText = etFreq.getText() != null ? etFreq.getText().toString().trim() : "";
+            String catText = actCategory.getText() != null ? actCategory.getText().toString().trim() : "";
+            String amtStr = etAmount.getText() != null ? etAmount.getText().toString().trim() : "";
+            String freqStr = actFrequency.getText() != null ? actFrequency.getText().toString().trim() : "MONTHLY";
             String noteStr = etNote.getText() != null ? etNote.getText().toString().trim() : "";
 
             if (catText.isEmpty() || amtStr.isEmpty()) {
@@ -351,24 +300,29 @@ public class RecurringTransactionsActivity extends AppCompatActivity {
             }
 
             int categoryId = 1;
-            try {
-                categoryId = Integer.parseInt(catText.split(":")[0].trim());
-            } catch (Exception e) {
-                // Fallback
+            // Match dynamic category by name
+            for (Category cat : categoriesList) {
+                if (cat.getName() != null && cat.getName().equalsIgnoreCase(catText)) {
+                    if (cat.getCategoryId() != null) {
+                        categoryId = cat.getCategoryId();
+                    }
+                    break;
+                }
             }
 
-            String freqStr = "MONTHLY";
+            BigDecimal amount;
             try {
-                freqStr = freqText.split(" ")[0].trim();
+                amount = new BigDecimal(amtStr);
             } catch (Exception e) {
-                // Fallback
+                Toast.makeText(this, "Số tiền không hợp lệ!", Toast.LENGTH_SHORT).show();
+                return;
             }
 
             RecurringTransaction rt = new RecurringTransaction();
             rt.setUserId(CURRENT_USER_ID);
             rt.setWalletId(1); // Mặc định ví chính
             rt.setCategoryId(categoryId);
-            rt.setAmount(new BigDecimal(amtStr));
+            rt.setAmount(amount);
             rt.setFrequency(freqStr);
             rt.setNote(noteStr);
             rt.setIsActive(true);
