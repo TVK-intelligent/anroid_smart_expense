@@ -263,6 +263,10 @@ public class AddTransactionFragment extends Fragment {
                             tvAnomalyTitle.setText("PHÁT HIỆN CHI TIÊU BẤT THƯỜNG!");
                             tvAnomalyTitle.setTextColor(getResources().getColor(R.color.crimson_expense));
                             layoutAnomalyBg.setBackgroundColor(getResources().getColor(R.color.crimson_expense) & 0x15FFFFFF | 0x0A000000);
+                            
+                            // Speak voice warning
+                            com.example.smartexpense.utils.TextToSpeechHelper.getInstance(getContext())
+                                    .speak(getContext(), ar.getMessage());
                         } else {
                             tvAnomalyTitle.setText("GIAO DỊCH AN TOÀN");
                             tvAnomalyTitle.setTextColor(getResources().getColor(R.color.emerald_income));

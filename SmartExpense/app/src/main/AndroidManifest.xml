@@ -51,6 +51,12 @@
             android:exported="false"
             android:theme="@style/Theme.SmartExpense" />
 
+        <!-- Savings Goals Activity -->
+        <activity
+            android:name=".activities.SavingsGoalsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.SmartExpense" />
+
     </application>
 
 </manifest>

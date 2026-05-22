@@ -319,6 +319,10 @@ public class AnalyticsFragment extends Fragment {
                             tvBurnRateTitle.setText("⚠️ CHI TIÊU VƯỢT TIẾN ĐỘ!");
                             tvBurnRateTitle.setTextColor(getResources().getColor(R.color.crimson_expense));
                             layoutBurnRateResult.setBackgroundResource(R.drawable.bg_pill_chip);
+                            
+                            // Speak burn rate voice warning
+                            com.example.smartexpense.utils.TextToSpeechHelper.getInstance(getContext())
+                                    .speak(getContext(), br.getAlertMessage());
                         } else {
                             tvBurnRateTitle.setText("✅ TỐC ĐỘ CHI TIÊU AN TOÀN");
                             tvBurnRateTitle.setTextColor(getResources().getColor(R.color.emerald_income));

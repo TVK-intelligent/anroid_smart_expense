@@ -2,7 +2,42 @@
     <string name="app_name">SmartExpense</string>
     <string name="title_dashboard">Overview</string>
     <string name="title_history">History</string>
-    <string name="title_add">Add Transaction</string>
+    <string name="title_add">Add</string>
     <string name="title_analytics">Analytics</string>
     <string name="title_profile">Profile</string>
+    
+    <!-- Profile Strings -->
+    <string name="profile_base_currency">Base Currency</string>
+    <string name="profile_currency_val">VND (đ)</string>
+    <string name="profile_account_level">Account Level</string>
+    <string name="profile_premium_user">Premium User</string>
+    <string name="profile_manage_recurring">Manage Recurring Transactions</string>
+    <string name="profile_sign_out">Sign Out</string>
+    <string name="profile_language">Language</string>
+    <string name="profile_lang_en">English</string>
+    <string name="profile_lang_vi">Tiếng Việt</string>
+    <string name="profile_select_lang">Select Language</string>
+    <string name="profile_cancel">Cancel</string>
+    <string name="profile_btn_savings_goals">Manage Savings Goals</string>
+
+    <!-- Savings Goals Strings -->
+    <string name="savings_goals_title">Savings Goals</string>
+    <string name="savings_goals_list_header">Your Active Financial Goals</string>
+    <string name="savings_goals_empty">No savings goals established yet.\nStart saving for your dream items below!</string>
+    <string name="savings_goals_btn_add">+ Create Savings Goal</string>
+    <string name="savings_goals_dialog_create_title">Create Savings Goal</string>
+    <string name="savings_goals_hint_name">Goal Name (e.g. New Laptop)</string>
+    <string name="savings_goals_hint_target">Target Amount (VND)</string>
+    <string name="savings_goals_hint_initial">Initial Deposit (Optional)</string>
+    <string name="savings_goals_hint_deadline">Target Deadline</string>
+    <string name="savings_goals_dialog_funds_title">Deposit to Savings Goal</string>
+    <string name="savings_goals_hint_wallet">Deduct from Wallet</string>
+    <string name="savings_goals_hint_deposit_amount">Amount to Deposit (VND)</string>
+    <string name="savings_goals_label_saved">Saved: </string>
+    <string name="savings_goals_label_deadline">Deadline: </string>
+    <string name="savings_goals_label_add_funds">+ Add Funds</string>
+    <string name="savings_goals_label_create">Create</string>
+    <string name="savings_goals_label_cancel">Cancel</string>
+    <string name="savings_goals_label_confirm">Confirm</string>
+    <string name="profile_voice_warning">Voice Alerts on Warning</string>
 </resources>

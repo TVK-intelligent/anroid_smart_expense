@@ -21,7 +21,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity {
 
     private LinearLayout btnResetMock;
     private ProgressBar seedProgress;
@@ -39,15 +39,44 @@ public class MainActivity extends AppCompatActivity {
         seedIcon = findViewById(R.id.seed_icon);
         bottomNav = findViewById(R.id.bottom_nav);
 
-        // Load Dashboard by default
-        currentFragment = new DashboardFragment();
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragment_container, currentFragment)
-                .commit();
+        // Load Dashboard by default or restore correct tab if recreated
+        if (savedInstanceState != null) {
+            int selectedId = bottomNav.getSelectedItemId();
+            currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+            if (currentFragment == null) {
+                currentFragment = getFragmentForId(selectedId);
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, currentFragment)
+                        .commit();
+            }
+        } else {
+            currentFragment = new DashboardFragment();
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, currentFragment)
+                    .commit();
+        }
 
         setupNavigation();
         setupSeeder();
         loadCategoriesFromServer();
+        
+        // Pre-warm TextToSpeech
+        com.example.smartexpense.utils.TextToSpeechHelper.getInstance(this);
+    }
+
+    private Fragment getFragmentForId(int id) {
+        if (id == R.id.nav_dashboard) {
+            return new DashboardFragment();
+        } else if (id == R.id.nav_history) {
+            return new TransactionFragment();
+        } else if (id == R.id.nav_add) {
+            return new AddTransactionFragment();
+        } else if (id == R.id.nav_analytics) {
+            return new AnalyticsFragment();
+        } else if (id == R.id.nav_profile) {
+            return new ProfileFragment();
+        }
+        return new DashboardFragment();
     }
 
     private void loadCategoriesFromServer() {
@@ -71,20 +100,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void setupNavigation() {
         bottomNav.setOnItemSelectedListener(item -> {
-            Fragment selected = null;
             int id = item.getItemId();
-
-            if (id == R.id.nav_dashboard) {
-                selected = new DashboardFragment();
-            } else if (id == R.id.nav_history) {
-                selected = new TransactionFragment();
-            } else if (id == R.id.nav_add) {
-                selected = new AddTransactionFragment();
-            } else if (id == R.id.nav_analytics) {
-                selected = new AnalyticsFragment();
-            } else if (id == R.id.nav_profile) {
-                selected = new ProfileFragment();
-            }
+            Fragment selected = getFragmentForId(id);
 
             if (selected != null) {
                 currentFragment = selected;
@@ -128,5 +145,11 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        com.example.smartexpense.utils.TextToSpeechHelper.getInstance(this).shutdown();
     }
 }
