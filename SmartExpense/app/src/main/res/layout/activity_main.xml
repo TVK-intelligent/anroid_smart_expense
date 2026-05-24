@@ -31,43 +31,6 @@
             android:textColor="@color/primary"
             android:textSize="20sp"
             android:textStyle="bold" />
-
-        <!-- Seed quick data -->
-        <LinearLayout
-            android:id="@+id/btn_reset_mock"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:background="@drawable/bg_pill_chip"
-            android:paddingHorizontal="12dp"
-            android:paddingVertical="6dp"
-            android:gravity="center"
-            android:clickable="true"
-            android:focusable="true">
-
-            <ProgressBar
-                android:id="@+id/seed_progress"
-                android:layout_width="12dp"
-                android:layout_height="12dp"
-                android:visibility="gone"
-                android:indeterminateTint="@color/primary" />
-
-            <ImageView
-                android:id="@+id/seed_icon"
-                android:layout_width="14dp"
-                android:layout_height="14dp"
-                android:src="@android:drawable/stat_notify_sync"
-                app:tint="@color/primary" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
-                android:text="Reset Mẫu"
-                android:textColor="@color/primary"
-                android:textSize="11sp"
-                android:textStyle="bold" />
-        </LinearLayout>
     </LinearLayout>
 
     <!-- Main Fragment Container -->
