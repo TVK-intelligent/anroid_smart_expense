@@ -41,6 +41,21 @@
         android:layout_above="@id/bottom_nav"
         android:layout_below="@id/top_bar" />
 
+    <!-- Floating Action Button for AI Assistant -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_chat"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_above="@id/bottom_nav"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:src="@android:drawable/ic_menu_start_conversation"
+        app:tint="@color/surface_white"
+        app:backgroundTint="@color/accent_blue"
+        android:contentDescription="Trợ lý ảo SmartExpense"
+        app:elevation="6dp" />
+
     <!-- Bottom Navigation Bar: height 72dp -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_nav"

@@ -1,5 +1,6 @@
 package com.example.smartexpense.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import androidx.fragment.app.Fragment;
 import com.example.smartexpense.R;
@@ -45,6 +46,12 @@ public class MainActivity extends BaseActivity {
 
         setupNavigation();
         loadCategoriesFromServer();
+
+        // Setup AI Chatbot Floating Action Button Click
+        findViewById(R.id.fab_chat).setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, ChatActivity.class);
+            startActivity(intent);
+        });
 
         // Pre-warm TextToSpeech
         com.example.smartexpense.utils.TextToSpeechHelper.getInstance(this);

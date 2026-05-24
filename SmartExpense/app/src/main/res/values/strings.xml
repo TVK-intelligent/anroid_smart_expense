@@ -40,4 +40,9 @@
     <string name="savings_goals_label_cancel">Cancel</string>
     <string name="savings_goals_label_confirm">Confirm</string>
     <string name="profile_voice_warning">Voice Alerts on Warning</string>
+    <string name="profile_btn_debts">Quản lý Nợ nần &amp; Cho vay</string>
+    <string-array name="debt_loan_types">
+        <item>Tôi đi vay (DEBT)</item>
+        <item>Tôi cho vay (LOAN)</item>
+    </string-array>
 </resources>

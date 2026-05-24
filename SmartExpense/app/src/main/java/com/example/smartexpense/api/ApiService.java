@@ -158,4 +158,26 @@ public interface ApiService {
 
         @POST("api/users/login")
         Call<User> login(@Body Map<String, String> credentials);
+
+        @POST("api/chat")
+        Call<com.example.smartexpense.models.ChatResponse> chat(@Body com.example.smartexpense.models.ChatRequest request);
+
+        @GET("api/debts")
+        Call<List<com.example.smartexpense.models.DebtLoan>> getDebts(
+                        @Query("userId") Integer userId);
+
+        @POST("api/debts")
+        Call<com.example.smartexpense.models.DebtLoan> createDebt(
+                        @Body com.example.smartexpense.models.DebtLoan dl);
+
+        @PUT("api/debts/{debtId}")
+        Call<com.example.smartexpense.models.DebtLoan> updateDebt(
+                        @retrofit2.http.Path("debtId") Integer debtId,
+                        @Query("userId") Integer userId,
+                        @Body com.example.smartexpense.models.DebtLoan dl);
+
+        @DELETE("api/debts/{debtId}")
+        Call<Void> deleteDebt(
+                        @retrofit2.http.Path("debtId") Integer debtId,
+                        @Query("userId") Integer userId);
 }

@@ -14,6 +14,7 @@ import androidx.fragment.app.Fragment;
 import com.example.smartexpense.R;
 import com.example.smartexpense.activities.LoginActivity;
 import com.example.smartexpense.activities.RecurringTransactionsActivity;
+import com.example.smartexpense.activities.DebtLoanActivity;
 import com.example.smartexpense.utils.LocaleHelper;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -24,6 +25,7 @@ public class ProfileFragment extends Fragment {
     private MaterialButton btnLogout;
     private MaterialButton btnRecurring;
     private MaterialButton btnSavingsGoals;
+    private MaterialButton btnDebts;
     private View btnChangeLanguage;
     private TextView tvCurrentLanguage;
     private com.google.android.material.switchmaterial.SwitchMaterial switchVoiceWarning;
@@ -39,6 +41,7 @@ public class ProfileFragment extends Fragment {
         btnLogout = view.findViewById(R.id.btn_logout);
         btnRecurring = view.findViewById(R.id.btn_recurring_transactions);
         btnSavingsGoals = view.findViewById(R.id.btn_savings_goals);
+        btnDebts = view.findViewById(R.id.btn_debts);
         btnChangeLanguage = view.findViewById(R.id.btn_change_language);
         tvCurrentLanguage = view.findViewById(R.id.tv_current_language);
         switchVoiceWarning = view.findViewById(R.id.switch_voice_warning);
@@ -60,6 +63,11 @@ public class ProfileFragment extends Fragment {
 
         btnSavingsGoals.setOnClickListener(v -> {
             Intent intent = new Intent(getActivity(), com.example.smartexpense.activities.SavingsGoalsActivity.class);
+            startActivity(intent);
+        });
+
+        btnDebts.setOnClickListener(v -> {
+            Intent intent = new Intent(getActivity(), DebtLoanActivity.class);
             startActivity(intent);
         });
 

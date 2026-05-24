@@ -37,12 +37,14 @@ public class RecurringTransactionsActivity extends BaseActivity {
     private MaterialButton btnAddRecurring;
 
     private final DecimalFormat formatter = new DecimalFormat("#,###");
-    private final Integer CURRENT_USER_ID = 1; // Mock User ID
+    private int userId = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recurring_transactions);
+
+        userId = getSharedPreferences("smart_expense_prefs", MODE_PRIVATE).getInt("user_id", 1);
 
         btnBack = findViewById(R.id.btn_back);
         layoutRecurringContainer = findViewById(R.id.layout_recurring_container);
@@ -56,7 +58,7 @@ public class RecurringTransactionsActivity extends BaseActivity {
     }
 
     private void loadRecurringTransactions() {
-        ApiClient.getApiService().getRecurringTransactions(CURRENT_USER_ID).enqueue(new Callback<List<RecurringTransaction>>() {
+        ApiClient.getApiService().getRecurringTransactions(userId).enqueue(new Callback<List<RecurringTransaction>>() {
             @Override
             public void onResponse(Call<List<RecurringTransaction>> call, Response<List<RecurringTransaction>> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -223,7 +225,7 @@ public class RecurringTransactionsActivity extends BaseActivity {
     }
 
     private void toggleStatus(Integer id, boolean newStatus) {
-        ApiClient.getApiService().updateRecurringTransactionStatus(id, CURRENT_USER_ID, newStatus).enqueue(new Callback<Void>() {
+        ApiClient.getApiService().updateRecurringTransactionStatus(id, userId, newStatus).enqueue(new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
                 if (response.isSuccessful()) {
@@ -244,7 +246,7 @@ public class RecurringTransactionsActivity extends BaseActivity {
                 .setTitle("Xác nhận xóa")
                 .setMessage("Bạn có chắc chắn muốn xóa lịch giao dịch này?")
                 .setPositiveButton("Xóa", (dialog, which) -> {
-                    ApiClient.getApiService().deleteRecurringTransaction(id, CURRENT_USER_ID).enqueue(new Callback<Void>() {
+                    ApiClient.getApiService().deleteRecurringTransaction(id, userId).enqueue(new Callback<Void>() {
                         @Override
                         public void onResponse(Call<Void> call, Response<Void> response) {
                             if (response.isSuccessful()) {
@@ -319,7 +321,7 @@ public class RecurringTransactionsActivity extends BaseActivity {
             }
 
             RecurringTransaction rt = new RecurringTransaction();
-            rt.setUserId(CURRENT_USER_ID);
+            rt.setUserId(userId);
             rt.setWalletId(1); // Mặc định ví chính
             rt.setCategoryId(categoryId);
             rt.setAmount(amount);

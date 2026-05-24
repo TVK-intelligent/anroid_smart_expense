@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <application
         android:allowBackup="true"
@@ -54,6 +55,19 @@
         <!-- Savings Goals Activity -->
         <activity
             android:name=".activities.SavingsGoalsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.SmartExpense" />
+
+        <!-- Smart Chatbot Activity -->
+        <activity
+            android:name=".activities.ChatActivity"
+            android:exported="false"
+            android:theme="@style/Theme.SmartExpense"
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- Debt & Loan Activity -->
+        <activity
+            android:name=".activities.DebtLoanActivity"
             android:exported="false"
             android:theme="@style/Theme.SmartExpense" />
 
