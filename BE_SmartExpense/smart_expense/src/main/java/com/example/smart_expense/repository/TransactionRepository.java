@@ -32,6 +32,7 @@ public class TransactionRepository {
             .userId(rs.getInt("user_id"))
             .walletId(rs.getInt("wallet_id"))
             .categoryId(rs.getInt("category_id"))
+            .type(rs.getString("type"))
             .amount(rs.getBigDecimal("amount"))
             .transactionDate(rs.getDate("transaction_date").toLocalDate())
             .note(rs.getString("note"))
@@ -39,7 +40,7 @@ public class TransactionRepository {
             .build();
 
     public Transaction save(Transaction transaction) {
-        String sql = "INSERT INTO transactions (user_id, wallet_id, category_id, amount, transaction_date, note) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO transactions (user_id, wallet_id, category_id, amount, transaction_date, note, type) VALUES (?, ?, ?, ?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {
@@ -50,6 +51,7 @@ public class TransactionRepository {
             ps.setBigDecimal(4, transaction.getAmount());
             ps.setDate(5, Date.valueOf(transaction.getTransactionDate()));
             ps.setString(6, transaction.getNote());
+            ps.setString(7, transaction.getType());
             return ps;
         }, keyHolder);
 
@@ -135,7 +137,7 @@ public class TransactionRepository {
     }
 
     public Transaction update(Integer transactionId, Integer userId, Transaction transaction) {
-        String sql = "UPDATE transactions SET wallet_id = ?, category_id = ?, amount = ?, transaction_date = ?, note = ? " +
+        String sql = "UPDATE transactions SET wallet_id = ?, category_id = ?, amount = ?, transaction_date = ?, note = ?, type = ? " +
                 "WHERE transaction_id = ? AND user_id = ?";
         jdbcTemplate.update(sql,
                 transaction.getWalletId(),
@@ -143,6 +145,7 @@ public class TransactionRepository {
                 transaction.getAmount(),
                 Date.valueOf(transaction.getTransactionDate()),
                 transaction.getNote(),
+                transaction.getType(),
                 transactionId,
                 userId);
         transaction.setTransactionId(transactionId);

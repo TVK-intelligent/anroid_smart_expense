@@ -219,6 +219,6 @@ public class ChatActivity extends BaseActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        TextToSpeechHelper.getInstance(this).shutdown();
+        TextToSpeechHelper.getInstance(this).stop();
     }
 }

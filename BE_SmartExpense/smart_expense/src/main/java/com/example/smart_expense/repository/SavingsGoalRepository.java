@@ -27,6 +27,7 @@ public class SavingsGoalRepository {
     private final RowMapper<SavingsGoal> goalRowMapper = (rs, rowNum) -> SavingsGoal.builder()
             .goalId(rs.getInt("goal_id"))
             .userId(rs.getInt("user_id"))
+            .goalName(rs.getString("goal_name"))
             .targetAmount(rs.getBigDecimal("target_amount"))
             .currentAmount(rs.getBigDecimal("current_amount"))
             .deadline(rs.getDate("deadline").toLocalDate())
@@ -35,16 +36,17 @@ public class SavingsGoalRepository {
             .build();
 
     public SavingsGoal save(SavingsGoal goal) {
-        String sql = "INSERT INTO savings_goals (user_id, target_amount, current_amount, deadline, status) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO savings_goals (user_id, goal_name, target_amount, current_amount, deadline, status) VALUES (?, ?, ?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {
             PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             ps.setInt(1, goal.getUserId());
-            ps.setBigDecimal(2, goal.getTargetAmount());
-            ps.setBigDecimal(3, goal.getCurrentAmount() != null ? goal.getCurrentAmount() : BigDecimal.ZERO);
-            ps.setDate(4, Date.valueOf(goal.getDeadline()));
-            ps.setString(5, goal.getStatus() != null ? goal.getStatus() : "IN_PROGRESS");
+            ps.setString(2, goal.getGoalName());
+            ps.setBigDecimal(3, goal.getTargetAmount());
+            ps.setBigDecimal(4, goal.getCurrentAmount() != null ? goal.getCurrentAmount() : BigDecimal.ZERO);
+            ps.setDate(5, Date.valueOf(goal.getDeadline()));
+            ps.setString(6, goal.getStatus() != null ? goal.getStatus() : "IN_PROGRESS");
             return ps;
         }, keyHolder);
 

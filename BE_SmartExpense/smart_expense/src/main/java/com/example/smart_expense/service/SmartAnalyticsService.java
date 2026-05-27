@@ -46,13 +46,13 @@ public class SmartAnalyticsService {
      * So sánh giao dịch hiện tại với trung bình lịch sử 90 ngày qua.
      * Nếu giao dịch lớn hơn 200% trung bình, ghi nhận bất thường và lưu notification.
      */
-    public boolean checkForAnomaly(Integer userId, Integer categoryId, BigDecimal amount) {
+    public String checkForAnomaly(Integer userId, Integer categoryId, BigDecimal amount) {
         // Lấy trung bình 90 ngày của category chi tiêu
         BigDecimal avgExpense = transactionRepository.getAverageExpenseForCategory(userId, categoryId, 90);
         
         // Nếu chưa có giao dịch nào trước đó (avg = 0), không coi là bất thường
         if (avgExpense.compareTo(BigDecimal.ZERO) <= 0) {
-            return false;
+            return null;
         }
 
         // Ngưỡng bất thường: 200% (2.0 lần)
@@ -71,9 +71,9 @@ public class SmartAnalyticsService {
                     .isRead(false)
                     .build();
             notificationRepository.save(notification);
-            return true;
+            return content;
         }
-        return false;
+        return null;
     }
 
     /**

@@ -141,6 +141,7 @@
                                 android:background="@drawable/bg_circle_border">
 
                                 <TextView
+                                    android:id="@+id/tv_health_score"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_centerInParent="true"
@@ -158,6 +159,7 @@
                                 android:layout_marginStart="16dp">
 
                                 <TextView
+                                    android:id="@+id/tv_health_status"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="Trạng thái: Xuất sắc"
@@ -166,6 +168,7 @@
                                     android:textStyle="bold" />
 
                                 <TextView
+                                    android:id="@+id/tv_health_desc"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="Thói quen tích lũy của bạn tốt hơn 95% người dùng trong tuần này."
@@ -409,6 +412,7 @@
 
                         <!-- Global Progress -->
                         <TextView
+                            android:id="@+id/tv_budget_global_desc"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Đã chi tiêu 76% ngân sách • Còn lại 750,000đ"
@@ -418,6 +422,7 @@
                             android:layout_marginBottom="6dp" />
 
                         <ProgressBar
+                            android:id="@+id/pb_budget_global"
                             style="@android:style/Widget.ProgressBar.Horizontal"
                             android:layout_width="match_parent"
                             android:layout_height="6dp"

@@ -9,6 +9,8 @@ import com.example.smart_expense.repository.BudgetRepository;
 import com.example.smart_expense.repository.CategoryRepository;
 import com.example.smart_expense.repository.TransactionRepository;
 import com.example.smart_expense.repository.WalletRepository;
+import com.example.smart_expense.repository.SavingsGoalRepository;
+import com.example.smart_expense.model.SavingsGoal;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -27,19 +29,22 @@ public class ChatService {
     private final CategoryRepository categoryRepository;
     private final DashboardService dashboardService;
     private final SmartAnalyticsService smartAnalyticsService;
+    private final SavingsGoalRepository savingsGoalRepository;
 
     public ChatService(WalletRepository walletRepository,
                        TransactionRepository transactionRepository,
                        BudgetRepository budgetRepository,
                        CategoryRepository categoryRepository,
                        DashboardService dashboardService,
-                       SmartAnalyticsService smartAnalyticsService) {
+                       SmartAnalyticsService smartAnalyticsService,
+                       SavingsGoalRepository savingsGoalRepository) {
         this.walletRepository = walletRepository;
         this.transactionRepository = transactionRepository;
         this.budgetRepository = budgetRepository;
         this.categoryRepository = categoryRepository;
         this.dashboardService = dashboardService;
         this.smartAnalyticsService = smartAnalyticsService;
+        this.savingsGoalRepository = savingsGoalRepository;
     }
 
     public ChatResponse generateReply(Integer userId, String message) {
@@ -308,9 +313,8 @@ public class ChatService {
 
     private String resolveGoalName(Integer goalId) {
         if (goalId == null) return "Mục tiêu";
-        return transactionRepository.getJdbcTemplate().queryForObject(
-                "SELECT name FROM savings_goals WHERE goal_id = ?",
-                String.class, goalId
-        );
+        return savingsGoalRepository.findById(goalId)
+                .map(SavingsGoal::getGoalName)
+                .orElse("Mục tiêu");
     }
 }

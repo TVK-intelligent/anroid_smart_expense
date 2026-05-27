@@ -1,6 +1,7 @@
 package com.example.smartexpense.fragments;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.LayoutInflater;
@@ -75,8 +76,21 @@ public class AnalyticsFragment extends Fragment {
     private MaterialButton btnAddBudgetCategory;
     private MaterialButton btnCreateSavingsGoal;
 
+    // Health score views (Tab 1)
+    private TextView tvHealthScore, tvHealthStatus, tvHealthDesc;
+
+    // Global budget views (Tab 2)
+    private TextView tvBudgetGlobalDesc;
+    private ProgressBar pbBudgetGlobal;
+
     private final DecimalFormat formatter = new DecimalFormat("#,###");
-    private final Integer CURRENT_USER_ID = 1; // Seed/Mock User ID matching backend
+
+    private int getUserId() {
+        if (getActivity() == null) return 1;
+        return getActivity()
+                .getSharedPreferences("smart_expense_prefs", Context.MODE_PRIVATE)
+                .getInt("user_id", 1);
+    }
 
     @Nullable
     @Override
@@ -118,6 +132,15 @@ public class AnalyticsFragment extends Fragment {
         tvBudgetSpendTotal = view.findViewById(R.id.tv_budget_spend_total);
         tvBudgetLimitTotal = view.findViewById(R.id.tv_budget_limit_total);
         layoutBudgetsContainer = view.findViewById(R.id.layout_budgets_container);
+
+        // Find Health score components (Tab 1)
+        tvHealthScore = view.findViewById(R.id.tv_health_score);
+        tvHealthStatus = view.findViewById(R.id.tv_health_status);
+        tvHealthDesc = view.findViewById(R.id.tv_health_desc);
+
+        // Find Global budget components (Tab 2)
+        tvBudgetGlobalDesc = view.findViewById(R.id.tv_budget_global_desc);
+        pbBudgetGlobal = view.findViewById(R.id.pb_budget_global);
         
         setupTabs();
         setupBurnRateAction();
@@ -193,7 +216,7 @@ public class AnalyticsFragment extends Fragment {
         String startStr = startOfWeek.format(dtf);
         String endStr = endOfWeek.format(dtf);
 
-        ApiClient.getApiService().filterTransactions(CURRENT_USER_ID, startStr, endStr, null, null, "EXPENSE")
+        ApiClient.getApiService().filterTransactions(getUserId(), startStr, endStr, null, null, "EXPENSE")
                 .enqueue(new Callback<List<com.example.smartexpense.models.Transaction>>() {
                     @Override
                     public void onResponse(Call<List<com.example.smartexpense.models.Transaction>> call, Response<List<com.example.smartexpense.models.Transaction>> response) {
@@ -307,7 +330,7 @@ public class AnalyticsFragment extends Fragment {
 
     private void setupBurnRateAction() {
         btnCheckBurnRate.setOnClickListener(v -> {
-            ApiClient.getApiService().checkBurnRate(CURRENT_USER_ID, 1).enqueue(new Callback<BurnRateResponse>() {
+            ApiClient.getApiService().checkBurnRate(getUserId(), 1).enqueue(new Callback<BurnRateResponse>() {
                 @Override
                 public void onResponse(Call<BurnRateResponse> call, Response<BurnRateResponse> response) {
                     if (response.isSuccessful() && response.body() != null) {
@@ -352,7 +375,7 @@ public class AnalyticsFragment extends Fragment {
     }
 
     private void loadBudgets() {
-        ApiClient.getApiService().getBudgetDetails(CURRENT_USER_ID).enqueue(new Callback<List<BudgetDetailResponse>>() {
+        ApiClient.getApiService().getBudgetDetails(getUserId()).enqueue(new Callback<List<BudgetDetailResponse>>() {
             @Override
             public void onResponse(Call<List<BudgetDetailResponse>> call, Response<List<BudgetDetailResponse>> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -489,10 +512,73 @@ public class AnalyticsFragment extends Fragment {
         // Cập nhật text tổng quan ở Header
         tvBudgetSpendTotal.setText(formatter.format(totalSpent) + "đ");
         tvBudgetLimitTotal.setText(" / " + formatter.format(totalLimit) + "đ");
+
+        // Dynamic Global Progress calculation
+        int globalPercent = 0;
+        BigDecimal remaining = totalLimit.subtract(totalSpent);
+        if (totalLimit.compareTo(BigDecimal.ZERO) > 0) {
+            globalPercent = totalSpent.multiply(new BigDecimal("100"))
+                    .divide(totalLimit, 0, java.math.RoundingMode.HALF_UP).intValue();
+        }
+
+        if (tvBudgetGlobalDesc != null) {
+            if (remaining.compareTo(BigDecimal.ZERO) >= 0) {
+                tvBudgetGlobalDesc.setText("Đã chi tiêu " + globalPercent + "% ngân sách • Còn lại " + formatter.format(remaining) + "đ");
+            } else {
+                BigDecimal overSpent = remaining.negate();
+                tvBudgetGlobalDesc.setText("Đã chi tiêu " + globalPercent + "% ngân sách • Vượt hạn mức " + formatter.format(overSpent) + "đ");
+            }
+        }
+        if (pbBudgetGlobal != null) {
+            pbBudgetGlobal.setProgress(Math.min(globalPercent, 100));
+            if (remaining.compareTo(BigDecimal.ZERO) < 0) {
+                pbBudgetGlobal.setProgressTintList(android.content.res.ColorStateList.valueOf(getResources().getColor(R.color.crimson_expense)));
+            } else {
+                pbBudgetGlobal.setProgressTintList(android.content.res.ColorStateList.valueOf(getResources().getColor(R.color.secondary)));
+            }
+        }
+
+        // Dynamic Health Score calculation
+        int baseScore = 100;
+        for (BudgetDetailResponse b : budgets) {
+            String status = b.getStatus() != null ? b.getStatus() : "NORMAL";
+            if ("OVER_LIMIT".equals(status)) {
+                baseScore -= 15;
+            } else if ("NEAR_LIMIT".equals(status)) {
+                baseScore -= 7;
+            } else if (b.getSpentPercent() != null && b.getSpentPercent().doubleValue() > 50.0) {
+                baseScore -= 2;
+            }
+        }
+        final int finalScore = Math.max(30, Math.min(baseScore, 100));
+
+        if (tvHealthScore != null) {
+            tvHealthScore.setText(String.valueOf(finalScore));
+        }
+
+        if (tvHealthStatus != null && tvHealthDesc != null) {
+            if (finalScore >= 90) {
+                tvHealthStatus.setText("Trạng thái: Xuất sắc");
+                tvHealthStatus.setTextColor(getResources().getColor(R.color.emerald_income));
+                tvHealthDesc.setText("Thói quen chi tiêu cực kỳ tốt. Hãy tiếp tục duy trì nhé!");
+            } else if (finalScore >= 80) {
+                tvHealthStatus.setText("Trạng thái: Tốt");
+                tvHealthStatus.setTextColor(getResources().getColor(R.color.emerald_income));
+                tvHealthDesc.setText("Thói quen tích lũy của bạn tốt hơn phần lớn người dùng.");
+            } else if (finalScore >= 65) {
+                tvHealthStatus.setText("Trạng thái: Trung bình");
+                tvHealthStatus.setTextColor(getResources().getColor(R.color.accent_blue));
+                tvHealthDesc.setText("Bạn đang chi tiêu khá sát giới hạn. Nên cân nhắc tiết giảm.");
+            } else {
+                tvHealthStatus.setText("Trạng thái: Cảnh báo");
+                tvHealthStatus.setTextColor(getResources().getColor(R.color.crimson_expense));
+                tvHealthDesc.setText("Bạn đã chi tiêu vượt quá giới hạn ngân sách nhiều hạng mục. Hãy thắt chặt chi tiêu!");
+            }
+        }
     }
 
     private void loadSavingsGoals() {
-        ApiClient.getApiService().getSavingsGoals(CURRENT_USER_ID).enqueue(new Callback<List<SavingsGoal>>() {
+        ApiClient.getApiService().getSavingsGoals(getUserId()).enqueue(new Callback<List<SavingsGoal>>() {
             @Override
             public void onResponse(Call<List<SavingsGoal>> call, Response<List<SavingsGoal>> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -842,7 +928,7 @@ public class AnalyticsFragment extends Fragment {
             }
 
             Budget budget = new Budget();
-            budget.setUserId(CURRENT_USER_ID);
+            budget.setUserId(getUserId());
             budget.setCategoryId(Integer.parseInt(catStr));
             budget.setAmount(new BigDecimal(amtStr));
 
@@ -925,7 +1011,7 @@ public class AnalyticsFragment extends Fragment {
             }
 
             SavingsGoal goal = new SavingsGoal();
-            goal.setUserId(CURRENT_USER_ID);
+            goal.setUserId(getUserId());
             goal.setGoalName(nameStr.isEmpty() ? "Mục Tiêu Tích Lũy" : nameStr);
             goal.setTargetAmount(new BigDecimal(tarStr));
             if (!dlStr.isEmpty()) {
@@ -956,7 +1042,7 @@ public class AnalyticsFragment extends Fragment {
     }
 
     private void loadSavingsSuggestions() {
-        ApiClient.getApiService().getSavingsSuggestions(CURRENT_USER_ID).enqueue(new Callback<List<com.example.smartexpense.models.SavingsSuggestion>>() {
+        ApiClient.getApiService().getSavingsSuggestions(getUserId()).enqueue(new Callback<List<com.example.smartexpense.models.SavingsSuggestion>>() {
             @Override
             public void onResponse(Call<List<com.example.smartexpense.models.SavingsSuggestion>> call, Response<List<com.example.smartexpense.models.SavingsSuggestion>> response) {
                 savingsSuggestionsMap.clear();
