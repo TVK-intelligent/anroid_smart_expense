@@ -44,23 +44,38 @@ public class CategoryCache {
         switch (iconName.toLowerCase().trim()) {
             case "salary":
             case "lương":
-            case "thu nhập":
                 return android.R.drawable.ic_input_add;
+            case "bonus":
+            case "thưởng":
+                return android.R.drawable.ic_menu_send;
+            case "investment":
+            case "đầu tư":
+                return android.R.drawable.ic_menu_sort_by_size;
+            case "other_income":
+            case "thu nhập khác":
+            case "thu nhập":
+                return android.R.drawable.ic_menu_add;
             case "food":
             case "ăn uống":
                 return android.R.drawable.ic_menu_compass;
             case "transport":
             case "di chuyển":
                 return android.R.drawable.ic_menu_directions;
+            case "home":
+            case "nhà cửa":
+                return com.example.smartexpense.R.drawable.ic_home;
             case "bill":
             case "hóa đơn":
-                return android.R.drawable.ic_menu_myplaces;
+                return com.example.smartexpense.R.drawable.ic_calendar;
             case "shopping":
             case "mua sắm":
                 return android.R.drawable.ic_menu_gallery;
             case "leisure":
             case "giải trí":
                 return android.R.drawable.ic_menu_slideshow;
+            case "health":
+            case "sức khỏe":
+                return com.example.smartexpense.R.drawable.ic_favorite;
             default:
                 return android.R.drawable.ic_menu_today;
         }

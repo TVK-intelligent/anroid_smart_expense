@@ -8,7 +8,9 @@
     
     <!-- Semantic colors -->
     <color name="emerald_income">#27C38A</color>
+    <color name="emerald_income_light">#E6FDF4</color>
     <color name="crimson_expense">#BA1A1A</color>
+    <color name="crimson_expense_light">#FDF2F2</color>
     <color name="amber_warning">#F59E0B</color>
 
     <!-- Neutrals -->
