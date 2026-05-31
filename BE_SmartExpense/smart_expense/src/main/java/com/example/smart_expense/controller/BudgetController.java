@@ -119,10 +119,10 @@ public class BudgetController {
     @PostMapping
     public ResponseEntity<Budget> createBudget(@RequestBody Budget budget) {
         if (budget.getStartDate() == null) {
-            budget.setStartDate(LocalDate.now());
+            budget.setStartDate(LocalDate.now().withDayOfMonth(1));
         }
         if (budget.getEndDate() == null) {
-            budget.setEndDate(LocalDate.now().plusMonths(1));
+            budget.setEndDate(LocalDate.now().withDayOfMonth(LocalDate.now().lengthOfMonth()));
         }
         if (budget.getAlertThreshold() == null) {
             budget.setAlertThreshold(new BigDecimal("80.0"));

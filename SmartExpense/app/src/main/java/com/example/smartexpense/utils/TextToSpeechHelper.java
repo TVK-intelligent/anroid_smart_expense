@@ -118,6 +118,19 @@ public class TextToSpeechHelper {
             return "Your spending speed is too fast! Please reduce your expenses to stay within your budget.";
         }
 
+        // 5. Playful Budget Exceeded translation
+        if (text.contains("vung tay quá trán") && text.contains("khóc thét")) {
+            try {
+                java.util.regex.Pattern p = java.util.regex.Pattern.compile("mục (.*) rồi kìa");
+                java.util.regex.Matcher m = p.matcher(text);
+                if (m.find()) {
+                    String cat = m.group(1);
+                    return "Oh no! You spent too much on " + cat + " again! Your wallet is crying!";
+                }
+            } catch (Exception ignored) {}
+            return "Oh no! You spent too much again! Your wallet is crying!";
+        }
+
         return text;
     }
 

@@ -10,8 +10,16 @@ import com.example.smart_expense.repository.CategoryRepository;
 import com.example.smart_expense.repository.TransactionRepository;
 import com.example.smart_expense.repository.WalletRepository;
 import com.example.smart_expense.repository.SavingsGoalRepository;
+import com.example.smart_expense.repository.DebtLoanRepository;
 import com.example.smart_expense.model.SavingsGoal;
+import com.example.smart_expense.model.DebtLoan;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -23,6 +31,9 @@ import java.util.*;
 @Service
 public class ChatService {
 
+    @Value("${gemini.api.key:}")
+    private String geminiApiKey;
+
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
     private final BudgetRepository budgetRepository;
@@ -30,6 +41,7 @@ public class ChatService {
     private final DashboardService dashboardService;
     private final SmartAnalyticsService smartAnalyticsService;
     private final SavingsGoalRepository savingsGoalRepository;
+    private final DebtLoanRepository debtLoanRepository;
 
     public ChatService(WalletRepository walletRepository,
                        TransactionRepository transactionRepository,
@@ -37,7 +49,8 @@ public class ChatService {
                        CategoryRepository categoryRepository,
                        DashboardService dashboardService,
                        SmartAnalyticsService smartAnalyticsService,
-                       SavingsGoalRepository savingsGoalRepository) {
+                       SavingsGoalRepository savingsGoalRepository,
+                       DebtLoanRepository debtLoanRepository) {
         this.walletRepository = walletRepository;
         this.transactionRepository = transactionRepository;
         this.budgetRepository = budgetRepository;
@@ -45,6 +58,7 @@ public class ChatService {
         this.dashboardService = dashboardService;
         this.smartAnalyticsService = smartAnalyticsService;
         this.savingsGoalRepository = savingsGoalRepository;
+        this.debtLoanRepository = debtLoanRepository;
     }
 
     public ChatResponse generateReply(Integer userId, String message) {
@@ -57,28 +71,140 @@ public class ChatService {
 
         String msgLower = message.toLowerCase().trim();
 
-        // 1. INTENT: WALLET / BALANCES / ASSETS
-        if (containsAny(msgLower, "ví", "so du", "số dư", "tài sản", "còn bao nhiêu tiền", "tiền của tôi", "wallet", "balance")) {
+        // =================================================================
+        // LEVEL 1: HIGH-EFFICIENCY LOCAL API ROUTING (0 Token Cost!)
+        // =================================================================
+        
+        // 1. Direct Wallet Balance queries
+        if (containsAny(msgLower, "ví tôi còn bao nhiêu", "số dư ví", "ví còn bao nhiêu", "còn bao nhiêu tiền", "tiền trong ví", "my balance", "wallet balance", "ví tiền của tôi")) {
             return handleWalletIntent(userId);
         }
 
-        // 2. INTENT: BUDGETS
-        if (containsAny(msgLower, "ngân sách", "hạn mức", "vượt mức", "cảnh báo", "budget")) {
-            return handleBudgetIntent(userId);
-        }
-
-        // 3. INTENT: EXPENSES / INCOMES / DASHBOARD
-        if (containsAny(msgLower, "tiêu bao nhiêu", "chi tiêu", "đã tiêu", "thu nhập", "kiếm được", "thống kê", "dashboard", "giao dịch")) {
+        // 2. Direct Monthly Spending Statistics / Dashboard queries
+        if (containsAny(msgLower, "thống kê chi tiêu", "thống kê tháng này", "tổng chi tiêu", "đã tiêu bao nhiêu", "thu nhập tháng này", "kiếm được bao nhiêu", "chi tiêu tháng này")) {
             return handleDashboardIntent(userId);
         }
 
-        // 4. INTENT: SAVINGS RECOMMENDATIONS
-        if (containsAny(msgLower, "tiết kiệm", "đề xuất", "tư vấn", "lời khuyên", "saving")) {
+        // 3. Direct Budget Status queries
+        if (containsAny(msgLower, "tình hình ngân sách", "hạn mức chi tiêu", "vượt hạn mức", "cảnh báo ngân sách", "ngân sách của tôi", "xem ngân sách")) {
+            return handleBudgetIntent(userId);
+        }
+
+        // 4. Direct AI Local allocation queries
+        if (containsAny(msgLower, "phân bổ dòng tiền", "gợi ý trích quỹ", "trích heo đất", "phân bổ ai")) {
             return handleSavingsIntent(userId);
         }
 
-        // 5. FALLBACK / GENERAL FINANCE ADVISOR
+        // 5. Direct Recent Transactions query
+        if (containsAny(msgLower, "lịch sử", "giao dịch gần đây", "lịch sử chi", "các giao dịch", "recent transactions")) {
+            return handleRecentTransactionsIntent(userId);
+        }
+
+        // 6. Direct Debt & Loan query
+        if (containsAny(msgLower, "nợ", "vay", "sổ nợ", "tôi nợ ai", "ai nợ tôi", "debt", "loan")) {
+            return handleDebtLoanIntent(userId);
+        }
+
+        // =================================================================
+        // LEVEL 2: INTELLIGENT GENERATIVE AI ROUTING (Calls Gemini for complex queries)
+        // =================================================================
+        
+        String apiKey = System.getenv("GEMINI_API_KEY");
+        if (apiKey == null || apiKey.trim().isEmpty()) {
+            apiKey = geminiApiKey;
+        }
+
+        if (apiKey != null && !apiKey.trim().isEmpty() && !"YOUR_API_KEY".equals(apiKey)) {
+            // Build a highly compact, optimized context payload to minimize input token cost!
+            BigDecimal totalBalance = BigDecimal.ZERO;
+            DashboardResponse db = new DashboardResponse();
+            List<Budget> activeBudgets = new ArrayList<>();
+
+            try {
+                totalBalance = walletRepository.getTotalBalanceByUserId(userId);
+                if (totalBalance == null) totalBalance = BigDecimal.ZERO;
+                db = dashboardService.getDashboard(userId);
+                activeBudgets = budgetRepository.findActiveBudgets(userId);
+            } catch (Exception ignored) {}
+
+            StringBuilder context = new StringBuilder();
+            context.append("You are an expert personal finance AI assistant inside the SmartExpense app.\n");
+            context.append("Current User SQL context:\n");
+            context.append(String.format("- Net assets: %s VND\n", totalBalance));
+            if (db != null) {
+                context.append(String.format("- Income/Expense this month: +%s / -%s VND\n", db.getMonthlyIncome(), db.getMonthlyExpense()));
+            }
+            if (activeBudgets != null && !activeBudgets.isEmpty()) {
+                context.append("- Active budgets: ");
+                for (Budget b : activeBudgets) {
+                    context.append(resolveCategoryName(b.getCategoryId())).append(", ");
+                }
+                context.append("\n");
+            }
+            
+            context.append("\nUser query: ").append(message).append("\n");
+            context.append("Answer beautifully and concisely (under 200 words) using formatting. If the user asks general questions not related to their balance, ignore the context and reply as an expert finance advisor.");
+
+            String geminiReply = callGeminiAPI(apiKey, context.toString());
+            if (geminiReply != null && !geminiReply.trim().isEmpty()) {
+                List<String> suggestions = Arrays.asList("Ví tôi còn bao nhiêu?", "Thống kê chi tiêu", "Tư vấn tiết kiệm");
+                if (msgLower.contains("tiết kiệm") || msgLower.contains("tích lũy") || msgLower.contains("saving")) {
+                    suggestions = Arrays.asList("Ví tiền của tôi", "Xem ngân sách", "Thống kê chi tiêu");
+                }
+                return ChatResponse.builder()
+                        .reply(geminiReply)
+                        .suggestions(suggestions)
+                        .build();
+            }
+        }
+
+        // =================================================================
+        // LEVEL 3: ROBUST LOCAL FALLBACK INTENT (If offline or Gemini fails)
+        // =================================================================
         return handleFallbackIntent(userId, msgLower);
+    }
+
+    private String callGeminiAPI(String apiKey, String prompt) {
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey;
+            
+            Map<String, Object> requestBody = new HashMap<>();
+            List<Map<String, Object>> contents = new ArrayList<>();
+            Map<String, Object> contentMap = new HashMap<>();
+            List<Map<String, Object>> parts = new ArrayList<>();
+            Map<String, Object> partMap = new HashMap<>();
+            
+            partMap.put("text", prompt);
+            parts.add(partMap);
+            contentMap.put("parts", parts);
+            contents.add(contentMap);
+            requestBody.put("contents", contents);
+            
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+            
+            ResponseEntity<Map> response = restTemplate.postForEntity(url, entity, Map.class);
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                List candidates = (List) response.getBody().get("candidates");
+                if (candidates != null && !candidates.isEmpty()) {
+                    Map candidate = (Map) candidates.get(0);
+                    Map content = (Map) candidate.get("content");
+                    if (content != null) {
+                        List partsList = (List) content.get("parts");
+                        if (partsList != null && !partsList.isEmpty()) {
+                            Map part = (Map) partsList.get(0);
+                            return (String) part.get("text");
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error calling Gemini API: " + e.getMessage());
+        }
+        return null;
     }
 
     private ChatResponse handleWalletIntent(Integer userId) {
@@ -309,6 +435,93 @@ public class ChatService {
         return categoryRepository.findById(categoryId)
                 .map(c -> c.getName())
                 .orElse("Chưa phân loại");
+    }
+
+    private ChatResponse handleRecentTransactionsIntent(Integer userId) {
+        List<com.example.smart_expense.model.Transaction> transactions = transactionRepository.findRecentByUserId(userId, 5);
+        if (transactions.isEmpty()) {
+            return ChatResponse.builder()
+                    .reply("Hiện tại bạn chưa ghi chép bất kỳ giao dịch nào trong tài khoản. Hãy nhấn vào mục **Thêm giao dịch (+)** để bắt đầu kiểm soát dòng tiền nhé!")
+                    .suggestions(Arrays.asList("Thêm giao dịch", "Xem ví tiền"))
+                    .build();
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("📝 **Lịch sử 5 giao dịch gần đây nhất của bạn:**\n\n");
+        for (com.example.smart_expense.model.Transaction t : transactions) {
+            String sign = "EXPENSE".equalsIgnoreCase(t.getType()) ? "-" : "+";
+            String catName = resolveCategoryName(t.getCategoryId());
+            String note = (t.getNote() != null && !t.getNote().isEmpty()) ? t.getNote() : "Không có ghi chú";
+            sb.append(String.format("• **%s%sđ** | %s | _%s_ (%s)\n", 
+                    sign, formatCurrency(t.getAmount()), catName, note, t.getTransactionDate()));
+        }
+
+        sb.append("\nBạn có muốn phân tích tổng chi tiêu tháng này hay cần tôi hỗ trợ thiết lập ngân sách mới?");
+
+        return ChatResponse.builder()
+                .reply(sb.toString())
+                .suggestions(Arrays.asList("Chi tiêu tháng này", "Xem ngân sách", "Tư vấn tiết kiệm"))
+                .build();
+    }
+
+    private ChatResponse handleDebtLoanIntent(Integer userId) {
+        List<DebtLoan> list = debtLoanRepository.findByUserId(userId);
+        if (list.isEmpty()) {
+            return ChatResponse.builder()
+                    .reply("🎉 Tuyệt vời! Bạn hiện tại **không có bất kỳ khoản vay hay khoản nợ nào** chưa thanh toán. Sổ nợ của bạn hoàn toàn sạch sẽ!")
+                    .suggestions(Arrays.asList("Chi tiêu tháng này", "Xem ví tiền", "Xem ngân sách"))
+                    .build();
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("📋 **Thông tin sổ nợ công nợ của bạn:**\n\n");
+        
+        List<DebtLoan> unpaidDebts = new ArrayList<>();
+        List<DebtLoan> unpaidLoans = new ArrayList<>();
+
+        for (DebtLoan dl : list) {
+            if ("UNPAID".equalsIgnoreCase(dl.getStatus())) {
+                if ("DEBT".equalsIgnoreCase(dl.getType())) {
+                    unpaidDebts.add(dl);
+                } else {
+                    unpaidLoans.add(dl);
+                }
+            }
+        }
+
+        if (unpaidLoans.isEmpty() && unpaidDebts.isEmpty()) {
+            return ChatResponse.builder()
+                    .reply("🎉 Tuyệt vời! Tất cả các khoản vay nợ trước đây đều đã được hoàn tất thanh toán (Đã tất toán).")
+                    .suggestions(Arrays.asList("Chi tiêu tháng này", "Xem ví tiền"))
+                    .build();
+        }
+
+        if (!unpaidLoans.isEmpty()) {
+            sb.append("💸 **Họ đang nợ bạn (Các khoản cho vay):**\n");
+            for (DebtLoan l : unpaidLoans) {
+                String due = l.getDueDate() != null ? "Hạn trả: " + l.getDueDate() : "Không ghi hạn";
+                sb.append(String.format("   - **%s**: Cho vay **%sđ** (%s)\n", 
+                        l.getPersonName(), formatCurrency(l.getAmount()), due));
+            }
+            sb.append("\n");
+        }
+
+        if (!unpaidDebts.isEmpty()) {
+            sb.append("⚠️ **Bạn đang nợ họ (Các khoản bạn đi vay):**\n");
+            for (DebtLoan d : unpaidDebts) {
+                String due = d.getDueDate() != null ? "Hạn trả: " + d.getDueDate() : "Không ghi hạn";
+                sb.append(String.format("   - **%s**: Bạn nợ **%sđ** (%s)\n", 
+                        d.getPersonName(), formatCurrency(d.getAmount()), due));
+            }
+            sb.append("\n");
+        }
+
+        sb.append("Hãy nhớ đôn đốc đòi nợ hoặc thu xếp tài chính để tất toán nợ đúng hạn nhé!");
+
+        return ChatResponse.builder()
+                .reply(sb.toString())
+                .suggestions(Arrays.asList("Xem ví tiền", "Chi tiêu tháng này", "Xem ngân sách"))
+                .build();
     }
 
     private String resolveGoalName(Integer goalId) {

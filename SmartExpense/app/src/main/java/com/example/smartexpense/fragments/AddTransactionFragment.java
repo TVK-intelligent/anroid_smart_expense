@@ -18,6 +18,7 @@ import androidx.fragment.app.Fragment;
 import com.example.smartexpense.R;
 import com.example.smartexpense.api.ApiClient;
 import com.example.smartexpense.models.AnomalyResponse;
+import com.example.smartexpense.models.BudgetDetailResponse;
 import com.example.smartexpense.models.Category;
 import com.example.smartexpense.models.Transaction;
 import com.example.smartexpense.models.Wallet;
@@ -52,6 +53,7 @@ public class AddTransactionFragment extends Fragment {
     private boolean isExpense = true;
     private final List<Wallet> wallets = new ArrayList<>();
     private final List<Category> categories = new ArrayList<>();
+    private final List<Category> allCategories = new ArrayList<>();
     
     private Wallet selectedWallet = null;
     private Category selectedCategory = null;
@@ -115,6 +117,7 @@ public class AddTransactionFragment extends Fragment {
                 btnScanAnomaly.setTextColor(getResources().getColor(R.color.crimson_expense));
                 btnScanAnomaly.setStrokeColor(android.content.res.ColorStateList.valueOf(getResources().getColor(R.color.crimson_expense)));
             }
+            updateCategoryDropdown(true);
         });
 
         btnToggleIncome.setOnClickListener(v -> {
@@ -136,7 +139,34 @@ public class AddTransactionFragment extends Fragment {
                 btnScanAnomaly.setTextColor(getResources().getColor(R.color.text_secondary));
                 btnScanAnomaly.setStrokeColor(android.content.res.ColorStateList.valueOf(getResources().getColor(R.color.outline_border)));
             }
+            updateCategoryDropdown(false);
         });
+    }
+
+    private void updateCategoryDropdown(boolean isExpenseMode) {
+        if (getContext() == null) return;
+        categories.clear();
+        String typeFilter = isExpenseMode ? "EXPENSE" : "INCOME";
+        for (Category c : allCategories) {
+            if (typeFilter.equalsIgnoreCase(c.getType())) {
+                categories.add(c);
+            }
+        }
+        
+        android.widget.ArrayAdapter<Category> adapter = new android.widget.ArrayAdapter<>(
+                getContext(),
+                android.R.layout.simple_dropdown_item_1line,
+                categories
+        );
+        actCategory.setAdapter(adapter);
+
+        if (!categories.isEmpty()) {
+            selectedCategory = categories.get(0);
+            actCategory.setText(selectedCategory.getName(), false);
+        } else {
+            selectedCategory = null;
+            actCategory.setText("", false);
+        }
     }
 
     private void setupDatePicker() {
@@ -196,18 +226,9 @@ public class AddTransactionFragment extends Fragment {
             public void onResponse(Call<List<Category>> call, Response<List<Category>> response) {
                 if (!isAdded() || getContext() == null) return;
                 if (response.isSuccessful() && response.body() != null) {
-                    categories.clear();
-                    categories.addAll(response.body());
-                    android.widget.ArrayAdapter<Category> adapter = new android.widget.ArrayAdapter<>(
-                            getContext(),
-                            android.R.layout.simple_dropdown_item_1line,
-                            categories
-                    );
-                    actCategory.setAdapter(adapter);
-                    if (!categories.isEmpty()) {
-                        selectedCategory = categories.get(0);
-                        actCategory.setText(selectedCategory.getName(), false);
-                    }
+                    allCategories.clear();
+                    allCategories.addAll(response.body());
+                    updateCategoryDropdown(isExpense);
                 }
             }
 
@@ -338,6 +359,34 @@ public class AddTransactionFragment extends Fragment {
                     if (!isAdded()) return;
                     if (response.isSuccessful()) {
                         Toast.makeText(getContext(), "Lưu giao dịch thành công!", Toast.LENGTH_SHORT).show();
+                        
+                        if ("EXPENSE".equalsIgnoreCase(desiredType)) {
+                            final Context appContext = getContext().getApplicationContext();
+                            final Integer catId = t.getCategoryId();
+                            final int userId = getUserId();
+                            
+                            ApiClient.getApiService().getBudgetDetails(userId).enqueue(new Callback<List<BudgetDetailResponse>>() {
+                                @Override
+                                public void onResponse(Call<List<BudgetDetailResponse>> budgetCall, Response<List<BudgetDetailResponse>> budgetResponse) {
+                                    if (budgetResponse.isSuccessful() && budgetResponse.body() != null) {
+                                        for (BudgetDetailResponse bd : budgetResponse.body()) {
+                                            if (bd.getCategoryId() != null && bd.getCategoryId().equals(catId)) {
+                                                if ("OVER_LIMIT".equalsIgnoreCase(bd.getStatus())) {
+                                                    String catName = bd.getCategoryName() != null ? bd.getCategoryName() : "danh mục";
+                                                    String warningMsg = "Ối trời ơi! Bạn lại vung tay quá trán cho mục " + catName + " rồi kìa! Ví đang khóc thét mất thôi!";
+                                                    com.example.smartexpense.utils.TextToSpeechHelper.getInstance(appContext).speak(appContext, warningMsg);
+                                                }
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                @Override
+                                public void onFailure(Call<List<BudgetDetailResponse>> budgetCall, Throwable t2) {}
+                            });
+                        }
+
                         if (getActivity() != null) {
                             getActivity().getSupportFragmentManager().popBackStack();
                         }

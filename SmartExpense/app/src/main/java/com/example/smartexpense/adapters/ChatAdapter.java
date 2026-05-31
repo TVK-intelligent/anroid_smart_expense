@@ -60,6 +60,37 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         return messages.size();
     }
 
+    private static android.text.Spanned formatMarkdown(String text) {
+        if (text == null) return new android.text.SpannableString("");
+
+        // 1. Escape HTML special characters
+        String formatted = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+
+        // 2. Parse bold markers: **text** -> <b>text</b>
+        formatted = formatted.replaceAll("\\*\\*(.*?)\\*\\*", "<b>$1</b>");
+
+        // 3. Parse headers: e.g. ### Header -> <b>Header</b>
+        formatted = formatted.replaceAll("(?m)^###\\s+(.*)$", "<br/><b>$1</b>");
+        formatted = formatted.replaceAll("(?m)^##\\s+(.*)$", "<br/><b>$1</b>");
+        formatted = formatted.replaceAll("(?m)^#\\s+(.*)$", "<br/><b>$1</b>");
+
+        // 4. Parse bullet points: e.g. * Item -> • Item
+        formatted = formatted.replaceAll("(?m)^[\\*\\-]\\s+(.*)$", "• $1");
+
+        // 5. Convert line breaks \n to <br/>
+        formatted = formatted.replace("\n", "<br/>");
+
+        // 6. Clean consecutive <br/>
+        formatted = formatted.replace("<br/><br/>", "<br/>");
+
+        // 7. Render using Html
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+            return android.text.Html.fromHtml(formatted, android.text.Html.FROM_HTML_MODE_LEGACY);
+        } else {
+            return android.text.Html.fromHtml(formatted);
+        }
+    }
+
     static class SentViewHolder extends RecyclerView.ViewHolder {
         TextView tvMessageBody;
 
@@ -69,7 +100,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         }
 
         public void bind(ChatMessage message) {
-            tvMessageBody.setText(message.getText());
+            tvMessageBody.setText(formatMarkdown(message.getText()));
         }
     }
 
@@ -82,7 +113,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         }
 
         public void bind(ChatMessage message) {
-            tvMessageBody.setText(message.getText());
+            tvMessageBody.setText(formatMarkdown(message.getText()));
         }
     }
 }

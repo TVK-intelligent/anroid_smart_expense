@@ -37,6 +37,9 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import android.widget.AutoCompleteTextView;
+import android.widget.ArrayAdapter;
+import com.example.smartexpense.models.Category;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -84,6 +87,7 @@ public class AnalyticsFragment extends Fragment {
     private ProgressBar pbBudgetGlobal;
 
     private final DecimalFormat formatter = new DecimalFormat("#,###");
+    private final List<Category> categoriesList = new ArrayList<>();
 
     private int getUserId() {
         if (getActivity() == null) return 1;
@@ -375,6 +379,23 @@ public class AnalyticsFragment extends Fragment {
     }
 
     private void loadBudgets() {
+        ApiClient.getApiService().getCategories(getUserId()).enqueue(new Callback<List<Category>>() {
+            @Override
+            public void onResponse(Call<List<Category>> call, Response<List<Category>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    categoriesList.clear();
+                    for (Category c : response.body()) {
+                        if ("EXPENSE".equalsIgnoreCase(c.getType())) {
+                            categoriesList.add(c);
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Category>> call, Throwable t) {}
+        });
+
         ApiClient.getApiService().getBudgetDetails(getUserId()).enqueue(new Callback<List<BudgetDetailResponse>>() {
             @Override
             public void onResponse(Call<List<BudgetDetailResponse>> call, Response<List<BudgetDetailResponse>> response) {
@@ -887,50 +908,68 @@ public class AnalyticsFragment extends Fragment {
         builder.show();
     }
 
+    private Category selectedBudgetCategory = null;
+
     private void showAddBudgetDialog() {
         if (getContext() == null) return;
 
+        View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_add_budget, null);
+        AutoCompleteTextView actCat = dialogView.findViewById(R.id.act_budget_category);
+        TextInputEditText etAmt = dialogView.findViewById(R.id.et_budget_amount);
+
+        selectedBudgetCategory = null;
+
+        // Populate Categories Dropdown
+        ArrayAdapter<Category> catAdapter = new ArrayAdapter<>(
+                getContext(),
+                android.R.layout.simple_dropdown_item_1line,
+                categoriesList
+        );
+        actCat.setAdapter(catAdapter);
+
+        // Pre-select first category if available
+        if (!categoriesList.isEmpty()) {
+            selectedBudgetCategory = categoriesList.get(0);
+            actCat.setText(selectedBudgetCategory.getName(), false);
+        }
+
+        actCat.setOnItemClickListener((parent, view, position, id) -> {
+            selectedBudgetCategory = categoriesList.get(position);
+        });
+
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        builder.setTitle("Thiết lập ngân sách mới");
-
-        LinearLayout layoutContainer = new LinearLayout(getContext());
-        layoutContainer.setOrientation(LinearLayout.VERTICAL);
-        int padding = (int) (16 * getResources().getDisplayMetrics().density);
-        layoutContainer.setPadding(padding, padding, padding, padding);
-
-        // Input Category ID
-        TextInputLayout layoutCat = new TextInputLayout(getContext());
-        layoutCat.setBoxBackgroundMode(TextInputLayout.BOX_BACKGROUND_OUTLINE);
-        layoutCat.setHint("Mã hạng mục (Ví dụ: 1-Ăn uống, 2-Di chuyển)");
-        TextInputEditText etCat = new TextInputEditText(getContext());
-        etCat.setInputType(InputType.TYPE_CLASS_NUMBER);
-        layoutCat.addView(etCat);
-        layoutContainer.addView(layoutCat);
-
-        // Input Amount
-        TextInputLayout layoutAmt = new TextInputLayout(getContext());
-        layoutAmt.setBoxBackgroundMode(TextInputLayout.BOX_BACKGROUND_OUTLINE);
-        layoutAmt.setHint("Hạn mức chi tiêu tối đa (VND)");
-        TextInputEditText etAmt = new TextInputEditText(getContext());
-        etAmt.setInputType(InputType.TYPE_CLASS_NUMBER);
-        layoutAmt.addView(etAmt);
-        layoutContainer.addView(layoutAmt);
-
-        builder.setView(layoutContainer);
+        builder.setView(dialogView);
 
         builder.setPositiveButton("Thiết Lập", (dialog, which) -> {
-            String catStr = etCat.getText() != null ? etCat.getText().toString().trim() : "";
             String amtStr = etAmt.getText() != null ? etAmt.getText().toString().trim() : "";
 
-            if (catStr.isEmpty() || amtStr.isEmpty()) {
-                Toast.makeText(getContext(), "Thông tin không được để trống!", Toast.LENGTH_SHORT).show();
+            if (selectedBudgetCategory == null || selectedBudgetCategory.getCategoryId() == null) {
+                Toast.makeText(getContext(), "Vui lòng chọn hạng mục chi tiêu!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (amtStr.isEmpty()) {
+                Toast.makeText(getContext(), "Hạn mức không được để trống!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            BigDecimal amount;
+            try {
+                amount = new BigDecimal(amtStr);
+            } catch (Exception ignored) {
+                Toast.makeText(getContext(), "Hạn mức không hợp lệ!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+                Toast.makeText(getContext(), "Hạn mức phải > 0!", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             Budget budget = new Budget();
             budget.setUserId(getUserId());
-            budget.setCategoryId(Integer.parseInt(catStr));
-            budget.setAmount(new BigDecimal(amtStr));
+            budget.setCategoryId(selectedBudgetCategory.getCategoryId());
+            budget.setAmount(amount);
 
             ApiClient.getApiService().createBudget(budget).enqueue(new Callback<Budget>() {
                 @Override
@@ -938,6 +977,8 @@ public class AnalyticsFragment extends Fragment {
                     if (response.isSuccessful()) {
                         Toast.makeText(getContext(), "Thiết lập ngân sách thành công!", Toast.LENGTH_SHORT).show();
                         loadBudgets(); // Refresh list
+                    } else {
+                        Toast.makeText(getContext(), "Lỗi khi thiết lập ngân sách!", Toast.LENGTH_SHORT).show();
                     }
                 }
 
@@ -1140,5 +1181,12 @@ public class AnalyticsFragment extends Fragment {
             Toast.makeText(getContext(), "Không phân bổ được mục nào. Vui lòng kiểm tra lại!", Toast.LENGTH_SHORT).show();
         }
         loadSavingsSuggestions(); // Refresh everything
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        loadBudgets();
+        loadSavingsSuggestions();
     }
 }
