@@ -2,7 +2,13 @@ package com.example.smart_expense.service;
 
 import com.example.smart_expense.model.RecurringTransaction;
 import com.example.smart_expense.model.Transaction;
+import com.example.smart_expense.model.Wallet;
+import com.example.smart_expense.model.Notification;
+import com.example.smart_expense.model.Category;
 import com.example.smart_expense.repository.RecurringTransactionRepository;
+import com.example.smart_expense.repository.WalletRepository;
+import com.example.smart_expense.repository.NotificationRepository;
+import com.example.smart_expense.repository.CategoryRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -11,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class RecurringTransactionScheduler {
@@ -19,11 +26,20 @@ public class RecurringTransactionScheduler {
 
     private final RecurringTransactionRepository recurringTransactionRepository;
     private final TransactionService transactionService;
+    private final WalletRepository walletRepository;
+    private final NotificationRepository notificationRepository;
+    private final CategoryRepository categoryRepository;
 
     public RecurringTransactionScheduler(RecurringTransactionRepository recurringTransactionRepository,
-                                         TransactionService transactionService) {
+                                         TransactionService transactionService,
+                                         WalletRepository walletRepository,
+                                         NotificationRepository notificationRepository,
+                                         CategoryRepository categoryRepository) {
         this.recurringTransactionRepository = recurringTransactionRepository;
         this.transactionService = transactionService;
+        this.walletRepository = walletRepository;
+        this.notificationRepository = notificationRepository;
+        this.categoryRepository = categoryRepository;
     }
 
     /**
@@ -48,6 +64,42 @@ public class RecurringTransactionScheduler {
 
     @Transactional
     public void processSingleTransaction(RecurringTransaction rt) {
+        // Kiểm tra xem giao dịch là chi tiêu (EXPENSE)
+        String type = "EXPENSE"; // Mặc định là chi tiêu
+        Optional<Category> categoryOpt = categoryRepository.findById(rt.getCategoryId());
+        if (categoryOpt.isPresent()) {
+            type = categoryOpt.get().getType();
+        }
+
+        if ("EXPENSE".equalsIgnoreCase(type)) {
+            // Kiểm tra số dư ví trước khi thực hiện
+            Optional<Wallet> walletOpt = walletRepository.findByIdAndUserId(rt.getWalletId(), rt.getUserId());
+            if (walletOpt.isPresent()) {
+                Wallet wallet = walletOpt.get();
+                if (wallet.getBalance().compareTo(rt.getAmount()) < 0) {
+                    // Ví không đủ tiền -> Không tạo giao dịch và bắn thông báo khẩn cấp
+                    String categoryName = categoryOpt.map(Category::getName).orElse("Danh mục chi tiêu");
+                    String alertTitle = "Thất bại: Giao dịch định kỳ tự động";
+                    String alertContent = String.format("Tài khoản / Ví '%s' không đủ số dư (hiện có: %sđ) để tự động thanh toán hóa đơn định kỳ '%s' (%sđ). Vui lòng nạp thêm tiền!",
+                            wallet.getName(), wallet.getBalance().setScale(0),
+                            rt.getNote() != null ? rt.getNote() : categoryName,
+                            rt.getAmount().setScale(0));
+
+                    Notification notification = Notification.builder()
+                            .userId(rt.getUserId())
+                            .title(alertTitle)
+                            .content(alertContent)
+                            .isRead(false)
+                            .build();
+                    notificationRepository.save(notification);
+
+                    logger.warn("Giao dịch định kỳ ID {} bị HỦY vì ví '{}' không đủ tiền (Cần: {}, Có: {})",
+                            rt.getRecurringId(), wallet.getName(), rt.getAmount(), wallet.getBalance());
+                    return; // Dừng xử lý tạo giao dịch nhưng vẫn cho phép cập nhật ngày tiếp theo bên dưới
+                }
+            }
+        }
+
         // 1. Tạo và lưu giao dịch thông thường
         Transaction transaction = Transaction.builder()
                 .userId(rt.getUserId())

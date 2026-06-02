@@ -23,6 +23,7 @@ public class SavingsGoal {
     private String goalName; // Tên mục tiêu tích lũy do người dùng đặt
     private BigDecimal targetAmount;
     private BigDecimal currentAmount;
+    private Integer walletId; // ID của ví liên kết trích tiền tiết kiệm
     private LocalDate deadline;
     private String status; // "IN_PROGRESS", "COMPLETED", "FAILED"
     private LocalDateTime createdAt;

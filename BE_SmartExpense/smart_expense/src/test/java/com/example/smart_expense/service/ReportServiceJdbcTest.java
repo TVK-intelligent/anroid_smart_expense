@@ -32,23 +32,23 @@ public class ReportServiceJdbcTest {
                 Integer foodCategoryId = jdbcTemplate
                                 .queryForObject("SELECT category_id FROM categories WHERE name='Food'", Integer.class);
 
-                // user 1: May 2026
+                // user 999: May 2026
                 jdbcTemplate.update(
-                                "INSERT INTO transactions (user_id, wallet_id, category_id, amount, transaction_date, note) VALUES (1, 1, ?, 1000.00, ?, 's')",
+                                "INSERT INTO transactions (user_id, wallet_id, category_id, amount, transaction_date, note) VALUES (999, 1, ?, 1000.00, ?, 's')",
                                 salaryCategoryId, LocalDate.of(2026, 5, 1));
                 jdbcTemplate.update(
-                                "INSERT INTO transactions (user_id, wallet_id, category_id, amount, transaction_date, note) VALUES (1, 1, ?, 200.00, ?, 'f1')",
+                                "INSERT INTO transactions (user_id, wallet_id, category_id, amount, transaction_date, note) VALUES (999, 1, ?, 200.00, ?, 'f1')",
                                 foodCategoryId, LocalDate.of(2026, 5, 1));
                 jdbcTemplate.update(
-                                "INSERT INTO transactions (user_id, wallet_id, category_id, amount, transaction_date, note) VALUES (1, 1, ?, 300.00, ?, 'f2')",
+                                "INSERT INTO transactions (user_id, wallet_id, category_id, amount, transaction_date, note) VALUES (999, 1, ?, 300.00, ?, 'f2')",
                                 foodCategoryId, LocalDate.of(2026, 5, 2));
 
-                // user 2: should be ignored
+                // user 1000: should be ignored
                 jdbcTemplate.update(
-                                "INSERT INTO transactions (user_id, wallet_id, category_id, amount, transaction_date, note) VALUES (2, 1, ?, 9999.00, ?, 'noise')",
+                                "INSERT INTO transactions (user_id, wallet_id, category_id, amount, transaction_date, note) VALUES (1000, 1, ?, 9999.00, ?, 'noise')",
                                 foodCategoryId, LocalDate.of(2026, 5, 1));
 
-                MonthlyReportResponse report = reportService.getMonthlyReport(1, 5, 2026);
+                MonthlyReportResponse report = reportService.getMonthlyReport(999, 5, 2026);
 
                 assertThat(report.getTotalIncome()).isEqualByComparingTo(new BigDecimal("1000.00"));
                 assertThat(report.getTotalExpense()).isEqualByComparingTo(new BigDecimal("500.00"));

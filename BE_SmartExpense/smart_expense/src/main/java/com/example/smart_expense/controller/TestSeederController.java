@@ -227,21 +227,21 @@ public class TestSeederController implements CommandLineRunner {
                 testUserId, catShopping, new BigDecimal("1000000.00"), Date.valueOf(today.withDayOfMonth(1)), Date.valueOf(today.withDayOfMonth(today.lengthOfMonth())), new BigDecimal("80.00")
         );
 
-        // 8. Gieo dữ liệu mục tiêu tích lũy (SAVINGS GOALS)
-        // Mục tiêu 1: Mua Laptop Mới (IN_PROGRESS)
+        // 8. Gieo dữ liệu mục tiêu tích lũy (SAVINGS GOALS) liên kết với Ví tương ứng
+        // Mục tiêu 1: Mua Laptop Mới (IN_PROGRESS) - Liên kết ví Ngân hàng Vietcombank
         jdbcTemplate.update(
-                "INSERT INTO savings_goals (user_id, goal_name, target_amount, current_amount, deadline, status, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())",
-                testUserId, "Mua Laptop Mới", new BigDecimal("20000000.00"), new BigDecimal("8000000.00"), Date.valueOf(today.plusMonths(3)), "IN_PROGRESS"
+                "INSERT INTO savings_goals (user_id, goal_name, target_amount, current_amount, wallet_id, deadline, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())",
+                testUserId, "Mua Laptop Mới", new BigDecimal("20000000.00"), new BigDecimal("8000000.00"), walletIdBank, Date.valueOf(today.plusMonths(3)), "IN_PROGRESS"
         );
-        // Mục tiêu 2: Quỹ Khẩn Cấp (COMPLETED)
+        // Mục tiêu 2: Quỹ Khẩn Cấp (COMPLETED) - Liên kết ví Tiền mặt
         jdbcTemplate.update(
-                "INSERT INTO savings_goals (user_id, goal_name, target_amount, current_amount, deadline, status, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())",
-                testUserId, "Quỹ Khẩn Cấp", new BigDecimal("10000000.00"), new BigDecimal("10000000.00"), Date.valueOf(today.minusDays(1)), "COMPLETED"
+                "INSERT INTO savings_goals (user_id, goal_name, target_amount, current_amount, wallet_id, deadline, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())",
+                testUserId, "Quỹ Khẩn Cấp", new BigDecimal("10000000.00"), new BigDecimal("10000000.00"), walletIdCash, Date.valueOf(today.minusDays(1)), "COMPLETED"
         );
-        // Mục tiêu 3: Du lịch Đà Lạt (IN_PROGRESS)
+        // Mục tiêu 3: Du lịch Đà Lạt (IN_PROGRESS) - Liên kết ví MoMo
         jdbcTemplate.update(
-                "INSERT INTO savings_goals (user_id, goal_name, target_amount, current_amount, deadline, status, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())",
-                testUserId, "Du lịch Đà Lạt", new BigDecimal("5000000.00"), new BigDecimal("1500000.00"), Date.valueOf(today.plusMonths(1)), "IN_PROGRESS"
+                "INSERT INTO savings_goals (user_id, goal_name, target_amount, current_amount, wallet_id, deadline, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())",
+                testUserId, "Du lịch Đà Lạt", new BigDecimal("5000000.00"), new BigDecimal("1500000.00"), walletIdMoMo, Date.valueOf(today.plusMonths(1)), "IN_PROGRESS"
         );
 
         // 9. Gieo dữ liệu ghi nợ/cho vay (DEBTS & LOANS)
