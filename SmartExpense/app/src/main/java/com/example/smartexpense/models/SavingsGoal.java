@@ -10,6 +10,9 @@ public class SavingsGoal {
     @SerializedName("userId")
     private Integer userId;
 
+    @SerializedName("goalName")
+    private String goalName;
+
     @SerializedName("targetAmount")
     private BigDecimal targetAmount;
 
@@ -28,6 +31,9 @@ public class SavingsGoal {
 
     public Integer getUserId() { return userId; }
     public void setUserId(Integer userId) { this.userId = userId; }
+
+    public String getGoalName() { return goalName; }
+    public void setGoalName(String goalName) { this.goalName = goalName; }
 
     public BigDecimal getTargetAmount() { return targetAmount; }
     public void setTargetAmount(BigDecimal targetAmount) { this.targetAmount = targetAmount; }

@@ -1,129 +1,240 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@color/background_slate"
-    android:padding="24dp"
-    android:gravity="center_horizontal">
+    android:fillViewport="true"
+    android:background="@color/background_slate">
 
-    <!-- Avatar circle -->
-    <com.google.android.material.card.MaterialCardView
-        android:layout_width="96dp"
-        android:layout_height="96dp"
-        app:cardCornerRadius="48dp"
-        app:cardElevation="2dp"
-        app:cardBackgroundColor="@color/primary"
-        android:layout_marginTop="32dp"
-        android:layout_marginBottom="16dp">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:gravity="center_horizontal">
+
+        <!-- Avatar circle -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            app:cardCornerRadius="48dp"
+            app:cardElevation="2dp"
+            app:cardBackgroundColor="@color/primary"
+            android:layout_marginTop="32dp"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:id="@+id/tv_avatar_char"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="A"
+                android:textColor="@color/surface_white"
+                android:textSize="36sp"
+                android:textStyle="bold"
+                android:gravity="center" />
+        </com.google.android.material.card.MaterialCardView>
 
         <TextView
-            android:id="@+id/tv_avatar_char"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:text="A"
-            android:textColor="@color/surface_white"
-            android:textSize="36sp"
-            android:textStyle="bold"
-            android:gravity="center" />
-    </com.google.android.material.card.MaterialCardView>
+            android:id="@+id/tv_profile_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Alex Johnson"
+            android:textColor="@color/text_primary"
+            android:textSize="20sp"
+            android:textStyle="bold" />
 
-    <TextView
-        android:id="@+id/tv_profile_name"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Alex Johnson"
-        android:textColor="@color/text_primary"
-        android:textSize="20sp"
-        android:textStyle="bold" />
+        <TextView
+            android:id="@+id/tv_profile_email"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="alex@smartexpense.com"
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="32dp" />
 
-    <TextView
-        android:id="@+id/tv_profile_email"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="alex@smartexpense.com"
-        android:textColor="@color/text_secondary"
-        android:textSize="14sp"
-        android:layout_marginTop="4dp"
-        android:layout_marginBottom="32dp" />
-
-    <!-- Info card -->
-    <com.google.android.material.card.MaterialCardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="2dp"
-        app:cardBackgroundColor="@color/surface_white"
-        android:layout_marginBottom="32dp">
-
-        <LinearLayout
+        <!-- Info card -->
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
+            app:cardCornerRadius="16dp"
+            app:cardElevation="2dp"
+            app:cardBackgroundColor="@color/surface_white"
+            android:layout_marginBottom="32dp">
 
-            <RelativeLayout
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingVertical="12dp">
+                android:orientation="vertical"
+                android:padding="16dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
+                <RelativeLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Base Currency"
-                    android:textColor="@color/text_primary"
-                    android:textSize="14sp" />
+                    android:paddingVertical="12dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/profile_base_currency"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentRight="true"
+                        android:text="@string/profile_currency_val"
+                        android:textColor="@color/accent_blue"
+                        android:textStyle="bold"
+                        android:textSize="14sp" />
+                </RelativeLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/progress_track" />
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_alignParentRight="true"
-                    android:text="VND (đ)"
-                    android:textColor="@color/accent_blue"
-                    android:textStyle="bold"
-                    android:textSize="14sp" />
-            </RelativeLayout>
+                    android:paddingVertical="12dp">
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@color/progress_track" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/profile_account_level"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp" />
 
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingVertical="12dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentRight="true"
+                        android:text="@string/profile_premium_user"
+                        android:textColor="@color/emerald_income"
+                        android:textStyle="bold"
+                        android:textSize="14sp" />
+                </RelativeLayout>
 
-                <TextView
-                    android:layout_width="wrap_content"
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/progress_track" />
+
+                <RelativeLayout
+                    android:id="@+id/btn_change_language"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Account Level"
-                    android:textColor="@color/text_primary"
-                    android:textSize="14sp" />
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:paddingVertical="12dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/profile_language"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/tv_current_language"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentRight="true"
+                        android:text="@string/profile_lang_vi"
+                        android:textColor="@color/accent_blue"
+                        android:textStyle="bold"
+                        android:textSize="14sp" />
+                </RelativeLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/progress_track" />
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_alignParentRight="true"
-                    android:text="Premium User"
-                    android:textColor="@color/emerald_income"
-                    android:textStyle="bold"
-                    android:textSize="14sp" />
-            </RelativeLayout>
-        </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
+                    android:paddingVertical="12dp">
 
-    <!-- Logout button: height 48dp, corner radius 16dp -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_logout"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:text="Sign Out"
-        android:textColor="@color/surface_white"
-        android:textSize="14sp"
-        android:textStyle="bold"
-        android:backgroundTint="@color/crimson_expense"
-        app:cornerRadius="16dp" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:text="@string/profile_voice_warning"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp" />
 
-</LinearLayout>
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/switch_voice_warning"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentRight="true"
+                        android:layout_centerVertical="true"
+                        app:useMaterialThemeColors="true" />
+                </RelativeLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+
+        <!-- Quản lý Mục tiêu tiết kiệm button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_savings_goals"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="@string/profile_btn_savings_goals"
+            android:textColor="@color/text_primary"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:backgroundTint="@color/surface_white"
+            app:strokeColor="@color/text_secondary"
+            app:strokeWidth="1dp"
+            app:cornerRadius="16dp"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Quản lý Giao dịch định kỳ button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_recurring_transactions"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="@string/profile_manage_recurring"
+            android:textColor="@color/text_primary"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:backgroundTint="@color/surface_white"
+            app:strokeColor="@color/text_secondary"
+            app:strokeWidth="1dp"
+            app:cornerRadius="16dp"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Quản lý Nợ nần & Cho vay button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_debts"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="@string/profile_btn_debts"
+            android:textColor="@color/text_primary"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:backgroundTint="@color/surface_white"
+            app:strokeColor="@color/text_secondary"
+            app:strokeWidth="1dp"
+            app:cornerRadius="16dp"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Logout button: height 48dp, corner radius 16dp -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_logout"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="@string/profile_sign_out"
+            android:textColor="@color/surface_white"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:backgroundTint="@color/crimson_expense"
+            app:cornerRadius="16dp" />
+
+    </LinearLayout>
+</ScrollView>

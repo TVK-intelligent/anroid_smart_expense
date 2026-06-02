@@ -33,7 +33,8 @@ public class AnalyticsController {
             @RequestParam Integer categoryId,
             @RequestParam BigDecimal amount) {
         
-        boolean isAnomalous = smartAnalyticsService.checkForAnomaly(userId, categoryId, amount);
+        String anomalyMessage = smartAnalyticsService.checkForAnomaly(userId, categoryId, amount);
+        boolean isAnomalous = (anomalyMessage != null);
         
         Map<String, Object> response = new HashMap<>();
         response.put("userId", userId);
@@ -41,7 +42,7 @@ public class AnalyticsController {
         response.put("amount", amount);
         response.put("isAnomalous", isAnomalous);
         response.put("message", isAnomalous 
-                ? "Giao dịch chi tiêu cao bất thường so với thói quen của bạn." 
+                ? anomalyMessage 
                 : "Chi tiêu ở mức bình thường.");
                 
         return ResponseEntity.ok(response);

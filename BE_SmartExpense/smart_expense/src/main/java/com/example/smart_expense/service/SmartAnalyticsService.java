@@ -46,13 +46,13 @@ public class SmartAnalyticsService {
      * So sánh giao dịch hiện tại với trung bình lịch sử 90 ngày qua.
      * Nếu giao dịch lớn hơn 200% trung bình, ghi nhận bất thường và lưu notification.
      */
-    public boolean checkForAnomaly(Integer userId, Integer categoryId, BigDecimal amount) {
+    public String checkForAnomaly(Integer userId, Integer categoryId, BigDecimal amount) {
         // Lấy trung bình 90 ngày của category chi tiêu
         BigDecimal avgExpense = transactionRepository.getAverageExpenseForCategory(userId, categoryId, 90);
         
         // Nếu chưa có giao dịch nào trước đó (avg = 0), không coi là bất thường
         if (avgExpense.compareTo(BigDecimal.ZERO) <= 0) {
-            return false;
+            return null;
         }
 
         // Ngưỡng bất thường: 200% (2.0 lần)
@@ -71,9 +71,9 @@ public class SmartAnalyticsService {
                     .isRead(false)
                     .build();
             notificationRepository.save(notification);
-            return true;
+            return content;
         }
-        return false;
+        return null;
     }
 
     /**
@@ -151,7 +151,7 @@ public class SmartAnalyticsService {
 
     /**
      * 3. Tối ưu Kế hoạch Tiết kiệm (Savings Goals Allocator)
-     * Lấy (Thu nhập cố định - Chi phí cố định) = Dòng tiền dư
+     * Lấy (Thu nhập cố định - Chi phí cố định - Tổng hạn mức ngân sách hoạt động) = Dòng tiền nhàn rỗi thật
      * Phân bổ dòng tiền dư tự động vào các savings goals đang chạy theo độ ưu tiên deadline.
      */
     public List<Map<String, Object>> getSavingsOptimizationSuggestion(Integer userId) {
@@ -161,11 +161,20 @@ public class SmartAnalyticsService {
         BigDecimal fixedIncome = recurringTransactionRepository.getTotalExpectedFixedIncomesForMonth(userId);
         BigDecimal fixedExpense = recurringTransactionRepository.getTotalExpectedFixedExpensesForMonth(userId);
 
-        // Dòng tiền dư hàng tháng dự kiến
-        BigDecimal monthlySurplus = fixedIncome.subtract(fixedExpense);
+        // Lấy tổng hạn mức tất cả các ngân sách chi tiêu hàng ngày đang hoạt động của người dùng
+        List<Budget> activeBudgets = budgetRepository.findActiveBudgets(userId);
+        BigDecimal totalActiveBudgets = BigDecimal.ZERO;
+        for (Budget b : activeBudgets) {
+            if (b.getAmount() != null) {
+                totalActiveBudgets = totalActiveBudgets.add(b.getAmount());
+            }
+        }
+
+        // Dòng tiền dư hàng tháng thực tế (Chừa lại tiền đóng phí cố định và tiền ăn tiêu sinh hoạt hàng ngày)
+        BigDecimal monthlySurplus = fixedIncome.subtract(fixedExpense).subtract(totalActiveBudgets);
 
         if (monthlySurplus.compareTo(BigDecimal.ZERO) <= 0) {
-            // Không có tiền nhàn rỗi để gợi ý tích lũy
+            // Không có tiền nhàn rỗi thật sự để gợi ý tích lũy
             return suggestions;
         }
 

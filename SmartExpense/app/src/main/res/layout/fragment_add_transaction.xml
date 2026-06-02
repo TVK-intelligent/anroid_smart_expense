@@ -15,9 +15,9 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="New Transaction"
+            android:text="Tạo giao dịch mới"
             android:textColor="@color/text_primary"
-            android:textSize="20sp"
+            android:textSize="22sp"
             android:textStyle="bold"
             android:layout_marginBottom="16dp" />
 
@@ -42,12 +42,12 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:text="Expense"
+                    android:text="Chi tiêu"
                     android:textColor="@color/surface_white"
-                    android:textSize="13sp"
+                    android:textSize="14sp"
                     android:textStyle="bold"
                     android:paddingVertical="10dp"
-                    android:background="@drawable/bg_active_pill"
+                    android:background="@drawable/bg_toggle_expense_active"
                     android:clickable="true"
                     android:focusable="true" />
 
@@ -57,9 +57,9 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:text="Income"
+                    android:text="Thu nhập"
                     android:textColor="@color/text_secondary"
-                    android:textSize="13sp"
+                    android:textSize="14sp"
                     android:textStyle="bold"
                     android:paddingVertical="10dp"
                     android:clickable="true"
@@ -72,7 +72,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:cardCornerRadius="16dp"
-            app:cardElevation="2dp"
+            app:cardElevation="3dp"
             app:cardBackgroundColor="@color/surface_white"
             android:layout_marginBottom="24dp">
 
@@ -86,48 +86,50 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="AMOUNT"
+                    android:text="SỐ TIỀN"
                     android:textColor="@color/text_secondary"
-                    android:textSize="10sp"
+                    android:textSize="11sp"
                     android:textStyle="bold"
                     android:letterSpacing="0.1" />
 
                 <LinearLayout
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:gravity="center_vertical"
+                    android:gravity="center"
                     android:layout_marginTop="8dp">
 
                     <TextView
+                        android:id="@+id/tv_amount_symbol"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="đ"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="24sp"
+                        android:textColor="@color/crimson_expense"
+                        android:textSize="32sp"
                         android:textStyle="bold"
-                        android:layout_marginEnd="8dp" />
+                        android:layout_marginEnd="6dp" />
 
                     <EditText
                         android:id="@+id/et_amount"
-                        android:layout_width="160dp"
+                        android:layout_width="220dp"
                         android:layout_height="wrap_content"
                         android:background="@android:color/transparent"
-                        android:gravity="center"
-                        android:hint="0.00"
+                        android:gravity="start|center_vertical"
+                        android:hint="0"
                         android:inputType="numberDecimal"
-                        android:textColor="@color/primary"
-                        android:textSize="28sp"
+                        android:textColor="@color/crimson_expense"
+                        android:textSize="36sp"
                         android:textStyle="bold" />
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- Transaction Details Section -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:cardCornerRadius="16dp"
-            app:cardElevation="2dp"
+            app:cardElevation="3dp"
             app:cardBackgroundColor="@color/surface_white"
             android:layout_marginBottom="24dp">
 
@@ -135,35 +137,63 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="18dp">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="DETAILS"
+                    android:text="CHI TIẾT GIAO DỊCH"
                     android:textColor="@color/text_secondary"
-                    android:textSize="10sp"
+                    android:textSize="11sp"
                     android:textStyle="bold"
                     android:letterSpacing="0.1"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- Wallet Dropdown -->
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Chọn tài khoản / Ví"
+                    app:boxStrokeColor="@color/accent_blue"
+                    app:hintTextColor="@color/accent_blue"
+                    android:layout_marginBottom="16dp">
+
+                    <AutoCompleteTextView
+                        android:id="@+id/act_wallet"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="none"
+                        android:textColor="@color/text_primary" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Category Dropdown -->
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Chọn danh mục thu / chi"
+                    app:boxStrokeColor="@color/accent_blue"
+                    app:hintTextColor="@color/accent_blue"
+                    android:layout_marginBottom="16dp">
+
+                    <AutoCompleteTextView
+                        android:id="@+id/act_category"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="none"
+                        android:textColor="@color/text_primary" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Date Selector (TextView styled like custom button with Calendar Icon) -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Ngày giao dịch"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
                     android:layout_marginBottom="8dp" />
-
-                <Spinner
-                    android:id="@+id/sp_wallet"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
-
-                <Space
-                    android:layout_width="match_parent"
-                    android:layout_height="8dp" />
-
-                <Spinner
-                    android:id="@+id/sp_category"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
-
-                <Space
-                    android:layout_width="match_parent"
-                    android:layout_height="8dp" />
 
                 <TextView
                     android:id="@+id/tv_transaction_date"
@@ -171,143 +201,23 @@
                     android:layout_height="wrap_content"
                     android:text="Chọn ngày"
                     android:textColor="@color/text_primary"
-                    android:padding="12dp"
+                    android:textSize="14sp"
+                    android:padding="14dp"
+                    android:drawableEnd="@drawable/ic_calendar"
+                    android:gravity="center_vertical"
                     android:background="@drawable/bg_pill_chip"
                     android:clickable="true"
                     android:focusable="true" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Legacy Horizontal category selector (replaced by API-driven spinner) -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Category"
-            android:textColor="@color/text_primary"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="8dp"
-            android:visibility="gone" />
-
-        <HorizontalScrollView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:scrollbars="none"
-            android:layout_marginBottom="20dp"
-            android:visibility="gone">
-
-            <LinearLayout
-                android:id="@+id/category_chip_group"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-
-                <!-- Dynamic elements will be selected via Tag in code, let's create a beautiful set -->
-                <LinearLayout
-                    android:id="@+id/chip_cat_1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="36dp"
-                    android:background="@drawable/bg_pill_chip_active"
-                    android:paddingHorizontal="14dp"
-                    android:gravity="center"
-                    android:layout_marginEnd="10dp"
-                    android:clickable="true"
-                    android:focusable="true">
-                    <TextView
-                        android:id="@+id/tv_cat_1"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Food"
-                        android:textColor="@color/primary"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/chip_cat_2"
-                    android:layout_width="wrap_content"
-                    android:layout_height="36dp"
-                    android:background="@drawable/bg_pill_chip"
-                    android:paddingHorizontal="14dp"
-                    android:gravity="center"
-                    android:layout_marginEnd="10dp"
-                    android:clickable="true"
-                    android:focusable="true">
-                    <TextView
-                        android:id="@+id/tv_cat_2"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Transport"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="12sp" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/chip_cat_3"
-                    android:layout_width="wrap_content"
-                    android:layout_height="36dp"
-                    android:background="@drawable/bg_pill_chip"
-                    android:paddingHorizontal="14dp"
-                    android:gravity="center"
-                    android:layout_marginEnd="10dp"
-                    android:clickable="true"
-                    android:focusable="true">
-                    <TextView
-                        android:id="@+id/tv_cat_3"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Shopping"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="12sp" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/chip_cat_4"
-                    android:layout_width="wrap_content"
-                    android:layout_height="36dp"
-                    android:background="@drawable/bg_pill_chip"
-                    android:paddingHorizontal="14dp"
-                    android:gravity="center"
-                    android:layout_marginEnd="10dp"
-                    android:clickable="true"
-                    android:focusable="true">
-                    <TextView
-                        android:id="@+id/tv_cat_4"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Rent"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="12sp" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/chip_cat_5"
-                    android:layout_width="wrap_content"
-                    android:layout_height="36dp"
-                    android:background="@drawable/bg_pill_chip"
-                    android:paddingHorizontal="14dp"
-                    android:gravity="center"
-                    android:layout_marginEnd="10dp"
-                    android:clickable="true"
-                    android:focusable="true">
-                    <TextView
-                        android:id="@+id/tv_cat_5"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Leisure"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="12sp" />
-                </LinearLayout>
-            </LinearLayout>
-        </HorizontalScrollView>
-
-        <!-- Notes text field: shape 8dp rounded outlined -->
+        <!-- Notes text field: shape 8dp rounded outlined with note icon -->
         <com.google.android.material.textfield.TextInputLayout
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="What was this for?"
+            android:hint="Ghi chú giao dịch"
+            app:startIconDrawable="@drawable/ic_note"
             app:boxCornerRadiusBottomEnd="8dp"
             app:boxCornerRadiusBottomStart="8dp"
             app:boxCornerRadiusTopEnd="8dp"
@@ -340,8 +250,8 @@
                 android:text="Quét Bất Thường"
                 android:textSize="12sp"
                 android:textStyle="bold"
-                android:textColor="@color/primary"
-                app:strokeColor="@color/primary"
+                android:textColor="@color/crimson_expense"
+                app:strokeColor="@color/crimson_expense"
                 app:cornerRadius="16dp"
                 android:layout_marginEnd="8dp" />
 
@@ -350,11 +260,11 @@
                 android:layout_width="0dp"
                 android:layout_height="48dp"
                 android:layout_weight="1.2"
-                android:text="Save Transaction"
+                android:text="Lưu Giao Dịch"
                 android:textSize="12sp"
                 android:textStyle="bold"
                 android:textColor="@color/surface_white"
-                android:backgroundTint="@color/primary"
+                android:backgroundTint="@color/crimson_expense"
                 app:cornerRadius="16dp" />
         </LinearLayout>
 

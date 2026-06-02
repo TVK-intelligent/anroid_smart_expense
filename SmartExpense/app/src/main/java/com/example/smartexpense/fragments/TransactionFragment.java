@@ -1,10 +1,14 @@
 package com.example.smartexpense.fragments;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
@@ -21,6 +25,8 @@ import com.example.smartexpense.api.ApiClient;
 import com.example.smartexpense.models.Category;
 import com.example.smartexpense.models.Transaction;
 import com.example.smartexpense.models.Wallet;
+import com.google.android.material.datepicker.MaterialDatePicker;
+import com.google.android.material.textfield.TextInputEditText;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -190,102 +196,97 @@ public class TransactionFragment extends Fragment {
         if (getContext() == null) return;
 
         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(getContext());
-        builder.setTitle("Lọc giao dịch");
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_transaction_filter, null);
+        builder.setView(dialogView);
 
-        LinearLayout container = new LinearLayout(getContext());
-        container.setOrientation(LinearLayout.VERTICAL);
-        int padding = (int) (16 * getResources().getDisplayMetrics().density);
-        container.setPadding(padding, padding, padding, padding);
+        TextInputEditText etStart = dialogView.findViewById(R.id.et_filter_start_date);
+        TextInputEditText etEnd = dialogView.findViewById(R.id.et_filter_end_date);
+        AutoCompleteTextView actWallet = dialogView.findViewById(R.id.act_filter_wallet);
+        AutoCompleteTextView actCategory = dialogView.findViewById(R.id.act_filter_category);
+        AutoCompleteTextView actType = dialogView.findViewById(R.id.act_filter_type);
 
-        // Date range (simple text input yyyy-MM-dd)
-        com.google.android.material.textfield.TextInputLayout tilStart = new com.google.android.material.textfield.TextInputLayout(getContext());
-        tilStart.setBoxBackgroundMode(com.google.android.material.textfield.TextInputLayout.BOX_BACKGROUND_OUTLINE);
-        tilStart.setHint("Từ ngày (yyyy-MM-dd)");
-        com.google.android.material.textfield.TextInputEditText etStart = new com.google.android.material.textfield.TextInputEditText(getContext());
+        // Pre-fill existing date values
         etStart.setText(filterStartDate != null ? filterStartDate : "");
-        tilStart.addView(etStart);
-        container.addView(tilStart);
-
-        View space1 = new View(getContext());
-        space1.setLayoutParams(new LinearLayout.LayoutParams(1, (int) (8 * getResources().getDisplayMetrics().density)));
-        container.addView(space1);
-
-        com.google.android.material.textfield.TextInputLayout tilEnd = new com.google.android.material.textfield.TextInputLayout(getContext());
-        tilEnd.setBoxBackgroundMode(com.google.android.material.textfield.TextInputLayout.BOX_BACKGROUND_OUTLINE);
-        tilEnd.setHint("Đến ngày (yyyy-MM-dd)");
-        com.google.android.material.textfield.TextInputEditText etEnd = new com.google.android.material.textfield.TextInputEditText(getContext());
         etEnd.setText(filterEndDate != null ? filterEndDate : "");
-        tilEnd.addView(etEnd);
-        container.addView(tilEnd);
 
-        View space2 = new View(getContext());
-        space2.setLayoutParams(new LinearLayout.LayoutParams(1, (int) (8 * getResources().getDisplayMetrics().density)));
-        container.addView(space2);
+        // Set up click listeners for MaterialDatePicker
+        etStart.setOnClickListener(v -> {
+            MaterialDatePicker<Long> datePicker = MaterialDatePicker.Builder.datePicker()
+                    .setTitleText("Từ ngày")
+                    .setSelection(MaterialDatePicker.todayInUtcMilliseconds())
+                    .build();
+            datePicker.addOnPositiveButtonClickListener(selection -> {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+                etStart.setText(sdf.format(new Date(selection)));
+            });
+            datePicker.show(getParentFragmentManager(), "DATE_PICKER_FILTER_START");
+        });
 
-        // wallet spinner
-        Spinner spWallet = new Spinner(getContext());
-        List<String> walletOptions = new ArrayList<>();
-        walletOptions.add("ALL");
+        etEnd.setOnClickListener(v -> {
+            MaterialDatePicker<Long> datePicker = MaterialDatePicker.Builder.datePicker()
+                    .setTitleText("Đến ngày")
+                    .setSelection(MaterialDatePicker.todayInUtcMilliseconds())
+                    .build();
+            datePicker.addOnPositiveButtonClickListener(selection -> {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+                etEnd.setText(sdf.format(new Date(selection)));
+            });
+            datePicker.show(getParentFragmentManager(), "DATE_PICKER_FILTER_END");
+        });
+
+        // Populate Wallet Dropdown
+        List<String> walletNames = new ArrayList<>();
+        walletNames.add("Tất cả ví");
         for (Wallet w : wallets) {
-            walletOptions.add(w.getName() != null ? w.getName() : ("Wallet " + w.getWalletId()));
+            walletNames.add(w.getName() != null ? w.getName() : ("Ví " + w.getWalletId()));
         }
-        android.widget.ArrayAdapter<String> walletAdapter = new android.widget.ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_dropdown_item, walletOptions);
-        spWallet.setAdapter(walletAdapter);
-        if (filterWalletId != null) {
-            int idx = 0;
-            for (int i = 0; i < wallets.size(); i++) {
-                if (wallets.get(i).getWalletId() != null && wallets.get(i).getWalletId().equals(filterWalletId)) {
-                    idx = i + 1;
+        ArrayAdapter<String> walletAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_dropdown_item_1line, walletNames);
+        actWallet.setAdapter(walletAdapter);
+        if (filterWalletId == null) {
+            actWallet.setText("Tất cả ví", false);
+        } else {
+            String selectedName = "Tất cả ví";
+            for (Wallet w : wallets) {
+                if (w.getWalletId() != null && w.getWalletId().equals(filterWalletId)) {
+                    selectedName = w.getName() != null ? w.getName() : ("Ví " + w.getWalletId());
                     break;
                 }
             }
-            spWallet.setSelection(idx);
+            actWallet.setText(selectedName, false);
         }
-        container.addView(spWallet);
 
-        View space3 = new View(getContext());
-        space3.setLayoutParams(new LinearLayout.LayoutParams(1, (int) (8 * getResources().getDisplayMetrics().density)));
-        container.addView(space3);
-
-        // category spinner
-        Spinner spCategory = new Spinner(getContext());
-        List<String> categoryOptions = new ArrayList<>();
-        categoryOptions.add("ALL");
+        // Populate Category Dropdown
+        List<String> categoryNames = new ArrayList<>();
+        categoryNames.add("Tất cả hạng mục");
         for (Category c : categories) {
-            categoryOptions.add(c.getName() != null ? c.getName() : ("Category " + c.getCategoryId()));
+            categoryNames.add(c.getName() != null ? c.getName() : ("Danh mục " + c.getCategoryId()));
         }
-        android.widget.ArrayAdapter<String> categoryAdapter = new android.widget.ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_dropdown_item, categoryOptions);
-        spCategory.setAdapter(categoryAdapter);
-        if (filterCategoryId != null) {
-            int idx = 0;
-            for (int i = 0; i < categories.size(); i++) {
-                if (categories.get(i).getCategoryId() != null && categories.get(i).getCategoryId().equals(filterCategoryId)) {
-                    idx = i + 1;
+        ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_dropdown_item_1line, categoryNames);
+        actCategory.setAdapter(categoryAdapter);
+        if (filterCategoryId == null) {
+            actCategory.setText("Tất cả hạng mục", false);
+        } else {
+            String selectedName = "Tất cả hạng mục";
+            for (Category c : categories) {
+                if (c.getCategoryId() != null && c.getCategoryId().equals(filterCategoryId)) {
+                    selectedName = c.getName() != null ? c.getName() : ("Danh mục " + c.getCategoryId());
                     break;
                 }
             }
-            spCategory.setSelection(idx);
+            actCategory.setText(selectedName, false);
         }
-        container.addView(spCategory);
 
-        View space4 = new View(getContext());
-        space4.setLayoutParams(new LinearLayout.LayoutParams(1, (int) (8 * getResources().getDisplayMetrics().density)));
-        container.addView(space4);
-
-        // type spinner
-        Spinner spType = new Spinner(getContext());
-        List<String> typeOptions = new ArrayList<>();
-        typeOptions.add("ALL");
-        typeOptions.add("EXPENSE");
-        typeOptions.add("INCOME");
-        android.widget.ArrayAdapter<String> typeAdapter = new android.widget.ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_dropdown_item, typeOptions);
-        spType.setAdapter(typeAdapter);
-        if (filterType != null) {
-            spType.setSelection(typeOptions.indexOf(filterType));
+        // Populate Transaction Type Dropdown
+        String[] typeOptions = {"Tất cả giao dịch", "EXPENSE (Chi tiêu)", "INCOME (Thu nhập)"};
+        ArrayAdapter<String> typeAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_dropdown_item_1line, typeOptions);
+        actType.setAdapter(typeAdapter);
+        if (filterType == null) {
+            actType.setText("Tất cả giao dịch", false);
+        } else if ("EXPENSE".equalsIgnoreCase(filterType)) {
+            actType.setText("EXPENSE (Chi tiêu)", false);
+        } else if ("INCOME".equalsIgnoreCase(filterType)) {
+            actType.setText("INCOME (Thu nhập)", false);
         }
-        container.addView(spType);
-
-        builder.setView(container);
 
         builder.setPositiveButton("Áp dụng", (dialog, which) -> {
             String start = etStart.getText() != null ? etStart.getText().toString().trim() : "";
@@ -293,24 +294,42 @@ public class TransactionFragment extends Fragment {
             filterStartDate = start.isEmpty() ? null : start;
             filterEndDate = end.isEmpty() ? null : end;
 
-            String selectedWallet = (String) spWallet.getSelectedItem();
-            if ("ALL".equals(selectedWallet)) {
+            String selectedWallet = actWallet.getText() != null ? actWallet.getText().toString().trim() : "";
+            if ("Tất cả ví".equals(selectedWallet) || selectedWallet.isEmpty()) {
                 filterWalletId = null;
             } else {
-                int sel = spWallet.getSelectedItemPosition();
-                filterWalletId = sel > 0 ? wallets.get(sel - 1).getWalletId() : null;
+                filterWalletId = null;
+                for (Wallet w : wallets) {
+                    String name = w.getName() != null ? w.getName() : ("Ví " + w.getWalletId());
+                    if (name.equalsIgnoreCase(selectedWallet)) {
+                        filterWalletId = w.getWalletId();
+                        break;
+                    }
+                }
             }
 
-            String selectedCategory = (String) spCategory.getSelectedItem();
-            if ("ALL".equals(selectedCategory)) {
+            String selectedCategory = actCategory.getText() != null ? actCategory.getText().toString().trim() : "";
+            if ("Tất cả hạng mục".equals(selectedCategory) || selectedCategory.isEmpty()) {
                 filterCategoryId = null;
             } else {
-                int sel = spCategory.getSelectedItemPosition();
-                filterCategoryId = sel > 0 ? categories.get(sel - 1).getCategoryId() : null;
+                filterCategoryId = null;
+                for (Category c : categories) {
+                    String name = c.getName() != null ? c.getName() : ("Danh mục " + c.getCategoryId());
+                    if (name.equalsIgnoreCase(selectedCategory)) {
+                        filterCategoryId = c.getCategoryId();
+                        break;
+                    }
+                }
             }
 
-            String selectedType = (String) spType.getSelectedItem();
-            filterType = "ALL".equals(selectedType) ? null : selectedType;
+            String selectedType = actType.getText() != null ? actType.getText().toString().trim() : "";
+            if ("EXPENSE (Chi tiêu)".equalsIgnoreCase(selectedType)) {
+                filterType = "EXPENSE";
+            } else if ("INCOME (Thu nhập)".equalsIgnoreCase(selectedType)) {
+                filterType = "INCOME";
+            } else {
+                filterType = null;
+            }
 
             loadTransactions();
         });
@@ -346,107 +365,75 @@ public class TransactionFragment extends Fragment {
         if (getContext() == null || transaction == null) return;
 
         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(getContext());
-        builder.setTitle("Sửa giao dịch");
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_transaction_edit, null);
+        builder.setView(dialogView);
 
-        LinearLayout container = new LinearLayout(getContext());
-        container.setOrientation(LinearLayout.VERTICAL);
-        int padding = (int) (16 * getResources().getDisplayMetrics().density);
-        container.setPadding(padding, padding, padding, padding);
+        AutoCompleteTextView actType = dialogView.findViewById(R.id.act_edit_type);
+        TextInputEditText etAmount = dialogView.findViewById(R.id.et_edit_amount);
+        AutoCompleteTextView actWallet = dialogView.findViewById(R.id.act_edit_wallet);
+        AutoCompleteTextView actCategory = dialogView.findViewById(R.id.act_edit_category);
+        TextInputEditText etDate = dialogView.findViewById(R.id.et_edit_date);
+        TextInputEditText etNote = dialogView.findViewById(R.id.et_edit_note);
 
-        // type
-        Spinner spType = new Spinner(getContext());
-        List<String> typeOptions = new ArrayList<>();
-        typeOptions.add("EXPENSE");
-        typeOptions.add("INCOME");
-        android.widget.ArrayAdapter<String> typeAdapter = new android.widget.ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_dropdown_item, typeOptions);
-        spType.setAdapter(typeAdapter);
-        if (transaction.getType() != null) {
-            int idx = typeOptions.indexOf(transaction.getType().toUpperCase(Locale.US));
-            if (idx >= 0) spType.setSelection(idx);
-        }
-        container.addView(spType);
-
-        View space0 = new View(getContext());
-        space0.setLayoutParams(new LinearLayout.LayoutParams(1, (int) (8 * getResources().getDisplayMetrics().density)));
-        container.addView(space0);
-
-        // wallet
-        Spinner spWallet = new Spinner(getContext());
-        List<Wallet> walletOptions = new ArrayList<>(wallets);
-        android.widget.ArrayAdapter<Wallet> walletAdapter = new android.widget.ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_dropdown_item, walletOptions);
-        spWallet.setAdapter(walletAdapter);
-        if (transaction.getWalletId() != null) {
-            int idx = 0;
-            for (int i = 0; i < walletOptions.size(); i++) {
-                if (walletOptions.get(i).getWalletId() != null && walletOptions.get(i).getWalletId().equals(transaction.getWalletId())) {
-                    idx = i;
-                    break;
-                }
-            }
-            spWallet.setSelection(idx);
-        }
-        container.addView(spWallet);
-
-        View spaceW = new View(getContext());
-        spaceW.setLayoutParams(new LinearLayout.LayoutParams(1, (int) (8 * getResources().getDisplayMetrics().density)));
-        container.addView(spaceW);
-
-        // category
-        Spinner spCategory = new Spinner(getContext());
-        List<Category> categoryOptions = new ArrayList<>(categories);
-        android.widget.ArrayAdapter<Category> categoryAdapter = new android.widget.ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_dropdown_item, categoryOptions);
-        spCategory.setAdapter(categoryAdapter);
-        if (transaction.getCategoryId() != null) {
-            int idx = 0;
-            for (int i = 0; i < categoryOptions.size(); i++) {
-                if (categoryOptions.get(i).getCategoryId() != null && categoryOptions.get(i).getCategoryId().equals(transaction.getCategoryId())) {
-                    idx = i;
-                    break;
-                }
-            }
-            spCategory.setSelection(idx);
-        }
-        container.addView(spCategory);
-
-        View spaceC = new View(getContext());
-        spaceC.setLayoutParams(new LinearLayout.LayoutParams(1, (int) (8 * getResources().getDisplayMetrics().density)));
-        container.addView(spaceC);
-
-        // date (simple input)
-        com.google.android.material.textfield.TextInputLayout tilDate = new com.google.android.material.textfield.TextInputLayout(getContext());
-        tilDate.setBoxBackgroundMode(com.google.android.material.textfield.TextInputLayout.BOX_BACKGROUND_OUTLINE);
-        tilDate.setHint("Ngày (yyyy-MM-dd)");
-        com.google.android.material.textfield.TextInputEditText etDate = new com.google.android.material.textfield.TextInputEditText(getContext());
-        etDate.setText(transaction.getTransactionDate() != null ? transaction.getTransactionDate() : "");
-        tilDate.addView(etDate);
-        container.addView(tilDate);
-
-        View spaceD = new View(getContext());
-        spaceD.setLayoutParams(new LinearLayout.LayoutParams(1, (int) (8 * getResources().getDisplayMetrics().density)));
-        container.addView(spaceD);
-
-        com.google.android.material.textfield.TextInputLayout tilAmount = new com.google.android.material.textfield.TextInputLayout(getContext());
-        tilAmount.setBoxBackgroundMode(com.google.android.material.textfield.TextInputLayout.BOX_BACKGROUND_OUTLINE);
-        tilAmount.setHint("Số tiền");
-        com.google.android.material.textfield.TextInputEditText etAmount = new com.google.android.material.textfield.TextInputEditText(getContext());
-        etAmount.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+        // Pre-fill amount & note
         etAmount.setText(transaction.getAmount() != null ? transaction.getAmount().toPlainString() : "");
-        tilAmount.addView(etAmount);
-        container.addView(tilAmount);
-
-        View space1 = new View(getContext());
-        space1.setLayoutParams(new LinearLayout.LayoutParams(1, (int) (8 * getResources().getDisplayMetrics().density)));
-        container.addView(space1);
-
-        com.google.android.material.textfield.TextInputLayout tilNote = new com.google.android.material.textfield.TextInputLayout(getContext());
-        tilNote.setBoxBackgroundMode(com.google.android.material.textfield.TextInputLayout.BOX_BACKGROUND_OUTLINE);
-        tilNote.setHint("Ghi chú");
-        com.google.android.material.textfield.TextInputEditText etNote = new com.google.android.material.textfield.TextInputEditText(getContext());
         etNote.setText(transaction.getNote() != null ? transaction.getNote() : "");
-        tilNote.addView(etNote);
-        container.addView(tilNote);
 
-        builder.setView(container);
+        // Pre-fill and handle Date picker
+        etDate.setText(transaction.getTransactionDate() != null ? transaction.getTransactionDate() : "");
+        etDate.setOnClickListener(v -> {
+            MaterialDatePicker<Long> datePicker = MaterialDatePicker.Builder.datePicker()
+                    .setTitleText("Chọn ngày giao dịch")
+                    .setSelection(MaterialDatePicker.todayInUtcMilliseconds())
+                    .build();
+            datePicker.addOnPositiveButtonClickListener(selection -> {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+                etDate.setText(sdf.format(new Date(selection)));
+            });
+            datePicker.show(getParentFragmentManager(), "DATE_PICKER_EDIT");
+        });
+
+        // Set up Transaction Type options and preselect
+        String[] editTypes = {"EXPENSE (Chi tiêu)", "INCOME (Thu nhập)"};
+        ArrayAdapter<String> editTypeAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_dropdown_item_1line, editTypes);
+        actType.setAdapter(editTypeAdapter);
+        if ("INCOME".equalsIgnoreCase(transaction.getType())) {
+            actType.setText("INCOME (Thu nhập)", false);
+        } else {
+            actType.setText("EXPENSE (Chi tiêu)", false);
+        }
+
+        // Set up Wallet options and preselect
+        ArrayAdapter<Wallet> editWalletAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_dropdown_item_1line, wallets);
+        actWallet.setAdapter(editWalletAdapter);
+        if (transaction.getWalletId() != null) {
+            Wallet matchedWallet = null;
+            for (Wallet w : wallets) {
+                if (w.getWalletId() != null && w.getWalletId().equals(transaction.getWalletId())) {
+                    matchedWallet = w;
+                    break;
+                }
+            }
+            if (matchedWallet != null) {
+                actWallet.setText(matchedWallet.getName(), false);
+            }
+        }
+
+        // Set up Category options and preselect
+        ArrayAdapter<Category> editCategoryAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_dropdown_item_1line, categories);
+        actCategory.setAdapter(editCategoryAdapter);
+        if (transaction.getCategoryId() != null) {
+            Category matchedCategory = null;
+            for (Category c : categories) {
+                if (c.getCategoryId() != null && c.getCategoryId().equals(transaction.getCategoryId())) {
+                    matchedCategory = c;
+                    break;
+                }
+            }
+            if (matchedCategory != null) {
+                actCategory.setText(matchedCategory.getName(), false);
+            }
+        }
 
         builder.setPositiveButton("Lưu", (dialog, which) -> {
             String amountStr = etAmount.getText() != null ? etAmount.getText().toString().trim() : "";
@@ -466,9 +453,28 @@ public class TransactionFragment extends Fragment {
                 return;
             }
 
-            Transaction payload = new Transaction();
-            Wallet selectedWallet = (Wallet) spWallet.getSelectedItem();
-            Category selectedCategory = (Category) spCategory.getSelectedItem();
+            // Find selected wallet
+            String walletName = actWallet.getText() != null ? actWallet.getText().toString().trim() : "";
+            Wallet selectedWallet = null;
+            for (Wallet w : wallets) {
+                String wName = w.getName() != null ? w.getName() : ("Ví " + w.getWalletId());
+                if (wName.equalsIgnoreCase(walletName)) {
+                    selectedWallet = w;
+                    break;
+                }
+            }
+
+            // Find selected category
+            String catName = actCategory.getText() != null ? actCategory.getText().toString().trim() : "";
+            Category selectedCategory = null;
+            for (Category c : categories) {
+                String cName = c.getName() != null ? c.getName() : ("Danh mục " + c.getCategoryId());
+                if (cName.equalsIgnoreCase(catName)) {
+                    selectedCategory = c;
+                    break;
+                }
+            }
+
             if (selectedWallet == null || selectedWallet.getWalletId() == null) {
                 Toast.makeText(getContext(), "Vui lòng chọn ví", Toast.LENGTH_SHORT).show();
                 return;
@@ -478,8 +484,11 @@ public class TransactionFragment extends Fragment {
                 return;
             }
 
-            String selectedType = (String) spType.getSelectedItem();
-            payload.setType(selectedType);
+            Transaction payload = new Transaction();
+            String selectedType = actType.getText() != null ? actType.getText().toString().trim() : "EXPENSE";
+            String typeVal = "INCOME (Thu nhập)".equalsIgnoreCase(selectedType) ? "INCOME" : "EXPENSE";
+
+            payload.setType(typeVal);
             payload.setWalletId(selectedWallet.getWalletId());
             payload.setCategoryId(selectedCategory.getCategoryId());
             payload.setAmount(amount);
@@ -514,7 +523,32 @@ public class TransactionFragment extends Fragment {
         });
 
         builder.setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss());
-        builder.show();
+
+        android.app.AlertDialog alertDialog = builder.create();
+
+        // Listen for type changes to morph Save button color dynamically
+        actType.setOnItemClickListener((parent, view, position, id) -> {
+            String selectedType = parent.getItemAtPosition(position).toString();
+            String typeVal = "INCOME (Thu nhập)".equalsIgnoreCase(selectedType) ? "INCOME" : "EXPENSE";
+            updateDialogButtonColor(alertDialog, typeVal);
+        });
+
+        // Morph Save button color initially based on current transaction type
+        alertDialog.setOnShowListener(dialogInterface -> {
+            String initialType = transaction.getType();
+            updateDialogButtonColor(alertDialog, initialType);
+        });
+
+        alertDialog.show();
+    }
+
+    private void updateDialogButtonColor(android.app.AlertDialog dialog, String type) {
+        android.widget.Button btn = dialog.getButton(android.content.DialogInterface.BUTTON_POSITIVE);
+        if (btn != null) {
+            int color = "INCOME".equalsIgnoreCase(type) ? Color.parseColor("#27C38A") : Color.parseColor("#BA1A1A");
+            btn.setBackgroundTintList(ColorStateList.valueOf(color));
+            btn.setTextColor(Color.WHITE);
+        }
     }
 
     private void confirmDeleteTransaction(Transaction transaction) {

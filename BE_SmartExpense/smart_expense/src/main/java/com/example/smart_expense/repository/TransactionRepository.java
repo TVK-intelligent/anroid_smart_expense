@@ -15,6 +15,7 @@ import java.sql.Statement;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Repository
@@ -31,6 +32,7 @@ public class TransactionRepository {
             .userId(rs.getInt("user_id"))
             .walletId(rs.getInt("wallet_id"))
             .categoryId(rs.getInt("category_id"))
+            .type(rs.getString("type"))
             .amount(rs.getBigDecimal("amount"))
             .transactionDate(rs.getDate("transaction_date").toLocalDate())
             .note(rs.getString("note"))
@@ -38,7 +40,7 @@ public class TransactionRepository {
             .build();
 
     public Transaction save(Transaction transaction) {
-        String sql = "INSERT INTO transactions (user_id, wallet_id, category_id, amount, transaction_date, note) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO transactions (user_id, wallet_id, category_id, amount, transaction_date, note, type) VALUES (?, ?, ?, ?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {
@@ -49,6 +51,7 @@ public class TransactionRepository {
             ps.setBigDecimal(4, transaction.getAmount());
             ps.setDate(5, Date.valueOf(transaction.getTransactionDate()));
             ps.setString(6, transaction.getNote());
+            ps.setString(7, transaction.getType());
             return ps;
         }, keyHolder);
 
@@ -134,7 +137,7 @@ public class TransactionRepository {
     }
 
     public Transaction update(Integer transactionId, Integer userId, Transaction transaction) {
-        String sql = "UPDATE transactions SET wallet_id = ?, category_id = ?, amount = ?, transaction_date = ?, note = ? " +
+        String sql = "UPDATE transactions SET wallet_id = ?, category_id = ?, amount = ?, transaction_date = ?, note = ?, type = ? " +
                 "WHERE transaction_id = ? AND user_id = ?";
         jdbcTemplate.update(sql,
                 transaction.getWalletId(),
@@ -142,6 +145,7 @@ public class TransactionRepository {
                 transaction.getAmount(),
                 Date.valueOf(transaction.getTransactionDate()),
                 transaction.getNote(),
+                transaction.getType(),
                 transactionId,
                 userId);
         transaction.setTransactionId(transactionId);
@@ -174,5 +178,49 @@ public class TransactionRepository {
                      "WHERE user_id = ? AND category_id = ? " +
                      "AND transaction_date BETWEEN ? AND ?";
         return jdbcTemplate.queryForObject(sql, BigDecimal.class, userId, categoryId, Date.valueOf(startDate), Date.valueOf(endDate));
+    }
+
+    public BigDecimal getMonthlyTotalByType(Integer userId, String type, LocalDate startDate, LocalDate endDate) {
+        String sql = "SELECT COALESCE(SUM(t.amount), 0) " +
+                "FROM transactions t JOIN categories c ON t.category_id = c.category_id " +
+                "WHERE t.user_id = ? AND UPPER(c.type) = ? AND t.transaction_date BETWEEN ? AND ?";
+        return jdbcTemplate.queryForObject(sql, BigDecimal.class, userId, type.toUpperCase(), Date.valueOf(startDate), Date.valueOf(endDate));
+    }
+
+    public BigDecimal getTotalExpenseByCategoryAndPeriod(Integer userId, Integer categoryId, LocalDate startDate, LocalDate endDate) {
+        String sql = "SELECT COALESCE(SUM(t.amount), 0) " +
+                "FROM transactions t JOIN categories c ON t.category_id = c.category_id " +
+                "WHERE t.user_id = ? AND t.category_id = ? AND UPPER(c.type) = 'EXPENSE' " +
+                "AND t.transaction_date BETWEEN ? AND ?";
+        return jdbcTemplate.queryForObject(sql, BigDecimal.class, userId, categoryId, Date.valueOf(startDate), Date.valueOf(endDate));
+    }
+
+    public List<java.util.Map<String, Object>> getTopExpenseCategories(Integer userId, LocalDate startDate, LocalDate endDate, int limit) {
+        String sql = "SELECT c.category_id, c.name, COALESCE(SUM(t.amount), 0) AS total_spent " +
+                "FROM transactions t JOIN categories c ON t.category_id = c.category_id " +
+                "WHERE t.user_id = ? AND UPPER(c.type) = 'EXPENSE' AND t.transaction_date BETWEEN ? AND ? " +
+                "GROUP BY c.category_id, c.name " +
+                "ORDER BY total_spent DESC LIMIT ?";
+        return jdbcTemplate.queryForList(sql, userId, Date.valueOf(startDate), Date.valueOf(endDate), limit);
+    }
+
+    public List<Map<String, Object>> getIncomeExpenseByDay(Integer userId, LocalDate startDate, LocalDate endDate) {
+        String sql = "SELECT t.transaction_date, " +
+                "COALESCE(SUM(CASE WHEN UPPER(c.type) = 'INCOME' THEN t.amount ELSE 0 END), 0) AS total_income, " +
+                "COALESCE(SUM(CASE WHEN UPPER(c.type) = 'EXPENSE' THEN t.amount ELSE 0 END), 0) AS total_expense " +
+                "FROM transactions t JOIN categories c ON t.category_id = c.category_id " +
+                "WHERE t.user_id = ? AND t.transaction_date BETWEEN ? AND ? " +
+                "GROUP BY t.transaction_date " +
+                "ORDER BY t.transaction_date ASC";
+        return jdbcTemplate.queryForList(sql, userId, Date.valueOf(startDate), Date.valueOf(endDate));
+    }
+
+    public List<Map<String, Object>> getExpenseByCategory(Integer userId, LocalDate startDate, LocalDate endDate) {
+        String sql = "SELECT c.category_id, c.name, COALESCE(SUM(t.amount), 0) AS total_spent " +
+                "FROM transactions t JOIN categories c ON t.category_id = c.category_id " +
+                "WHERE t.user_id = ? AND UPPER(c.type) = 'EXPENSE' AND t.transaction_date BETWEEN ? AND ? " +
+                "GROUP BY c.category_id, c.name " +
+                "ORDER BY total_spent DESC";
+        return jdbcTemplate.queryForList(sql, userId, Date.valueOf(startDate), Date.valueOf(endDate));
     }
 }

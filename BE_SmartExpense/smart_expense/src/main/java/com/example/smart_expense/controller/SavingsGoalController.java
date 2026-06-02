@@ -1,7 +1,11 @@
 package com.example.smart_expense.controller;
 
 import com.example.smart_expense.model.SavingsGoal;
+import com.example.smart_expense.model.Wallet;
+import com.example.smart_expense.model.Transaction;
 import com.example.smart_expense.repository.SavingsGoalRepository;
+import com.example.smart_expense.repository.WalletRepository;
+import com.example.smart_expense.service.TransactionService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,15 +15,22 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/savings-goals")
 public class SavingsGoalController {
 
     private final SavingsGoalRepository savingsGoalRepository;
+    private final WalletRepository walletRepository;
+    private final TransactionService transactionService;
 
-    public SavingsGoalController(SavingsGoalRepository savingsGoalRepository) {
+    public SavingsGoalController(SavingsGoalRepository savingsGoalRepository,
+                                 WalletRepository walletRepository,
+                                 TransactionService transactionService) {
         this.savingsGoalRepository = savingsGoalRepository;
+        this.walletRepository = walletRepository;
+        this.transactionService = transactionService;
     }
 
     /**
@@ -58,6 +69,43 @@ public class SavingsGoalController {
     public ResponseEntity<Map<String, Object>> addFunds(
             @PathVariable Integer goalId,
             @RequestParam BigDecimal amount) {
+        
+        Optional<SavingsGoal> goalOpt = savingsGoalRepository.findById(goalId);
+        if (goalOpt.isEmpty()) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("success", false);
+            error.put("message", "Mục tiêu tích lũy không tồn tại!");
+            return ResponseEntity.badRequest().body(error);
+        }
+
+        SavingsGoal goal = goalOpt.get();
+
+        if (goal.getWalletId() != null) {
+            Optional<Wallet> walletOpt = walletRepository.findByIdAndUserId(goal.getWalletId(), goal.getUserId());
+            if (walletOpt.isPresent()) {
+                Wallet wallet = walletOpt.get();
+                if (wallet.getBalance().compareTo(amount) < 0) {
+                    Map<String, Object> error = new HashMap<>();
+                    error.put("success", false);
+                    error.put("message", String.format("Ví liên kết '%s' không đủ số dư để tích lũy (Cần: %sđ, Hiện có: %sđ)!", 
+                            wallet.getName(), amount.setScale(0), wallet.getBalance().setScale(0)));
+                    return ResponseEntity.badRequest().body(error);
+                }
+
+                // Trừ tiền ví thực tế bằng cách tạo giao dịch EXPENSE
+                Transaction transaction = Transaction.builder()
+                        .userId(goal.getUserId())
+                        .walletId(goal.getWalletId())
+                        .categoryId(8) // Danh mục "Khác" làm mặc định
+                        .amount(amount)
+                        .type("EXPENSE")
+                        .transactionDate(LocalDate.now())
+                        .note("Tích lũy heo đất: " + goal.getGoalName())
+                        .build();
+
+                transactionService.createTransaction(transaction);
+            }
+        }
         
         savingsGoalRepository.updateCurrentAmount(goalId, amount);
         

@@ -34,38 +34,10 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Transaction transaction = transactionList.get(position);
         
-        // Map category ID to display names
-        String categoryName = "Other";
-        int iconRes = android.util.TypedValue.applyDimension(1, 1, holder.itemView.getResources().getDisplayMetrics()) > 0 
-                ? android.R.drawable.ic_menu_today : android.R.drawable.ic_menu_today; // Fallback
-        
         int categoryId = transaction.getCategoryId() != null ? transaction.getCategoryId() : 0;
-        switch (categoryId) {
-            case 1:
-                categoryName = "Dining & Food";
-                iconRes = android.R.drawable.ic_menu_compass; // Mock icons
-                break;
-            case 2:
-                categoryName = "Transport";
-                iconRes = android.R.drawable.ic_menu_directions;
-                break;
-            case 3:
-                categoryName = "Shopping";
-                iconRes = android.R.drawable.ic_menu_gallery;
-                break;
-            case 4:
-                categoryName = "Housing";
-                iconRes = android.R.drawable.ic_menu_myplaces;
-                break;
-            case 5:
-                categoryName = "Leisure";
-                iconRes = android.R.drawable.ic_menu_slideshow;
-                break;
-            default:
-                categoryName = "Other";
-                iconRes = android.R.drawable.ic_menu_today;
-                break;
-        }
+        String categoryName = com.example.smartexpense.api.CategoryCache.getCategoryName(categoryId);
+        String iconName = com.example.smartexpense.api.CategoryCache.getCategoryIcon(categoryId);
+        int iconRes = com.example.smartexpense.api.CategoryCache.getIconResource(iconName);
 
         holder.tvCategory.setText(categoryName);
         holder.tvNote.setText(transaction.getNote() != null ? transaction.getNote() : "");
@@ -82,9 +54,13 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         if (isExpense) {
             holder.tvAmount.setText("-" + formatter.format(amount) + "đ");
             holder.tvAmount.setTextColor(holder.itemView.getContext().getResources().getColor(R.color.crimson_expense));
+            holder.cardIconBg.setCardBackgroundColor(holder.itemView.getContext().getResources().getColor(R.color.crimson_expense_light));
+            holder.ivIcon.setColorFilter(holder.itemView.getContext().getResources().getColor(R.color.crimson_expense));
         } else {
             holder.tvAmount.setText("+" + formatter.format(amount) + "đ");
             holder.tvAmount.setTextColor(holder.itemView.getContext().getResources().getColor(R.color.emerald_income));
+            holder.cardIconBg.setCardBackgroundColor(holder.itemView.getContext().getResources().getColor(R.color.emerald_income_light));
+            holder.ivIcon.setColorFilter(holder.itemView.getContext().getResources().getColor(R.color.emerald_income));
         }
 
         holder.itemView.setOnClickListener(v -> {

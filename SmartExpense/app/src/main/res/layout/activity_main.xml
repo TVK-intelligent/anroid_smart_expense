@@ -31,43 +31,6 @@
             android:textColor="@color/primary"
             android:textSize="20sp"
             android:textStyle="bold" />
-
-        <!-- Seed quick data -->
-        <LinearLayout
-            android:id="@+id/btn_reset_mock"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:background="@drawable/bg_pill_chip"
-            android:paddingHorizontal="12dp"
-            android:paddingVertical="6dp"
-            android:gravity="center"
-            android:clickable="true"
-            android:focusable="true">
-
-            <ProgressBar
-                android:id="@+id/seed_progress"
-                android:layout_width="12dp"
-                android:layout_height="12dp"
-                android:visibility="gone"
-                android:indeterminateTint="@color/primary" />
-
-            <ImageView
-                android:id="@+id/seed_icon"
-                android:layout_width="14dp"
-                android:layout_height="14dp"
-                android:src="@android:drawable/stat_notify_sync"
-                app:tint="@color/primary" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
-                android:text="Reset Mẫu"
-                android:textColor="@color/primary"
-                android:textSize="11sp"
-                android:textStyle="bold" />
-        </LinearLayout>
     </LinearLayout>
 
     <!-- Main Fragment Container -->
@@ -77,6 +40,21 @@
         android:layout_height="match_parent"
         android:layout_above="@id/bottom_nav"
         android:layout_below="@id/top_bar" />
+
+    <!-- Floating Action Button for AI Assistant -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_chat"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_above="@id/bottom_nav"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:src="@drawable/ic_chat"
+        app:tint="@color/surface_white"
+        app:backgroundTint="@color/accent_blue"
+        android:contentDescription="Trợ lý ảo SmartExpense"
+        app:elevation="6dp" />
 
     <!-- Bottom Navigation Bar: height 72dp -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
