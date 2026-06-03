@@ -265,7 +265,7 @@ public class TestSeederController implements CommandLineRunner {
         // Tiền nhà định kỳ hàng tháng vào ngày 1
         jdbcTemplate.update(
                 "INSERT INTO recurring_transactions (user_id, wallet_id, category_id, amount, frequency, next_due_date, note, is_active, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())",
-                testUserId, walletIdBank, catHousing, new BigDecimal("5000000.00"), "MONTHLY", Date.valueOf(today.plusMonths(1).withDayOfMonth(1)), "Thanh toán tiền thuê nhà định kỳ hàng tháng", true
+                testUserId, walletIdBank, catHousing, new BigDecimal("5000000.00"), "MONTHLY", Date.valueOf(today.withDayOfMonth(1)), "Thanh toán tiền thuê nhà định kỳ hàng tháng", true
         );
         // Tiền mạng Internet định kỳ hàng tháng vào ngày 10
         jdbcTemplate.update(

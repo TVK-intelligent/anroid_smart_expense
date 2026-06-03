@@ -44,6 +44,8 @@ public class SavingsGoalsActivity extends BaseActivity {
     private LinearLayout layoutGoalsContainer;
     private TextView tvEmptyState;
     private MaterialButton btnAddGoal;
+    private View cardSummary;
+    private TextView tvTotalSaved, tvTotalTarget;
 
     private final DecimalFormat formatter = new DecimalFormat("#,###");
     private int currentUserId = 1;
@@ -59,9 +61,12 @@ public class SavingsGoalsActivity extends BaseActivity {
         layoutGoalsContainer = findViewById(R.id.layout_goals_container);
         tvEmptyState = findViewById(R.id.tv_empty_state);
         btnAddGoal = findViewById(R.id.btn_add_goal);
+        cardSummary = findViewById(R.id.card_savings_summary);
+        tvTotalSaved = findViewById(R.id.tv_total_saved);
+        tvTotalTarget = findViewById(R.id.tv_total_target);
 
         btnBack.setOnClickListener(v -> finish());
-        btnAddGoal.setOnClickListener(v -> showAddGoalDialog());
+        btnAddGoal.setOnClickListener(v -> showAddGoalDialog(null));
 
         loadSavingsGoals();
     }
@@ -94,10 +99,26 @@ public class SavingsGoalsActivity extends BaseActivity {
 
         if (list == null || list.isEmpty()) {
             tvEmptyState.setVisibility(View.VISIBLE);
+            if (cardSummary != null) cardSummary.setVisibility(View.GONE);
             return;
         }
 
         tvEmptyState.setVisibility(View.GONE);
+        if (cardSummary != null) {
+            cardSummary.setVisibility(View.VISIBLE);
+            BigDecimal totalSaved = BigDecimal.ZERO;
+            BigDecimal totalTarget = BigDecimal.ZERO;
+            for (SavingsGoal goal : list) {
+                if (goal.getCurrentAmount() != null) {
+                    totalSaved = totalSaved.add(goal.getCurrentAmount());
+                }
+                if (goal.getTargetAmount() != null) {
+                    totalTarget = totalTarget.add(goal.getTargetAmount());
+                }
+            }
+            tvTotalSaved.setText(formatter.format(totalSaved) + "đ");
+            tvTotalTarget.setText(formatter.format(totalTarget) + "đ");
+        }
 
         float density = getResources().getDisplayMetrics().density;
 
@@ -237,6 +258,37 @@ public class SavingsGoalsActivity extends BaseActivity {
             );
             actionLayout.setLayoutParams(actionLayoutParams);
 
+            // Left actions: Edit and Details
+            LinearLayout leftActions = new LinearLayout(this);
+            leftActions.setOrientation(LinearLayout.HORIZONTAL);
+            leftActions.setGravity(android.view.Gravity.CENTER_VERTICAL);
+            RelativeLayout.LayoutParams leftParams = new RelativeLayout.LayoutParams(
+                    RelativeLayout.LayoutParams.WRAP_CONTENT,
+                    (int) (36 * density)
+            );
+            leftParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+            leftActions.setLayoutParams(leftParams);
+
+            ImageView btnEditGoal = new ImageView(this);
+            btnEditGoal.setImageResource(android.R.drawable.ic_menu_edit);
+            btnEditGoal.setPadding((int)(8*density), (int)(8*density), (int)(8*density), (int)(8*density));
+            btnEditGoal.setImageTintList(ColorStateList.valueOf(getResources().getColor(R.color.text_secondary)));
+            btnEditGoal.setClickable(true);
+            btnEditGoal.setFocusable(true);
+            btnEditGoal.setOnClickListener(v -> showAddGoalDialog(goal));
+            leftActions.addView(btnEditGoal);
+
+            ImageView btnDetailsGoal = new ImageView(this);
+            btnDetailsGoal.setImageResource(android.R.drawable.ic_menu_info_details);
+            btnDetailsGoal.setPadding((int)(8*density), (int)(8*density), (int)(8*density), (int)(8*density));
+            btnDetailsGoal.setImageTintList(ColorStateList.valueOf(getResources().getColor(R.color.text_secondary)));
+            btnDetailsGoal.setClickable(true);
+            btnDetailsGoal.setFocusable(true);
+            btnDetailsGoal.setOnClickListener(v -> showGoalDetails(goal));
+            leftActions.addView(btnDetailsGoal);
+
+            actionLayout.addView(leftActions);
+
             MaterialButton btnDeposit = new MaterialButton(this);
             btnDeposit.setText(getString(R.string.savings_goals_label_add_funds));
             btnDeposit.setTextColor(getResources().getColor(R.color.surface_white));
@@ -262,7 +314,36 @@ public class SavingsGoalsActivity extends BaseActivity {
         }
     }
 
-    private void showAddGoalDialog() {
+    private void showGoalDetails(SavingsGoal goal) {
+        StringBuilder details = new StringBuilder();
+        details.append("Tên mục tiêu: ").append(goal.getGoalName()).append("\n\n");
+        
+        java.text.NumberFormat nf = java.text.NumberFormat.getNumberInstance(new Locale("vi", "VN"));
+        BigDecimal target = goal.getTargetAmount() != null ? goal.getTargetAmount() : BigDecimal.ZERO;
+        BigDecimal current = goal.getCurrentAmount() != null ? goal.getCurrentAmount() : BigDecimal.ZERO;
+        BigDecimal remaining = target.subtract(current);
+        if (remaining.compareTo(BigDecimal.ZERO) < 0) remaining = BigDecimal.ZERO;
+        
+        int percentVal = 0;
+        if (target.compareTo(BigDecimal.ZERO) > 0) {
+            percentVal = current.multiply(new BigDecimal(100)).divide(target, 0, RoundingMode.HALF_UP).intValue();
+        }
+
+        details.append("Số tiền mục tiêu: ").append(nf.format(target)).append("đ\n");
+        details.append("Số tiền đã tích lũy: ").append(nf.format(current)).append("đ\n");
+        details.append("Còn thiếu: ").append(nf.format(remaining)).append("đ\n\n");
+        details.append("Tiến độ: ").append(percentVal).append("%\n");
+        details.append("Hạn chót: ").append(goal.getDeadline() != null ? goal.getDeadline() : "N/A").append("\n");
+        details.append("Trạng thái: ").append("COMPLETED".equalsIgnoreCase(goal.getStatus()) || percentVal >= 100 ? "Hoàn thành" : "Đang thực hiện").append("\n");
+
+        new AlertDialog.Builder(this)
+                .setTitle("Chi Tiết Mục Tiêu Tích Lũy")
+                .setMessage(details.toString())
+                .setPositiveButton("Đóng", (dialog, which) -> dialog.dismiss())
+                .show();
+    }
+
+    private void showAddGoalDialog(final SavingsGoal goalToEdit) {
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_add_goal, null);
 
         TextInputEditText etName = dialogView.findViewById(R.id.et_goal_name);
@@ -282,9 +363,17 @@ public class SavingsGoalsActivity extends BaseActivity {
             datePicker.show(getSupportFragmentManager(), "SAVINGS_DEADLINE_PICKER");
         });
 
+        if (goalToEdit != null) {
+            etName.setText(goalToEdit.getGoalName());
+            etTarget.setText(goalToEdit.getTargetAmount() != null ? goalToEdit.getTargetAmount().setScale(0, RoundingMode.HALF_UP).toPlainString() : "");
+            etInitial.setText(goalToEdit.getCurrentAmount() != null ? goalToEdit.getCurrentAmount().setScale(0, RoundingMode.HALF_UP).toPlainString() : "");
+            etDeadline.setText(goalToEdit.getDeadline());
+        }
+
         new AlertDialog.Builder(this)
                 .setView(dialogView)
-                .setPositiveButton(getString(R.string.savings_goals_label_create), (dialog, which) -> {
+                .setTitle(goalToEdit == null ? "Tạo Mục Tiêu Tích Lũy" : "Sửa Mục Tiêu Tích Lũy")
+                .setPositiveButton(goalToEdit == null ? getString(R.string.savings_goals_label_create) : "Cập nhật", (dialog, which) -> {
                     String name = etName.getText() != null ? etName.getText().toString().trim() : "";
                     String targetStr = etTarget.getText() != null ? etTarget.getText().toString().trim() : "";
                     String initialStr = etInitial.getText() != null ? etInitial.getText().toString().trim() : "";
@@ -351,15 +440,22 @@ public class SavingsGoalsActivity extends BaseActivity {
                         return;
                     }
 
-                    SavingsGoal newGoal = new SavingsGoal();
-                    newGoal.setUserId(currentUserId);
-                    newGoal.setGoalName(name);
-                    newGoal.setTargetAmount(targetAmt);
-                    newGoal.setCurrentAmount(initialAmt);
-                    newGoal.setDeadline(deadline);
-                    newGoal.setStatus("IN_PROGRESS");
+                    SavingsGoal goal = goalToEdit;
+                    if (goal == null) {
+                        goal = new SavingsGoal();
+                        goal.setStatus("IN_PROGRESS");
+                    }
+                    goal.setUserId(currentUserId);
+                    goal.setGoalName(name);
+                    goal.setTargetAmount(targetAmt);
+                    goal.setCurrentAmount(initialAmt);
+                    goal.setDeadline(deadline);
 
-                    createGoalOnServer(newGoal);
+                    if (goalToEdit == null) {
+                        createGoalOnServer(goal);
+                    } else {
+                        updateGoalOnServer(goal);
+                    }
                 })
                 .setNegativeButton(getString(R.string.savings_goals_label_cancel), (dialog, which) -> dialog.dismiss())
                 .show();
@@ -386,6 +482,25 @@ public class SavingsGoalsActivity extends BaseActivity {
                 Toast.makeText(SavingsGoalsActivity.this, 
                         Locale.getDefault().getLanguage().equals("vi") ? "Lỗi mạng, vui lòng thử lại!" : "Network error, please try again!", 
                         Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void updateGoalOnServer(SavingsGoal goal) {
+        ApiClient.getApiService().updateSavingsGoal(goal.getGoalId(), currentUserId, goal).enqueue(new Callback<SavingsGoal>() {
+            @Override
+            public void onResponse(Call<SavingsGoal> call, Response<SavingsGoal> response) {
+                if (response.isSuccessful()) {
+                    Toast.makeText(SavingsGoalsActivity.this, "Cập nhật mục tiêu thành công!", Toast.LENGTH_SHORT).show();
+                    loadSavingsGoals();
+                } else {
+                    Toast.makeText(SavingsGoalsActivity.this, "Không thể cập nhật mục tiêu!", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<SavingsGoal> call, Throwable t) {
+                Toast.makeText(SavingsGoalsActivity.this, "Lỗi mạng, vui lòng thử lại!", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -490,43 +605,19 @@ public class SavingsGoalsActivity extends BaseActivity {
     }
 
     private void processDeposit(SavingsGoal goal, Wallet wallet, BigDecimal amount) {
-        ApiClient.getApiService().addFundsToGoal(goal.getGoalId(), amount).enqueue(new Callback<Map<String, Object>>() {
+        ApiClient.getApiService().addFundsToGoal(goal.getGoalId(), amount, wallet.getWalletId()).enqueue(new Callback<Map<String, Object>>() {
             @Override
             public void onResponse(Call<Map<String, Object>> call, Response<Map<String, Object>> response) {
                 if (response.isSuccessful()) {
-                    Wallet updatedWallet = new Wallet();
-                    updatedWallet.setName(wallet.getName());
-                    updatedWallet.setType(wallet.getType());
-                    updatedWallet.setBalance(wallet.getBalance().subtract(amount));
-
-                    ApiClient.getApiService().updateWallet(wallet.getWalletId(), currentUserId, updatedWallet).enqueue(new Callback<Wallet>() {
-                        @Override
-                        public void onResponse(Call<Wallet> call, Response<Wallet> walletResponse) {
-                            if (walletResponse.isSuccessful()) {
-                                Toast.makeText(SavingsGoalsActivity.this, 
-                                        Locale.getDefault().getLanguage().equals("vi") ? "Nạp quỹ tiết kiệm thành công!" : "Funds successfully deposited!", 
-                                        Toast.LENGTH_SHORT).show();
-                            } else {
-                                Toast.makeText(SavingsGoalsActivity.this, 
-                                        Locale.getDefault().getLanguage().equals("vi") ? "Đã nạp quỹ nhưng không thể trừ tiền ví nguồn!" : "Deposited, but failed to update wallet balance!", 
-                                        Toast.LENGTH_LONG).show();
-                            }
-                            loadSavingsGoals();
-                        }
-
-                        @Override
-                        public void onFailure(Call<Wallet> call, Throwable t) {
-                            Toast.makeText(SavingsGoalsActivity.this, 
-                                    Locale.getDefault().getLanguage().equals("vi") ? "Đã nạp quỹ nhưng lỗi kết nối khi trừ tiền ví nguồn!" : "Deposited, but network error updating wallet balance!", 
-                                    Toast.LENGTH_LONG).show();
-                            loadSavingsGoals();
-                        }
-                    });
+                    Toast.makeText(SavingsGoalsActivity.this, 
+                            Locale.getDefault().getLanguage().equals("vi") ? "Nạp quỹ tiết kiệm thành công!" : "Funds successfully deposited!", 
+                            Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(SavingsGoalsActivity.this, 
                             Locale.getDefault().getLanguage().equals("vi") ? "Không nạp được quỹ tiết kiệm!" : "Failed to deposit funds!", 
                             Toast.LENGTH_SHORT).show();
                 }
+                loadSavingsGoals();
             }
 
             @Override
@@ -534,6 +625,7 @@ public class SavingsGoalsActivity extends BaseActivity {
                 Toast.makeText(SavingsGoalsActivity.this, 
                         Locale.getDefault().getLanguage().equals("vi") ? "Lỗi mạng kết nối tới server!" : "Network error, failed to deposit funds!", 
                         Toast.LENGTH_SHORT).show();
+                loadSavingsGoals();
             }
         });
     }

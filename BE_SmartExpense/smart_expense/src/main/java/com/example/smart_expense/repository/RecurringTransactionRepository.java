@@ -88,8 +88,8 @@ public class RecurringTransactionRepository {
      * Tìm tất cả các giao dịch định kỳ đang hoạt động và đến hạn.
      */
     public List<RecurringTransaction> findActiveAndDue() {
-        String sql = "SELECT * FROM recurring_transactions WHERE is_active = TRUE AND next_due_date <= CURDATE()";
-        return jdbcTemplate.query(sql, recurringRowMapper);
+        String sql = "SELECT * FROM recurring_transactions WHERE is_active = TRUE AND next_due_date <= ?";
+        return jdbcTemplate.query(sql, recurringRowMapper, Date.valueOf(java.time.LocalDate.now()));
     }
 
     /**
@@ -114,5 +114,20 @@ public class RecurringTransactionRepository {
     public int updateStatus(Integer recurringId, Integer userId, boolean isActive) {
         String sql = "UPDATE recurring_transactions SET is_active = ? WHERE recurring_id = ? AND user_id = ?";
         return jdbcTemplate.update(sql, isActive, recurringId, userId);
+    }
+
+    public RecurringTransaction update(RecurringTransaction rt) {
+        String sql = "UPDATE recurring_transactions SET wallet_id = ?, category_id = ?, amount = ?, frequency = ?, next_due_date = ?, note = ?, is_active = ? WHERE recurring_id = ? AND user_id = ?";
+        jdbcTemplate.update(sql,
+                rt.getWalletId(),
+                rt.getCategoryId(),
+                rt.getAmount(),
+                rt.getFrequency(),
+                Date.valueOf(rt.getNextDueDate()),
+                rt.getNote(),
+                rt.getIsActive(),
+                rt.getRecurringId(),
+                rt.getUserId());
+        return rt;
     }
 }

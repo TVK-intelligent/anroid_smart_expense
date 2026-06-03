@@ -28,17 +28,20 @@ public class SmartAnalyticsService {
     private final SavingsGoalRepository savingsGoalRepository;
     private final NotificationRepository notificationRepository;
     private final RecurringTransactionRepository recurringTransactionRepository;
+    private final com.example.smart_expense.repository.CategoryRepository categoryRepository;
 
     public SmartAnalyticsService(TransactionRepository transactionRepository,
                                  BudgetRepository budgetRepository,
                                  SavingsGoalRepository savingsGoalRepository,
                                  NotificationRepository notificationRepository,
-                                 RecurringTransactionRepository recurringTransactionRepository) {
+                                 RecurringTransactionRepository recurringTransactionRepository,
+                                 com.example.smart_expense.repository.CategoryRepository categoryRepository) {
         this.transactionRepository = transactionRepository;
         this.budgetRepository = budgetRepository;
         this.savingsGoalRepository = savingsGoalRepository;
         this.notificationRepository = notificationRepository;
         this.recurringTransactionRepository = recurringTransactionRepository;
+        this.categoryRepository = categoryRepository;
     }
 
     /**
@@ -78,74 +81,130 @@ public class SmartAnalyticsService {
 
     /**
      * 2. Phân tích Tốc độ Tiêu tiền (Burn Rate) & Đề xuất Ngân sách Hàng ngày
-     * Nếu tỷ lệ tiêu tiền lớn hơn tỷ lệ tiến trình thời gian 25%, đưa ra gợi ý giới hạn chi tiêu.
+     * Hỗ trợ quét tất cả ngân sách hoặc so sánh tổng chi tiêu với thu nhập nếu chưa có ngân sách.
      */
     public Optional<String> checkBurnRateAndSuggest(Integer userId, Integer categoryId) {
-        Optional<Budget> activeBudgetOpt = budgetRepository.findActiveBudgetByCategory(userId, categoryId);
-        if (activeBudgetOpt.isEmpty()) {
-            return Optional.empty();
-        }
-
-        Budget budget = activeBudgetOpt.get();
-        LocalDate today = LocalDate.now();
+        List<Budget> budgetsToCheck = new ArrayList<>();
         
-        // Đảm bảo ngày hiện tại nằm trong ngân sách
-        if (today.isBefore(budget.getStartDate()) || today.isAfter(budget.getEndDate())) {
-            return Optional.empty();
+        // Nếu truyền categoryId cụ thể, ưu tiên kiểm tra category đó
+        if (categoryId != null) {
+            Optional<Budget> spec = budgetRepository.findActiveBudgetByCategory(userId, categoryId);
+            if (spec.isPresent()) {
+                budgetsToCheck.add(spec.get());
+            }
+        }
+        
+        // Nếu không có budget cụ thể cho category truyền vào, lấy toàn bộ budget của user
+        if (budgetsToCheck.isEmpty()) {
+            budgetsToCheck.addAll(budgetRepository.findActiveBudgets(userId));
         }
 
-        // Tính tổng số ngày trong kỳ ngân sách
-        long totalDays = ChronoUnit.DAYS.between(budget.getStartDate(), budget.getEndDate()) + 1;
-        // Tính số ngày đã trôi qua
-        long daysPassed = ChronoUnit.DAYS.between(budget.getStartDate(), today) + 1;
-        // Tính số ngày còn lại
+        LocalDate today = LocalDate.now();
+
+        // TH1: Có ngân sách thiết lập -> Tìm ngân sách có tốc độ tiêu nhanh nhất
+        if (!budgetsToCheck.isEmpty()) {
+            String worstAlert = null;
+            double worstExcessRatio = 0.0;
+
+            for (Budget budget : budgetsToCheck) {
+                if (today.isBefore(budget.getStartDate()) || today.isAfter(budget.getEndDate())) {
+                    continue;
+                }
+
+                long totalDays = ChronoUnit.DAYS.between(budget.getStartDate(), budget.getEndDate()) + 1;
+                long daysPassed = ChronoUnit.DAYS.between(budget.getStartDate(), today) + 1;
+                long daysRemaining = totalDays - daysPassed;
+                if (daysRemaining <= 0) continue;
+
+                BigDecimal totalSpent = transactionRepository.getTotalSpentByCategoryAndPeriod(userId, budget.getCategoryId(), budget.getStartDate(), today);
+                BigDecimal budgetAmount = budget.getAmount();
+                if (budgetAmount.compareTo(BigDecimal.ZERO) <= 0) continue;
+
+                double timeRatio = (double) daysPassed / totalDays;
+                double spendRatio = totalSpent.divide(budgetAmount, 4, RoundingMode.HALF_UP).doubleValue();
+                double warningThreshold = timeRatio * 1.15; // Cảnh báo nếu tiêu nhanh hơn thời gian trôi qua 15%
+
+                if (spendRatio > warningThreshold) {
+                    double excessRatio = spendRatio - warningThreshold;
+                    if (excessRatio > worstExcessRatio) {
+                        worstExcessRatio = excessRatio;
+                        BigDecimal remainingBudget = budgetAmount.subtract(totalSpent);
+                        BigDecimal safeDailyLimit = remainingBudget.compareTo(BigDecimal.ZERO) > 0 
+                                ? remainingBudget.divide(BigDecimal.valueOf(daysRemaining), 0, RoundingMode.DOWN)
+                                : BigDecimal.ZERO;
+                        
+                        String catName = categoryRepository.findById(budget.getCategoryId())
+                                .map(c -> c.getName())
+                                .orElse("Danh mục " + budget.getCategoryId());
+
+                        worstAlert = String.format("Tốc độ chi tiêu cho '%s' đang quá nhanh! Đã tiêu hết %.0f%% ngân sách trong %.0f%% thời gian của tháng (%d/%d ngày). Khuyên dùng tối đa %sđ/ngày cho những ngày còn lại.",
+                                catName,
+                                spendRatio * 100.0,
+                                timeRatio * 100.0,
+                                daysPassed, totalDays,
+                                safeDailyLimit.setScale(0, RoundingMode.HALF_UP).toString());
+                    }
+                }
+            }
+
+            if (worstAlert != null) {
+                Notification notification = Notification.builder()
+                        .userId(userId)
+                        .title("Cảnh báo tốc độ chi tiêu!")
+                        .content(worstAlert)
+                        .isRead(false)
+                        .build();
+                notificationRepository.save(notification);
+                return Optional.of(worstAlert);
+            }
+        }
+
+        // TH2: Không có ngân sách hoặc các ngân sách đều an toàn -> Check tổng chi tiêu so với thu nhập
+        LocalDate startOfMonth = today.withDayOfMonth(1);
+        LocalDate endOfMonth = today.withDayOfMonth(today.lengthOfMonth());
+        BigDecimal monthlyExpense = transactionRepository.getMonthlyTotalByType(userId, "EXPENSE", startOfMonth, endOfMonth);
+        BigDecimal monthlyIncome = transactionRepository.getMonthlyTotalByType(userId, "INCOME", startOfMonth, endOfMonth);
+        if (monthlyIncome == null || monthlyIncome.compareTo(BigDecimal.ZERO) <= 0) {
+            monthlyIncome = recurringTransactionRepository.getTotalExpectedFixedIncomesForMonth(userId);
+        }
+        if (monthlyIncome == null || monthlyIncome.compareTo(BigDecimal.ZERO) <= 0) {
+            monthlyIncome = new BigDecimal("10000000"); // 10 Triệu VND mặc định
+        }
+
+        long totalDays = ChronoUnit.DAYS.between(startOfMonth, endOfMonth) + 1;
+        long daysPassed = ChronoUnit.DAYS.between(startOfMonth, today) + 1;
         long daysRemaining = totalDays - daysPassed;
 
-        if (daysRemaining <= 0) {
-            return Optional.empty();
-        }
-
-        // Lấy tổng số tiền đã chi
-        BigDecimal totalSpent = transactionRepository.getTotalSpentByCategoryAndPeriod(userId, categoryId, budget.getStartDate(), today);
-        BigDecimal budgetAmount = budget.getAmount();
-
-        if (budgetAmount.compareTo(BigDecimal.ZERO) <= 0) {
-            return Optional.empty();
-        }
-
-        // Tính tỉ lệ phần trăm
-        double timeRatio = (double) daysPassed / totalDays;
-        BigDecimal spendRatio = totalSpent.divide(budgetAmount, 4, RoundingMode.HALF_UP);
-
-        // Ngưỡng cảnh báo: tiêu nhanh hơn thời gian trôi qua 25% (tức là spendRatio > timeRatio * 1.25)
-        BigDecimal timeRatioBigDecimal = BigDecimal.valueOf(timeRatio);
-        BigDecimal burnRateThreshold = timeRatioBigDecimal.multiply(new BigDecimal("1.25"));
-
-        if (spendRatio.compareTo(burnRateThreshold) > 0) {
-            BigDecimal remainingBudget = budgetAmount.subtract(totalSpent);
+        if (monthlyExpense != null && monthlyExpense.compareTo(BigDecimal.ZERO) > 0) {
+            double timeRatio = (double) daysPassed / totalDays;
+            double spendRatio = monthlyExpense.divide(monthlyIncome, 4, RoundingMode.HALF_UP).doubleValue();
             
-            // Giới hạn chi tiêu an toàn hàng ngày cho những ngày còn lại
-            BigDecimal safeDailyLimit = remainingBudget.compareTo(BigDecimal.ZERO) > 0 
-                    ? remainingBudget.divide(BigDecimal.valueOf(daysRemaining), 0, RoundingMode.DOWN)
-                    : BigDecimal.ZERO;
+            // Cảnh báo nếu chi tiêu tháng quá lớn so với mốc thời gian hoặc chi tiêu vượt 10 triệu
+            if (spendRatio > timeRatio * 1.15 || monthlyExpense.compareTo(new BigDecimal("10000000")) > 0) {
+                BigDecimal remainingIncome = monthlyIncome.subtract(monthlyExpense);
+                BigDecimal safeDailyLimit = remainingIncome.compareTo(BigDecimal.ZERO) > 0 && daysRemaining > 0
+                        ? remainingIncome.divide(BigDecimal.valueOf(daysRemaining), 0, RoundingMode.DOWN)
+                        : BigDecimal.ZERO;
 
-            String alertContent = String.format("Tốc độ chi tiêu của bạn đang quá nhanh! Bạn đã tiêu hết %s%% ngân sách trong khi chu kỳ mới trôi qua %s%% (%d/%d ngày). Để đảm bảo mục tiêu, bạn chỉ nên tiêu tối đa %sđ/ngày cho đến hết chu kỳ.",
-                    spendRatio.multiply(new BigDecimal("100")).setScale(0, RoundingMode.HALF_UP),
-                    timeRatioBigDecimal.multiply(new BigDecimal("100")).setScale(0, RoundingMode.HALF_UP),
-                    daysPassed, totalDays, safeDailyLimit);
+                String alertContent = String.format("Cảnh báo dòng tiền: Tổng chi tiêu tháng này (%sđ) đang chiếm %.0f%% thu nhập dự kiến (%sđ) trong khi mới trôi qua %.0f%% thời gian (%d/%d ngày). Bạn nên giới hạn chi tiêu dưới %sđ/ngày.",
+                        monthlyExpense.setScale(0, RoundingMode.HALF_UP).toString(),
+                        spendRatio * 100.0,
+                        monthlyIncome.setScale(0, RoundingMode.HALF_UP).toString(),
+                        timeRatio * 100.0,
+                        daysPassed, totalDays,
+                        safeDailyLimit.setScale(0, RoundingMode.HALF_UP).toString());
 
-            // Lưu thông báo vào CSDL nếu chưa có cảnh báo tương tự hôm nay
-            Notification notification = Notification.builder()
-                    .userId(userId)
-                    .title("Cảnh báo tốc độ chi tiêu!")
-                    .content(alertContent)
-                    .isRead(false)
-                    .build();
-            notificationRepository.save(notification);
+                Notification notification = Notification.builder()
+                        .userId(userId)
+                        .title("Cảnh báo dòng tiền chi tiêu!")
+                        .content(alertContent)
+                        .isRead(false)
+                        .build();
+                notificationRepository.save(notification);
 
-            return Optional.of(alertContent);
+                return Optional.of(alertContent);
+            }
         }
-
         return Optional.empty();
     }
 

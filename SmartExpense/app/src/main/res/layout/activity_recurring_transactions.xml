@@ -34,12 +34,61 @@
             android:textStyle="bold" />
     </RelativeLayout>
 
+    <!-- Segmented Toggle (Expense vs Income) -->
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="99dp"
+        app:cardElevation="0dp"
+        app:cardBackgroundColor="@color/chip_bg"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="3dp">
+
+            <TextView
+                android:id="@+id/btn_toggle_expense"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="Chi tiêu"
+                android:textColor="@color/surface_white"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:paddingVertical="10dp"
+                android:background="@drawable/bg_toggle_expense_active"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <TextView
+                android:id="@+id/btn_toggle_income"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="Thu nhập"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:paddingVertical="10dp"
+                android:clickable="true"
+                android:focusable="true" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
     <!-- Main Content Area -->
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:padding="16dp">
+        android:paddingHorizontal="16dp"
+        android:paddingBottom="16dp">
 
         <ScrollView
             android:layout_width="match_parent"

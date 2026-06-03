@@ -68,7 +68,8 @@ public class SavingsGoalController {
     @PostMapping("/{goalId}/add-funds")
     public ResponseEntity<Map<String, Object>> addFunds(
             @PathVariable Integer goalId,
-            @RequestParam BigDecimal amount) {
+            @RequestParam BigDecimal amount,
+            @RequestParam(required = false) Integer walletId) {
         
         Optional<SavingsGoal> goalOpt = savingsGoalRepository.findById(goalId);
         if (goalOpt.isEmpty()) {
@@ -79,9 +80,10 @@ public class SavingsGoalController {
         }
 
         SavingsGoal goal = goalOpt.get();
+        Integer resolvedWalletId = walletId != null ? walletId : goal.getWalletId();
 
-        if (goal.getWalletId() != null) {
-            Optional<Wallet> walletOpt = walletRepository.findByIdAndUserId(goal.getWalletId(), goal.getUserId());
+        if (resolvedWalletId != null) {
+            Optional<Wallet> walletOpt = walletRepository.findByIdAndUserId(resolvedWalletId, goal.getUserId());
             if (walletOpt.isPresent()) {
                 Wallet wallet = walletOpt.get();
                 if (wallet.getBalance().compareTo(amount) < 0) {
@@ -95,7 +97,7 @@ public class SavingsGoalController {
                 // Trừ tiền ví thực tế bằng cách tạo giao dịch EXPENSE
                 Transaction transaction = Transaction.builder()
                         .userId(goal.getUserId())
-                        .walletId(goal.getWalletId())
+                        .walletId(resolvedWalletId)
                         .categoryId(8) // Danh mục "Khác" làm mặc định
                         .amount(amount)
                         .type("EXPENSE")
@@ -116,5 +118,42 @@ public class SavingsGoalController {
         response.put("message", "Nạp quỹ tích lũy thành công!");
         
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Cập nhật mục tiêu tích lũy.
+     * PUT /api/savings-goals/{goalId}?userId=1
+     */
+    @PutMapping("/{goalId}")
+    public ResponseEntity<?> updateGoal(@PathVariable Integer goalId,
+                                        @RequestParam Integer userId,
+                                        @RequestBody SavingsGoal request) {
+        Optional<SavingsGoal> existingOpt = savingsGoalRepository.findById(goalId);
+        if (existingOpt.isEmpty() || !existingOpt.get().getUserId().equals(userId)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        SavingsGoal existing = existingOpt.get();
+        if (request.getGoalName() != null) {
+            existing.setGoalName(request.getGoalName());
+        }
+        if (request.getTargetAmount() != null) {
+            existing.setTargetAmount(request.getTargetAmount());
+        }
+        if (request.getCurrentAmount() != null) {
+            existing.setCurrentAmount(request.getCurrentAmount());
+        }
+        if (request.getWalletId() != null) {
+            existing.setWalletId(request.getWalletId());
+        }
+        if (request.getDeadline() != null) {
+            existing.setDeadline(request.getDeadline());
+        }
+        if (request.getStatus() != null) {
+            existing.setStatus(request.getStatus());
+        }
+
+        SavingsGoal updated = savingsGoalRepository.update(existing);
+        return ResponseEntity.ok(updated);
     }
 }

@@ -41,11 +41,12 @@ public class TransactionService {
             transaction.setTransactionDate(LocalDate.now());
         }
 
+        // Resolve type BEFORE saving to ensure it is stored correctly in the database
+        String resolvedType = resolveType(transaction.getType(), transaction.getCategoryId());
+        transaction.setType(resolvedType);
+
         // 1. Lưu giao dịch
         Transaction savedTransaction = transactionRepository.save(transaction);
-
-        String resolvedType = resolveType(transaction.getType(), transaction.getCategoryId());
-        savedTransaction.setType(resolvedType);
 
         BigDecimal amountChange = computeWalletDelta(resolvedType, transaction.getAmount());
         int updatedWallets = walletRepository.updateBalance(

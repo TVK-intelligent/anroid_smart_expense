@@ -84,7 +84,7 @@ public class DebtLoanActivity extends BaseActivity implements DebtLoanAdapter.On
         btnTabDebts.setOnClickListener(v -> selectTab("DEBT"));
         btnTabLoans.setOnClickListener(v -> selectTab("LOAN"));
 
-        fabAddDebt.setOnClickListener(v -> showAddDebtDialog());
+        fabAddDebt.setOnClickListener(v -> showAddDebtDialog(null));
     }
 
     private void selectTab(String tab) {
@@ -169,17 +169,24 @@ public class DebtLoanActivity extends BaseActivity implements DebtLoanAdapter.On
         }
     }
 
-    private void showAddDebtDialog() {
+    private void showAddDebtDialog(final DebtLoan dlToEdit) {
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_add_debt_loan, null);
         Spinner spinnerType = dialogView.findViewById(R.id.spinner_type);
         EditText etPersonName = dialogView.findViewById(R.id.et_person_name);
         EditText etAmount = dialogView.findViewById(R.id.et_amount);
         TextView tvDueDate = dialogView.findViewById(R.id.tv_due_date);
         EditText etInterestRate = dialogView.findViewById(R.id.et_interest_rate);
+        android.widget.AutoCompleteTextView actInterestTerm = dialogView.findViewById(R.id.act_interest_term);
         EditText etNote = dialogView.findViewById(R.id.et_note);
 
         final Calendar cal = Calendar.getInstance();
         tvDueDate.setText(dateFormat.format(cal.getTime()));
+
+        // Setup Interest Term dropdown
+        String[] terms = {"% / tháng", "% / năm"};
+        ArrayAdapter<String> termAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, terms);
+        actInterestTerm.setAdapter(termAdapter);
+        actInterestTerm.setText(terms[0], false); // default to "% / tháng"
 
         tvDueDate.setOnClickListener(v -> {
             new android.app.DatePickerDialog(
@@ -195,12 +202,28 @@ public class DebtLoanActivity extends BaseActivity implements DebtLoanAdapter.On
             ).show();
         });
 
+        if (dlToEdit != null) {
+            spinnerType.setSelection("DEBT".equalsIgnoreCase(dlToEdit.getType()) ? 0 : 1);
+            etPersonName.setText(dlToEdit.getPersonName());
+            etAmount.setText(dlToEdit.getAmount() != null ? dlToEdit.getAmount().setScale(0, java.math.RoundingMode.HALF_UP).toPlainString() : "");
+            tvDueDate.setText(dlToEdit.getDueDate());
+            if (dlToEdit.getInterestRate() != null && dlToEdit.getInterestRate().compareTo(BigDecimal.ZERO) > 0) {
+                BigDecimal monthlyRate = dlToEdit.getInterestRate().divide(new BigDecimal("12"), 2, java.math.RoundingMode.HALF_UP);
+                etInterestRate.setText(monthlyRate.stripTrailingZeros().toPlainString());
+            } else {
+                etInterestRate.setText("");
+            }
+            etNote.setText(dlToEdit.getNote());
+        }
+
         new MaterialAlertDialogBuilder(this)
                 .setView(dialogView)
+                .setTitle(dlToEdit == null ? "Thêm Ghi Chép Nợ" : "Sửa Ghi Chép Nợ")
                 .setPositiveButton("Lưu", (dialog, which) -> {
                     String name = etPersonName.getText().toString().trim();
                     String amountStr = etAmount.getText().toString().trim();
                     String interestStr = etInterestRate.getText().toString().trim();
+                    String termStr = actInterestTerm.getText().toString().trim();
                     String note = etNote.getText().toString().trim();
                     String date = tvDueDate.getText().toString().trim();
                     int selectedTypePos = spinnerType.getSelectedItemPosition();
@@ -223,35 +246,61 @@ public class DebtLoanActivity extends BaseActivity implements DebtLoanAdapter.On
                     if (!interestStr.isEmpty()) {
                         try {
                             interest = new BigDecimal(interestStr);
+                            // If term is monthly, convert to yearly by multiplying by 12
+                            if ("% / tháng".equalsIgnoreCase(termStr)) {
+                                interest = interest.multiply(new BigDecimal("12"));
+                            }
                         } catch (Exception ignored) {}
                     }
 
-                    DebtLoan dl = new DebtLoan();
+                    DebtLoan dl = dlToEdit;
+                    if (dl == null) {
+                        dl = new DebtLoan();
+                        dl.setStatus("UNPAID");
+                    }
                     dl.setUserId(userId);
                     dl.setPersonName(name);
                     dl.setType(type);
                     dl.setAmount(amount);
                     dl.setInterestRate(interest);
                     dl.setDueDate(date);
-                    dl.setStatus("UNPAID");
                     dl.setNote(note);
 
-                    ApiClient.getApiService().createDebt(dl).enqueue(new Callback<DebtLoan>() {
-                        @Override
-                        public void onResponse(Call<DebtLoan> call, Response<DebtLoan> response) {
-                            if (response.isSuccessful()) {
-                                Toast.makeText(DebtLoanActivity.this, "Đã lưu khoản nợ thành công!", Toast.LENGTH_SHORT).show();
-                                loadDebtsFromServer();
-                            } else {
-                                Toast.makeText(DebtLoanActivity.this, "Lỗi khi lưu khoản nợ", Toast.LENGTH_SHORT).show();
+                    if (dlToEdit == null) {
+                        ApiClient.getApiService().createDebt(dl).enqueue(new Callback<DebtLoan>() {
+                            @Override
+                            public void onResponse(Call<DebtLoan> call, Response<DebtLoan> response) {
+                                if (response.isSuccessful()) {
+                                    Toast.makeText(DebtLoanActivity.this, "Đã lưu khoản nợ thành công!", Toast.LENGTH_SHORT).show();
+                                    loadDebtsFromServer();
+                                } else {
+                                    Toast.makeText(DebtLoanActivity.this, "Lỗi khi lưu khoản nợ", Toast.LENGTH_SHORT).show();
+                                }
                             }
-                        }
 
-                        @Override
-                        public void onFailure(Call<DebtLoan> call, Throwable t) {
-                            Toast.makeText(DebtLoanActivity.this, "Lỗi kết nối máy chủ", Toast.LENGTH_SHORT).show();
-                        }
-                    });
+                            @Override
+                            public void onFailure(Call<DebtLoan> call, Throwable t) {
+                                Toast.makeText(DebtLoanActivity.this, "Lỗi kết nối máy chủ", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    } else {
+                        ApiClient.getApiService().updateDebt(dlToEdit.getDebtId(), userId, dl).enqueue(new Callback<DebtLoan>() {
+                            @Override
+                            public void onResponse(Call<DebtLoan> call, Response<DebtLoan> response) {
+                                if (response.isSuccessful()) {
+                                    Toast.makeText(DebtLoanActivity.this, "Đã cập nhật khoản nợ thành công!", Toast.LENGTH_SHORT).show();
+                                    loadDebtsFromServer();
+                                } else {
+                                    Toast.makeText(DebtLoanActivity.this, "Lỗi khi cập nhật khoản nợ", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+
+                            @Override
+                            public void onFailure(Call<DebtLoan> call, Throwable t) {
+                                Toast.makeText(DebtLoanActivity.this, "Lỗi kết nối máy chủ", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
                 })
                 .setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss())
                 .show();
@@ -305,4 +354,67 @@ public class DebtLoanActivity extends BaseActivity implements DebtLoanAdapter.On
                 .setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss())
                 .show();
     }
+
+    @Override
+    public void onEdit(DebtLoan dl) {
+        showAddDebtDialog(dl);
+    }
+
+    @Override
+    public void onDetails(DebtLoan dl) {
+        StringBuilder details = new StringBuilder();
+        details.append("Loại giao dịch: ").append("DEBT".equalsIgnoreCase(dl.getType()) ? "Tôi đi vay (DEBT)" : "Tôi cho vay (LOAN)").append("\n\n");
+        details.append("Đối tác: ").append(dl.getPersonName()).append("\n\n");
+        
+        java.text.NumberFormat nf = java.text.NumberFormat.getNumberInstance(new Locale("vi", "VN"));
+        String amountStr = nf.format(dl.getAmount().setScale(0, java.math.RoundingMode.HALF_UP)) + "đ";
+        details.append("Số tiền gốc: ").append(amountStr).append("\n\n");
+        
+        if (dl.getInterestRate() != null && dl.getInterestRate().compareTo(BigDecimal.ZERO) > 0) {
+            BigDecimal yearlyRate = dl.getInterestRate();
+            BigDecimal monthlyRate = yearlyRate.divide(new BigDecimal("12"), 2, java.math.RoundingMode.HALF_UP);
+            details.append("Lãi suất năm: ").append(yearlyRate).append("%\n");
+            details.append("Lãi suất tháng: ").append(monthlyRate).append("%\n\n");
+            
+            // Calculate elapsed days
+            long days = 0;
+            if (dl.getCreatedAt() != null) {
+                try {
+                    String clean = dl.getCreatedAt();
+                    if (clean.contains("T")) clean = clean.split("T")[0];
+                    java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US);
+                    java.util.Date created = sdf.parse(clean);
+                    java.util.Date today = new java.util.Date();
+                    long diff = today.getTime() - created.getTime();
+                    days = diff / (24 * 60 * 60 * 1000);
+                    if (days < 0) days = 0;
+                } catch(Exception ignored){}
+            }
+            details.append("Số ngày tính lãi: ").append(days).append(" ngày\n");
+            BigDecimal daysDec = new BigDecimal(days);
+            BigDecimal rateDec = yearlyRate.divide(new BigDecimal("100"), 10, java.math.RoundingMode.HALF_UP);
+            BigDecimal interestVal = dl.getAmount().multiply(rateDec).multiply(daysDec)
+                    .divide(new BigDecimal("365"), 2, java.math.RoundingMode.HALF_UP);
+            
+            String interestStr = nf.format(interestVal.setScale(0, java.math.RoundingMode.HALF_UP)) + "đ";
+            details.append("Lãi tích lũy hiện tại: ").append(interestStr).append("\n");
+            
+            String totalStr = nf.format(dl.getAmount().add(interestVal).setScale(0, java.math.RoundingMode.HALF_UP)) + "đ";
+            details.append("Tổng tiền cần thanh toán: ").append(totalStr).append("\n\n");
+        } else {
+            details.append("Lãi suất: Không có lãi\n\n");
+        }
+        
+        details.append("Ngày tạo: ").append(dl.getCreatedAt() != null ? dl.getCreatedAt().replace("T", " ") : "N/A").append("\n\n");
+        details.append("Hạn thanh toán: ").append(dl.getDueDate() != null ? dl.getDueDate() : "Không có hạn").append("\n\n");
+        details.append("Trạng thái: ").append("PAID".equalsIgnoreCase(dl.getStatus()) ? "ĐÃ THANH TOÁN" : "CHƯA THANH TOÁN").append("\n\n");
+        details.append("Ghi chú: ").append(dl.getNote() != null && !dl.getNote().isEmpty() ? dl.getNote() : "(Trống)");
+
+        new MaterialAlertDialogBuilder(this)
+                .setTitle("Chi Tiết Khoản Vay/Mượn")
+                .setMessage(details.toString())
+                .setPositiveButton("Đóng", (dialog, which) -> dialog.dismiss())
+                .show();
+    }
 }
+

@@ -111,6 +111,9 @@ public class ChatService {
         
         String apiKey = System.getenv("GEMINI_API_KEY");
         if (apiKey == null || apiKey.trim().isEmpty()) {
+            apiKey = System.getProperty("GEMINI_API_KEY");
+        }
+        if (apiKey == null || apiKey.trim().isEmpty()) {
             apiKey = geminiApiKey;
         }
 

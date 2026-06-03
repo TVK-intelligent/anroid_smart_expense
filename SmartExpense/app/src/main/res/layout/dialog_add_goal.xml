@@ -21,9 +21,16 @@
         android:layout_height="wrap_content"
         android:hint="@string/savings_goals_hint_name"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-        android:layout_marginBottom="16dp"
-        app:boxStrokeColor="@color/primary"
-        app:hintTextColor="@color/primary">
+        app:boxStrokeColor="@color/accent_blue"
+        app:hintTextColor="@color/accent_blue"
+        app:boxCornerRadiusTopStart="12dp"
+        app:boxCornerRadiusTopEnd="12dp"
+        app:boxCornerRadiusBottomStart="12dp"
+        app:boxCornerRadiusBottomEnd="12dp"
+        app:boxBackgroundColor="@color/background_slate"
+        app:startIconDrawable="@drawable/ic_favorite"
+        app:startIconTint="@color/accent_blue"
+        android:layout_marginBottom="16dp">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/et_goal_name"
@@ -39,9 +46,18 @@
         android:layout_height="wrap_content"
         android:hint="@string/savings_goals_hint_target"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-        android:layout_marginBottom="16dp"
-        app:boxStrokeColor="@color/primary"
-        app:hintTextColor="@color/primary">
+        app:boxStrokeColor="@color/accent_blue"
+        app:hintTextColor="@color/accent_blue"
+        app:boxCornerRadiusTopStart="12dp"
+        app:boxCornerRadiusTopEnd="12dp"
+        app:boxCornerRadiusBottomStart="12dp"
+        app:boxCornerRadiusBottomEnd="12dp"
+        app:boxBackgroundColor="@color/background_slate"
+        app:startIconDrawable="@drawable/ic_card_chip"
+        app:startIconTint="@color/accent_blue"
+        app:prefixText="đ "
+        app:prefixTextColor="@color/text_secondary"
+        android:layout_marginBottom="16dp">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/et_target_amount"
@@ -57,9 +73,18 @@
         android:layout_height="wrap_content"
         android:hint="@string/savings_goals_hint_initial"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-        android:layout_marginBottom="16dp"
-        app:boxStrokeColor="@color/primary"
-        app:hintTextColor="@color/primary">
+        app:boxStrokeColor="@color/accent_blue"
+        app:hintTextColor="@color/accent_blue"
+        app:boxCornerRadiusTopStart="12dp"
+        app:boxCornerRadiusTopEnd="12dp"
+        app:boxCornerRadiusBottomStart="12dp"
+        app:boxCornerRadiusBottomEnd="12dp"
+        app:boxBackgroundColor="@color/background_slate"
+        app:startIconDrawable="@drawable/ic_card_chip"
+        app:startIconTint="@color/accent_blue"
+        app:prefixText="đ "
+        app:prefixTextColor="@color/text_secondary"
+        android:layout_marginBottom="16dp">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/et_initial_amount"
@@ -76,11 +101,16 @@
         android:layout_height="wrap_content"
         android:hint="@string/savings_goals_hint_deadline"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-        android:layout_marginBottom="24dp"
-        app:boxStrokeColor="@color/primary"
-        app:hintTextColor="@color/primary"
-        app:endIconMode="custom"
-        app:endIconDrawable="@android:drawable/ic_menu_my_calendar">
+        app:boxStrokeColor="@color/accent_blue"
+        app:hintTextColor="@color/accent_blue"
+        app:boxCornerRadiusTopStart="12dp"
+        app:boxCornerRadiusTopEnd="12dp"
+        app:boxCornerRadiusBottomStart="12dp"
+        app:boxCornerRadiusBottomEnd="12dp"
+        app:boxBackgroundColor="@color/background_slate"
+        app:startIconDrawable="@drawable/ic_calendar"
+        app:startIconTint="@color/accent_blue"
+        android:layout_marginBottom="24dp">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/et_deadline"

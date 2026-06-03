@@ -37,9 +37,13 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import android.app.DatePickerDialog;
 import android.widget.AutoCompleteTextView;
 import android.widget.ArrayAdapter;
 import com.example.smartexpense.models.Category;
+import java.util.Calendar;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -85,6 +89,11 @@ public class AnalyticsFragment extends Fragment {
     // Global budget views (Tab 2)
     private TextView tvBudgetGlobalDesc;
     private ProgressBar pbBudgetGlobal;
+
+    private TextView tvAiSmartInsight;
+    private TextView tvWeeklyComparison;
+    private List<BudgetDetailResponse> lastBudgets = new ArrayList<>();
+    private List<SavingsGoal> lastGoals = new ArrayList<>();
 
     private final DecimalFormat formatter = new DecimalFormat("#,###");
     private final List<Category> categoriesList = new ArrayList<>();
@@ -145,6 +154,8 @@ public class AnalyticsFragment extends Fragment {
         // Find Global budget components (Tab 2)
         tvBudgetGlobalDesc = view.findViewById(R.id.tv_budget_global_desc);
         pbBudgetGlobal = view.findViewById(R.id.pb_budget_global);
+        tvAiSmartInsight = view.findViewById(R.id.tv_ai_smart_insight);
+        tvWeeklyComparison = view.findViewById(R.id.tv_weekly_comparison);
         
         setupTabs();
         setupBurnRateAction();
@@ -215,9 +226,10 @@ public class AnalyticsFragment extends Fragment {
         java.time.LocalDate today = java.time.LocalDate.now();
         java.time.LocalDate startOfWeek = today.with(java.time.DayOfWeek.MONDAY);
         java.time.LocalDate endOfWeek = today.with(java.time.DayOfWeek.SUNDAY);
+        java.time.LocalDate startOfLastWeek = startOfWeek.minusWeeks(1);
 
         java.time.format.DateTimeFormatter dtf = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        String startStr = startOfWeek.format(dtf);
+        String startStr = startOfLastWeek.format(dtf);
         String endStr = endOfWeek.format(dtf);
 
         ApiClient.getApiService().filterTransactions(getUserId(), startStr, endStr, null, null, "EXPENSE")
@@ -246,16 +258,47 @@ public class AnalyticsFragment extends Fragment {
             daySums[i] = BigDecimal.ZERO;
         }
 
+        BigDecimal thisWeekTotal = BigDecimal.ZERO;
+        BigDecimal lastWeekTotal = BigDecimal.ZERO;
+
         java.time.format.DateTimeFormatter parser = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd");
         for (com.example.smartexpense.models.Transaction t : transactions) {
             if (t.getTransactionDate() != null && t.getAmount() != null) {
                 try {
                     java.time.LocalDate date = java.time.LocalDate.parse(t.getTransactionDate(), parser);
-                    int dayIndex = date.getDayOfWeek().getValue() - 1; // MONDAY is 1, SUNDAY is 7 -> index 0 to 6
-                    if (dayIndex >= 0 && dayIndex < 7) {
-                        daySums[dayIndex] = daySums[dayIndex].add(t.getAmount());
+                    if (!date.isBefore(startOfWeek)) {
+                        thisWeekTotal = thisWeekTotal.add(t.getAmount());
+                        int dayIndex = date.getDayOfWeek().getValue() - 1; // MONDAY is 1, SUNDAY is 7 -> index 0 to 6
+                        if (dayIndex >= 0 && dayIndex < 7) {
+                            daySums[dayIndex] = daySums[dayIndex].add(t.getAmount());
+                        }
+                    } else {
+                        lastWeekTotal = lastWeekTotal.add(t.getAmount());
                     }
                 } catch (Exception ignored) {}
+            }
+        }
+
+        // Update comparison label
+        if (tvWeeklyComparison != null) {
+            if (lastWeekTotal.compareTo(BigDecimal.ZERO) > 0) {
+                BigDecimal diff = thisWeekTotal.subtract(lastWeekTotal);
+                double pct = diff.multiply(new BigDecimal("100"))
+                        .divide(lastWeekTotal, 2, java.math.RoundingMode.HALF_UP).doubleValue();
+                if (pct >= 0) {
+                    tvWeeklyComparison.setText("+" + String.format(Locale.US, "%.1f", pct) + "% so với tuần trước");
+                    tvWeeklyComparison.setTextColor(getResources().getColor(R.color.crimson_expense));
+                } else {
+                    tvWeeklyComparison.setText(String.format(Locale.US, "%.1f", pct) + "% so với tuần trước");
+                    tvWeeklyComparison.setTextColor(getResources().getColor(R.color.emerald_income));
+                }
+            } else {
+                if (thisWeekTotal.compareTo(BigDecimal.ZERO) > 0) {
+                    tvWeeklyComparison.setText("Tuần trước không chi tiêu");
+                } else {
+                    tvWeeklyComparison.setText("Không có chi tiêu tuần này");
+                }
+                tvWeeklyComparison.setTextColor(getResources().getColor(R.color.text_secondary));
             }
         }
 
@@ -415,11 +458,24 @@ public class AnalyticsFragment extends Fragment {
     private void updateBudgetsUI(List<BudgetDetailResponse> budgets) {
         if (getContext() == null || layoutBudgetsContainer == null) return;
 
+        lastBudgets = budgets;
+        updateAiSmartInsight(lastBudgets, lastGoals);
+
         layoutBudgetsContainer.removeAllViews();
 
         if (budgets == null || budgets.isEmpty()) {
             tvBudgetSpendTotal.setText("0đ");
             tvBudgetLimitTotal.setText(" / 0đ");
+            if (tvHealthScore != null) tvHealthScore.setText("--");
+            if (tvHealthStatus != null) {
+                tvHealthStatus.setText("Trạng thái: Chưa có dữ liệu");
+                tvHealthStatus.setTextColor(getResources().getColor(R.color.text_secondary));
+            }
+            if (tvHealthDesc != null) {
+                tvHealthDesc.setText("Vui lòng thiết lập ngân sách chi tiêu ở tab Ngân Sách để AI đánh giá sức khỏe tài chính.");
+            }
+            if (tvBudgetGlobalDesc != null) tvBudgetGlobalDesc.setText("Chưa có ngân sách được thiết lập");
+            if (pbBudgetGlobal != null) pbBudgetGlobal.setProgress(0);
             return;
         }
 
@@ -571,6 +627,27 @@ public class AnalyticsFragment extends Fragment {
                 baseScore -= 2;
             }
         }
+
+        // Deduct points if spending speed is too fast compared to time elapsed in the month
+        java.util.Calendar cal = java.util.Calendar.getInstance();
+        int dayOfMonth = cal.get(java.util.Calendar.DAY_OF_MONTH);
+        int maxDays = cal.getActualMaximum(java.util.Calendar.DAY_OF_MONTH);
+        double timePercent = ((double) dayOfMonth / maxDays) * 100.0;
+        
+        if (totalLimit.compareTo(BigDecimal.ZERO) > 0) {
+            double globalPercentVal = totalSpent.multiply(new BigDecimal("100"))
+                    .divide(totalLimit, 2, java.math.RoundingMode.HALF_UP).doubleValue();
+            
+            // Nếu phần trăm đã chi vượt quá tiến độ thời gian + 30%: trừ 25 điểm
+            if (globalPercentVal > timePercent + 30.0) {
+                baseScore -= 25;
+            }
+            // Nếu phần trăm đã chi vượt quá tiến độ thời gian + 15%: trừ 10 điểm
+            else if (globalPercentVal > timePercent + 15.0) {
+                baseScore -= 10;
+            }
+        }
+
         final int finalScore = Math.max(30, Math.min(baseScore, 100));
 
         if (tvHealthScore != null) {
@@ -617,6 +694,9 @@ public class AnalyticsFragment extends Fragment {
 
     private void updateSavingsGoalsUI(List<SavingsGoal> goals) {
         if (getContext() == null || layoutSavingsSuggestions == null) return;
+
+        lastGoals = goals;
+        updateAiSmartInsight(lastBudgets, lastGoals);
 
         if (goals == null || goals.isEmpty()) {
             if (tvSavingsTotalCurrent != null) tvSavingsTotalCurrent.setText("0đ");
@@ -886,7 +966,7 @@ public class AnalyticsFragment extends Fragment {
             }
 
             BigDecimal amount = new BigDecimal(valStr);
-            ApiClient.getApiService().addFundsToGoal(goalId, amount).enqueue(new Callback<Map<String, Object>>() {
+            ApiClient.getApiService().addFundsToGoal(goalId, amount, null).enqueue(new Callback<Map<String, Object>>() {
                 @Override
                 public void onResponse(Call<Map<String, Object>> call, Response<Map<String, Object>> response) {
                     if (response.isSuccessful()) {
@@ -996,68 +1076,66 @@ public class AnalyticsFragment extends Fragment {
     private void showCreateGoalDialog() {
         if (getContext() == null) return;
 
+        View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_add_goal, null);
+        TextInputEditText etName = dialogView.findViewById(R.id.et_goal_name);
+        TextInputEditText etTarget = dialogView.findViewById(R.id.et_target_amount);
+        TextInputEditText etInitial = dialogView.findViewById(R.id.et_initial_amount);
+        TextInputEditText etDeadline = dialogView.findViewById(R.id.et_deadline);
+
+        etDeadline.setOnClickListener(v -> {
+            Calendar cal = Calendar.getInstance();
+            new DatePickerDialog(
+                    getContext(),
+                    (view, year, month, dayOfMonth) -> {
+                        Calendar picked = Calendar.getInstance();
+                        picked.set(year, month, dayOfMonth);
+                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+                        etDeadline.setText(sdf.format(picked.getTime()));
+                    },
+                    cal.get(Calendar.YEAR),
+                    cal.get(Calendar.MONTH),
+                    cal.get(Calendar.DAY_OF_MONTH)
+            ).show();
+        });
+
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        builder.setTitle("🎯 Thiết lập mục tiêu tích lũy mới");
-
-        LinearLayout layoutContainer = new LinearLayout(getContext());
-        layoutContainer.setOrientation(LinearLayout.VERTICAL);
-        int padding = (int) (16 * getResources().getDisplayMetrics().density);
-        layoutContainer.setPadding(padding, padding, padding, padding);
-
-        // Input Goal Name
-        TextInputLayout layoutName = new TextInputLayout(getContext());
-        layoutName.setBoxBackgroundMode(TextInputLayout.BOX_BACKGROUND_OUTLINE);
-        layoutName.setHint("Tên mục tiêu (Ví dụ: Mua Laptop, Du Lịch...)");
-        TextInputEditText etName = new TextInputEditText(getContext());
-        etName.setInputType(InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
-        layoutName.addView(etName);
-        LinearLayout.LayoutParams nameParams = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        nameParams.setMargins(0, 0, 0, (int) (8 * getResources().getDisplayMetrics().density));
-        layoutName.setLayoutParams(nameParams);
-        layoutContainer.addView(layoutName);
-
-        // Input Goal Target Amount
-        TextInputLayout layoutTar = new TextInputLayout(getContext());
-        layoutTar.setBoxBackgroundMode(TextInputLayout.BOX_BACKGROUND_OUTLINE);
-        layoutTar.setHint("Số tiền mục tiêu tích lũy (VND)");
-        TextInputEditText etTar = new TextInputEditText(getContext());
-        etTar.setInputType(InputType.TYPE_CLASS_NUMBER);
-        layoutTar.addView(etTar);
-        layoutContainer.addView(layoutTar);
-
-        // Input Deadline (optional)
-        TextInputLayout layoutDl = new TextInputLayout(getContext());
-        layoutDl.setBoxBackgroundMode(TextInputLayout.BOX_BACKGROUND_OUTLINE);
-        layoutDl.setHint("Hạn chót (Định dạng: YYYY-MM-DD, tùy chọn)");
-        TextInputEditText etDl = new TextInputEditText(getContext());
-        etDl.setInputType(InputType.TYPE_CLASS_DATETIME);
-        layoutDl.addView(etDl);
-        LinearLayout.LayoutParams dlParams = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        dlParams.setMargins(0, (int) (8 * getResources().getDisplayMetrics().density), 0, 0);
-        layoutDl.setLayoutParams(dlParams);
-        layoutContainer.addView(layoutDl);
-
-        builder.setView(layoutContainer);
+        builder.setView(dialogView);
 
         builder.setPositiveButton("Thiết Lập Ngay", (dialog, which) -> {
             String nameStr = etName.getText() != null ? etName.getText().toString().trim() : "";
-            String tarStr = etTar.getText() != null ? etTar.getText().toString().trim() : "";
-            String dlStr = etDl.getText() != null ? etDl.getText().toString().trim() : "";
+            String tarStr = etTarget.getText() != null ? etTarget.getText().toString().trim() : "";
+            String initStr = etInitial.getText() != null ? etInitial.getText().toString().trim() : "";
+            String dlStr = etDeadline.getText() != null ? etDeadline.getText().toString().trim() : "";
 
             if (tarStr.isEmpty()) {
                 Toast.makeText(getContext(), "Số tiền mục tiêu không được để trống!", Toast.LENGTH_SHORT).show();
                 return;
             }
 
+            BigDecimal targetAmt;
+            try {
+                targetAmt = new BigDecimal(tarStr);
+            } catch (Exception ignored) {
+                Toast.makeText(getContext(), "Số tiền mục tiêu không hợp lệ!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            BigDecimal initialAmt = BigDecimal.ZERO;
+            if (!initStr.isEmpty()) {
+                try {
+                    initialAmt = new BigDecimal(initStr);
+                } catch (Exception ignored) {}
+            }
+
             SavingsGoal goal = new SavingsGoal();
             goal.setUserId(getUserId());
             goal.setGoalName(nameStr.isEmpty() ? "Mục Tiêu Tích Lũy" : nameStr);
-            goal.setTargetAmount(new BigDecimal(tarStr));
+            goal.setTargetAmount(targetAmt);
+            goal.setCurrentAmount(initialAmt);
             if (!dlStr.isEmpty()) {
                 goal.setDeadline(dlStr);
             }
+            goal.setStatus("IN_PROGRESS");
 
             ApiClient.getApiService().createSavingsGoal(goal).enqueue(new Callback<SavingsGoal>() {
                 @Override
@@ -1144,7 +1222,7 @@ public class AnalyticsFragment extends Fragment {
                         continue;
                     }
 
-                    ApiClient.getApiService().addFundsToGoal(sug.getGoalId(), sug.getAllocatedAmount()).enqueue(new Callback<Map<String, Object>>() {
+                    ApiClient.getApiService().addFundsToGoal(sug.getGoalId(), sug.getAllocatedAmount(), null).enqueue(new Callback<Map<String, Object>>() {
                         @Override
                         public void onResponse(Call<Map<String, Object>> call, Response<Map<String, Object>> response) {
                             if (response.isSuccessful()) {
@@ -1181,6 +1259,103 @@ public class AnalyticsFragment extends Fragment {
             Toast.makeText(getContext(), "Không phân bổ được mục nào. Vui lòng kiểm tra lại!", Toast.LENGTH_SHORT).show();
         }
         loadSavingsSuggestions(); // Refresh everything
+    }
+
+    private void updateAiSmartInsight(List<BudgetDetailResponse> budgets, List<SavingsGoal> goals) {
+        if (tvAiSmartInsight == null) return;
+
+        StringBuilder insight = new StringBuilder("\"");
+
+        // Calculate total budget limits and spent
+        BigDecimal totalLimit = BigDecimal.ZERO;
+        BigDecimal totalSpent = BigDecimal.ZERO;
+        List<String> overBudgets = new ArrayList<>();
+        List<String> nearBudgets = new ArrayList<>();
+        if (budgets != null) {
+            for (BudgetDetailResponse b : budgets) {
+                totalLimit = totalLimit.add(b.getLimitAmount() != null ? b.getLimitAmount() : BigDecimal.ZERO);
+                totalSpent = totalSpent.add(b.getSpentAmount() != null ? b.getSpentAmount() : BigDecimal.ZERO);
+                if ("OVER_LIMIT".equals(b.getStatus())) {
+                    overBudgets.add(b.getCategoryName());
+                } else if ("NEAR_LIMIT".equals(b.getStatus())) {
+                    nearBudgets.add(b.getCategoryName());
+                }
+            }
+        }
+
+        // Check if all goals are completed
+        boolean allGoalsCompleted = true;
+        if (goals != null && !goals.isEmpty()) {
+            for (SavingsGoal g : goals) {
+                BigDecimal target = g.getTargetAmount() != null ? g.getTargetAmount() : BigDecimal.ZERO;
+                BigDecimal current = g.getCurrentAmount() != null ? g.getCurrentAmount() : BigDecimal.ZERO;
+                if (current.compareTo(target) < 0) {
+                    allGoalsCompleted = false;
+                    break;
+                }
+            }
+        } else {
+            allGoalsCompleted = false;
+        }
+
+        java.util.Calendar cal = java.util.Calendar.getInstance();
+        int dayOfMonth = cal.get(java.util.Calendar.DAY_OF_MONTH);
+        int maxDays = cal.getActualMaximum(java.util.Calendar.DAY_OF_MONTH);
+        double timePercent = ((double) dayOfMonth / maxDays) * 100.0;
+
+        double spentPercent = 0.0;
+        if (totalLimit.compareTo(BigDecimal.ZERO) > 0) {
+            spentPercent = totalSpent.multiply(new BigDecimal("100"))
+                    .divide(totalLimit, 2, java.math.RoundingMode.HALF_UP).doubleValue();
+        }
+
+        if (!overBudgets.isEmpty()) {
+            insight.append("⚠️ Cảnh báo chi tiêu: Bạn đã vượt hạn mức ngân sách ở các danh mục: ")
+                   .append(String.join(", ", overBudgets))
+                   .append(". Hãy cắt giảm chi tiêu khẩn cấp để đảm bảo an toàn tài chính!");
+        } else if (!nearBudgets.isEmpty()) {
+            insight.append("⚠️ Cảnh báo tốc độ: Bạn sắp chạm hạn mức ngân sách ở danh mục: ")
+                   .append(String.join(", ", nearBudgets))
+                   .append(". Nên hạn chế mua sắm thêm ở các mục này.");
+        } else if (totalLimit.compareTo(BigDecimal.ZERO) > 0 && spentPercent > timePercent + 15.0) {
+            insight.append(String.format("⚠️ Cảnh báo tốc độ chi tiêu: Bạn đã dùng %.0f%% ngân sách tháng này trong khi mới đi qua %.0f%% thời gian của tháng (%d/%d ngày). Tốc độ chi tiêu này là QUÁ NHANH!",
+                    spentPercent, timePercent, dayOfMonth, maxDays));
+        } else if (allGoalsCompleted) {
+            insight.append("🎉 Chúc mừng! Bạn đã hoàn thành xuất sắc tất cả mục tiêu tích lũy đặt ra. Hãy tiếp tục thiết lập những mục tiêu mới tiếp theo nhé!");
+        } else if (totalLimit.compareTo(BigDecimal.ZERO) > 0 && spentPercent < 30.0) {
+            insight.append(String.format("🌟 Tiết kiệm vượt trội: Bạn mới chỉ dùng hết %.1f%% ngân sách tháng này. Kế hoạch kiểm soát chi tiêu của bạn đang vô cùng xuất sắc!",
+                    spentPercent));
+        } else if (goals != null && !goals.isEmpty()) {
+            // Suggest allocating surplus money to goals
+            BigDecimal totalAllocated = BigDecimal.ZERO;
+            String mainGoalName = "";
+            for (com.example.smartexpense.models.SavingsSuggestion s : savingsSuggestionsMap.values()) {
+                totalAllocated = totalAllocated.add(s.getAllocatedAmount() != null ? s.getAllocatedAmount() : BigDecimal.ZERO);
+            }
+            for (SavingsGoal g : goals) {
+                BigDecimal target = g.getTargetAmount() != null ? g.getTargetAmount() : BigDecimal.ZERO;
+                BigDecimal current = g.getCurrentAmount() != null ? g.getCurrentAmount() : BigDecimal.ZERO;
+                if (current.compareTo(target) < 0) {
+                    mainGoalName = g.getGoalName();
+                    break;
+                }
+            }
+
+            if (totalAllocated.compareTo(BigDecimal.ZERO) > 0 && !mainGoalName.isEmpty()) {
+                insight.append("💡 Gợi ý AI: Tháng này bạn dự kiến có khoảng +")
+                       .append(formatter.format(totalAllocated))
+                       .append("đ dòng tiền nhàn rỗi. Tích lũy vào mục tiêu '")
+                       .append(mainGoalName)
+                       .append("' sẽ giúp bạn hoàn thành kế hoạch sớm hơn!");
+            } else {
+                insight.append("💡 Lời khuyên tài chính: Bạn đang chi tiêu ổn định. Tuy nhiên dòng tiền nhàn rỗi tháng này khá thấp, hãy tối ưu thêm chi tiêu không thiết yếu nhé.");
+            }
+        } else {
+            insight.append("💡 Lời khuyên tài chính: Bạn chưa thiết lập ngân sách và mục tiêu cá nhân. Hãy tạo ngay để AI bắt đầu phân tích hành vi và tối ưu điểm sức khỏe tài chính của bạn!");
+        }
+
+        insight.append("\"");
+        tvAiSmartInsight.setText(insight.toString());
     }
 
     @Override

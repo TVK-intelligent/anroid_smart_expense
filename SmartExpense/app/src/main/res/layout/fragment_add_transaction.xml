@@ -157,6 +157,13 @@
                     android:hint="Chọn tài khoản / Ví"
                     app:boxStrokeColor="@color/accent_blue"
                     app:hintTextColor="@color/accent_blue"
+                    app:boxCornerRadiusTopStart="12dp"
+                    app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusBottomStart="12dp"
+                    app:boxCornerRadiusBottomEnd="12dp"
+                    app:boxBackgroundColor="@color/background_slate"
+                    app:startIconDrawable="@drawable/ic_card_chip"
+                    app:startIconTint="@color/accent_blue"
                     android:layout_marginBottom="16dp">
 
                     <AutoCompleteTextView
@@ -175,6 +182,13 @@
                     android:hint="Chọn danh mục thu / chi"
                     app:boxStrokeColor="@color/accent_blue"
                     app:hintTextColor="@color/accent_blue"
+                    app:boxCornerRadiusTopStart="12dp"
+                    app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusBottomStart="12dp"
+                    app:boxCornerRadiusBottomEnd="12dp"
+                    app:boxBackgroundColor="@color/background_slate"
+                    app:startIconDrawable="@drawable/ic_favorite"
+                    app:startIconTint="@color/accent_blue"
                     android:layout_marginBottom="16dp">
 
                     <AutoCompleteTextView
@@ -185,43 +199,49 @@
                         android:textColor="@color/text_primary" />
                 </com.google.android.material.textfield.TextInputLayout>
 
-                <!-- Date Selector (TextView styled like custom button with Calendar Icon) -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Ngày giao dịch"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="11sp"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="8dp" />
-
-                <TextView
-                    android:id="@+id/tv_transaction_date"
+                <!-- Date Selector -->
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Chọn ngày"
-                    android:textColor="@color/text_primary"
-                    android:textSize="14sp"
-                    android:padding="14dp"
-                    android:drawableEnd="@drawable/ic_calendar"
-                    android:gravity="center_vertical"
-                    android:background="@drawable/bg_pill_chip"
-                    android:clickable="true"
-                    android:focusable="true" />
+                    android:hint="Ngày giao dịch"
+                    app:boxStrokeColor="@color/accent_blue"
+                    app:hintTextColor="@color/accent_blue"
+                    app:boxCornerRadiusTopStart="12dp"
+                    app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusBottomStart="12dp"
+                    app:boxCornerRadiusBottomEnd="12dp"
+                    app:boxBackgroundColor="@color/background_slate"
+                    app:startIconDrawable="@drawable/ic_calendar"
+                    app:startIconTint="@color/accent_blue"
+                    android:layout_marginBottom="16dp">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/tv_transaction_date"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:focusable="false"
+                        android:clickable="true"
+                        android:cursorVisible="false"
+                        android:inputType="none"
+                        android:textColor="@color/text_primary" />
+                </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Notes text field: shape 8dp rounded outlined with note icon -->
+        <!-- Notes text field: shape 12dp rounded outlined with note icon -->
         <com.google.android.material.textfield.TextInputLayout
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Ghi chú giao dịch"
             app:startIconDrawable="@drawable/ic_note"
-            app:boxCornerRadiusBottomEnd="8dp"
-            app:boxCornerRadiusBottomStart="8dp"
-            app:boxCornerRadiusTopEnd="8dp"
-            app:boxCornerRadiusTopStart="8dp"
+            app:startIconTint="@color/accent_blue"
+            app:boxCornerRadiusBottomEnd="12dp"
+            app:boxCornerRadiusBottomStart="12dp"
+            app:boxCornerRadiusTopEnd="12dp"
+            app:boxCornerRadiusTopStart="12dp"
+            app:boxBackgroundColor="@color/background_slate"
             app:boxStrokeColor="@color/accent_blue"
             app:hintTextColor="@color/accent_blue"
             android:layout_marginBottom="24dp">

@@ -132,7 +132,14 @@ public interface ApiService {
         @POST("api/savings-goals/{goalId}/add-funds")
         Call<Map<String, Object>> addFundsToGoal(
                         @retrofit2.http.Path("goalId") Integer goalId,
-                        @Query("amount") java.math.BigDecimal amount);
+                        @Query("amount") java.math.BigDecimal amount,
+                        @Query("walletId") Integer walletId);
+
+        @PUT("api/savings-goals/{goalId}")
+        Call<com.example.smartexpense.models.SavingsGoal> updateSavingsGoal(
+                        @retrofit2.http.Path("goalId") Integer goalId,
+                        @Query("userId") Integer userId,
+                        @Body com.example.smartexpense.models.SavingsGoal goal);
 
         @GET("api/recurring-transactions")
         Call<List<RecurringTransaction>> getRecurringTransactions(
@@ -152,6 +159,15 @@ public interface ApiService {
         Call<Void> deleteRecurringTransaction(
                         @retrofit2.http.Path("id") Integer id,
                         @Query("userId") Integer userId);
+
+        @PUT("api/recurring-transactions/{id}")
+        Call<RecurringTransaction> updateRecurringTransaction(
+                        @retrofit2.http.Path("id") Integer id,
+                        @Query("userId") Integer userId,
+                        @Body RecurringTransaction rt);
+
+        @POST("api/recurring-transactions/trigger")
+        Call<String> triggerRecurringTransactions();
 
         @POST("api/users/register")
         Call<User> register(@Body User user);

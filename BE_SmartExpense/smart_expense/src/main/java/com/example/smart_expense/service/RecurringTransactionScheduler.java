@@ -159,6 +159,7 @@ public class RecurringTransactionScheduler {
 
         // 3. Cập nhật ngày đến hạn tiếp theo vào CSDL
         recurringTransactionRepository.updateNextDueDate(rt.getRecurringId(), nextDueDate);
+        rt.setNextDueDate(nextDueDate);
         logger.info("Đã cập nhật ngày đến hạn tiếp theo cho giao dịch định kỳ ID {} từ {} thành {}", 
                 rt.getRecurringId(), currentDueDate, nextDueDate);
     }

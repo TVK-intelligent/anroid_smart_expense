@@ -94,4 +94,18 @@ public class SavingsGoalRepository {
         String updateStatusSql = "UPDATE savings_goals SET status = 'COMPLETED' WHERE goal_id = ? AND current_amount >= target_amount";
         jdbcTemplate.update(updateStatusSql, goalId);
     }
+
+    public SavingsGoal update(SavingsGoal goal) {
+        String sql = "UPDATE savings_goals SET goal_name = ?, target_amount = ?, current_amount = ?, wallet_id = ?, deadline = ?, status = ? WHERE goal_id = ? AND user_id = ?";
+        jdbcTemplate.update(sql,
+                goal.getGoalName(),
+                goal.getTargetAmount(),
+                goal.getCurrentAmount(),
+                goal.getWalletId(),
+                Date.valueOf(goal.getDeadline()),
+                goal.getStatus(),
+                goal.getGoalId(),
+                goal.getUserId());
+        return goal;
+    }
 }

@@ -18,16 +18,50 @@
 
     <!-- Category Dropdown -->
     <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/til_dialog_category"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Danh mục chi tiêu"
         app:boxStrokeColor="@color/accent_blue"
         app:hintTextColor="@color/accent_blue"
+        app:boxCornerRadiusTopStart="12dp"
+        app:boxCornerRadiusTopEnd="12dp"
+        app:boxCornerRadiusBottomStart="12dp"
+        app:boxCornerRadiusBottomEnd="12dp"
+        app:boxBackgroundColor="@color/background_slate"
+        app:startIconDrawable="@drawable/ic_favorite"
+        app:startIconTint="@color/accent_blue"
         android:layout_marginBottom="16dp">
 
         <AutoCompleteTextView
             android:id="@+id/act_dialog_category"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="none"
+            android:textColor="@color/text_primary" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Wallet Dropdown -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/til_dialog_wallet"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Tài khoản / Ví"
+        app:boxStrokeColor="@color/accent_blue"
+        app:hintTextColor="@color/accent_blue"
+        app:boxCornerRadiusTopStart="12dp"
+        app:boxCornerRadiusTopEnd="12dp"
+        app:boxCornerRadiusBottomStart="12dp"
+        app:boxCornerRadiusBottomEnd="12dp"
+        app:boxBackgroundColor="@color/background_slate"
+        app:startIconDrawable="@drawable/ic_card_chip"
+        app:startIconTint="@color/accent_blue"
+        android:layout_marginBottom="16dp">
+
+        <AutoCompleteTextView
+            android:id="@+id/act_dialog_wallet"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="none"
@@ -42,6 +76,15 @@
         android:hint="Số tiền (VND)"
         app:boxStrokeColor="@color/accent_blue"
         app:hintTextColor="@color/accent_blue"
+        app:boxCornerRadiusTopStart="12dp"
+        app:boxCornerRadiusTopEnd="12dp"
+        app:boxCornerRadiusBottomStart="12dp"
+        app:boxCornerRadiusBottomEnd="12dp"
+        app:boxBackgroundColor="@color/background_slate"
+        app:startIconDrawable="@drawable/ic_card_chip"
+        app:startIconTint="@color/accent_blue"
+        app:prefixText="đ "
+        app:prefixTextColor="@color/text_secondary"
         android:layout_marginBottom="16dp">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -60,12 +103,46 @@
         android:hint="Tần suất lặp lại"
         app:boxStrokeColor="@color/accent_blue"
         app:hintTextColor="@color/accent_blue"
+        app:boxCornerRadiusTopStart="12dp"
+        app:boxCornerRadiusTopEnd="12dp"
+        app:boxCornerRadiusBottomStart="12dp"
+        app:boxCornerRadiusBottomEnd="12dp"
+        app:boxBackgroundColor="@color/background_slate"
+        app:startIconDrawable="@drawable/ic_calendar"
+        app:startIconTint="@color/accent_blue"
         android:layout_marginBottom="16dp">
 
         <AutoCompleteTextView
             android:id="@+id/act_dialog_frequency"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:inputType="none"
+            android:textColor="@color/text_primary" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Next Due Date Picker -->
+    <com.google.android.material.textfield.TextInputLayout
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Ngày bắt đầu/Ngày thanh toán tiếp"
+        app:boxStrokeColor="@color/accent_blue"
+        app:hintTextColor="@color/accent_blue"
+        app:boxCornerRadiusTopStart="12dp"
+        app:boxCornerRadiusTopEnd="12dp"
+        app:boxCornerRadiusBottomStart="12dp"
+        app:boxCornerRadiusBottomEnd="12dp"
+        app:boxBackgroundColor="@color/background_slate"
+        app:startIconDrawable="@drawable/ic_calendar"
+        app:startIconTint="@color/accent_blue"
+        android:layout_marginBottom="16dp">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/et_dialog_due_date"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="false"
+            android:clickable="true"
             android:inputType="none"
             android:textColor="@color/text_primary" />
     </com.google.android.material.textfield.TextInputLayout>
@@ -78,7 +155,13 @@
         android:hint="Ghi chú"
         app:boxStrokeColor="@color/accent_blue"
         app:hintTextColor="@color/accent_blue"
+        app:boxCornerRadiusTopStart="12dp"
+        app:boxCornerRadiusTopEnd="12dp"
+        app:boxCornerRadiusBottomStart="12dp"
+        app:boxCornerRadiusBottomEnd="12dp"
+        app:boxBackgroundColor="@color/background_slate"
         app:startIconDrawable="@drawable/ic_note"
+        app:startIconTint="@color/accent_blue"
         android:layout_marginBottom="8dp">
 
         <com.google.android.material.textfield.TextInputEditText

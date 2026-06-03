@@ -22,6 +22,8 @@ public class DebtLoanAdapter extends RecyclerView.Adapter<DebtLoanAdapter.ViewHo
     public interface OnDebtActionListener {
         void onComplete(DebtLoan dl);
         void onDelete(DebtLoan dl);
+        void onEdit(DebtLoan dl);
+        void onDetails(DebtLoan dl);
     }
 
     private final List<DebtLoan> list;
@@ -53,7 +55,7 @@ public class DebtLoanAdapter extends RecyclerView.Adapter<DebtLoanAdapter.ViewHo
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvPartnerName, tvTypeLabel, tvAmount, tvInterest, tvDueDate, tvStatusBadge, tvNote;
-        ImageView btnActionComplete, btnActionDelete;
+        ImageView btnActionComplete, btnActionDelete, btnActionEdit;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -65,6 +67,7 @@ public class DebtLoanAdapter extends RecyclerView.Adapter<DebtLoanAdapter.ViewHo
             tvStatusBadge = itemView.findViewById(R.id.tv_status_badge);
             tvNote = itemView.findViewById(R.id.tv_note);
             btnActionComplete = itemView.findViewById(R.id.btn_action_complete);
+            btnActionEdit = itemView.findViewById(R.id.btn_action_edit);
             btnActionDelete = itemView.findViewById(R.id.btn_action_delete);
         }
 
@@ -77,8 +80,33 @@ public class DebtLoanAdapter extends RecyclerView.Adapter<DebtLoanAdapter.ViewHo
 
             tvAmount.setText(formatCurrency(dl.getAmount()) + "đ");
 
+            boolean isPaid = "PAID".equalsIgnoreCase(dl.getStatus());
+            tvStatusBadge.setText(isPaid ? "ĐÃ THANH TOÁN" : "CHƯA THANH TOÁN");
+            
+            // Set badge background color dynamically
+            int badgeColor = itemView.getResources().getColor(isPaid ? R.color.emerald_income : R.color.amber_warning);
+            tvStatusBadge.setBackgroundTintList(ColorStateList.valueOf(badgeColor));
+
             if (dl.getInterestRate() != null && dl.getInterestRate().compareTo(BigDecimal.ZERO) > 0) {
-                tvInterest.setText("Lãi suất: " + dl.getInterestRate() + "%/năm");
+                BigDecimal yearlyRate = dl.getInterestRate();
+                BigDecimal monthlyRate = yearlyRate.divide(new BigDecimal("12"), 2, RoundingMode.HALF_UP);
+                
+                StringBuilder interestText = new StringBuilder();
+                interestText.append("Lãi suất: ").append(monthlyRate).append("%/tháng (").append(yearlyRate).append("%/năm)");
+                
+                if (!isPaid) {
+                    long days = calculateDaysElapsed(dl.getCreatedAt());
+                    BigDecimal daysDec = new BigDecimal(days);
+                    BigDecimal rateDec = yearlyRate.divide(new BigDecimal("100"), 10, RoundingMode.HALF_UP);
+                    BigDecimal interestVal = dl.getAmount().multiply(rateDec).multiply(daysDec)
+                            .divide(new BigDecimal("365"), 2, RoundingMode.HALF_UP);
+                    
+                    if (interestVal.compareTo(BigDecimal.ZERO) > 0) {
+                        interestText.append("\nLãi tích lũy: +").append(formatCurrency(interestVal)).append("đ (").append(days).append(" ngày)")
+                                    .append("\nTổng nợ hiện tại: ").append(formatCurrency(dl.getAmount().add(interestVal))).append("đ");
+                    }
+                }
+                tvInterest.setText(interestText.toString());
                 tvInterest.setVisibility(View.VISIBLE);
             } else {
                 tvInterest.setVisibility(View.GONE);
@@ -90,13 +118,6 @@ public class DebtLoanAdapter extends RecyclerView.Adapter<DebtLoanAdapter.ViewHo
             } else {
                 tvDueDate.setVisibility(View.GONE);
             }
-
-            boolean isPaid = "PAID".equalsIgnoreCase(dl.getStatus());
-            tvStatusBadge.setText(isPaid ? "ĐÃ THANH TOÁN" : "CHƯA THANH TOÁN");
-            
-            // Set badge background color dynamically
-            int badgeColor = itemView.getResources().getColor(isPaid ? R.color.emerald_income : R.color.amber_warning);
-            tvStatusBadge.setBackgroundTintList(ColorStateList.valueOf(badgeColor));
 
             if (dl.getNote() != null && !dl.getNote().trim().isEmpty()) {
                 tvNote.setText("Ghi chú: " + dl.getNote());
@@ -113,7 +134,9 @@ public class DebtLoanAdapter extends RecyclerView.Adapter<DebtLoanAdapter.ViewHo
                 btnActionComplete.setOnClickListener(v -> listener.onComplete(dl));
             }
 
+            btnActionEdit.setOnClickListener(v -> listener.onEdit(dl));
             btnActionDelete.setOnClickListener(v -> listener.onDelete(dl));
+            itemView.setOnClickListener(v -> listener.onDetails(dl));
         }
 
         private String formatCurrency(BigDecimal amount) {
@@ -123,6 +146,28 @@ public class DebtLoanAdapter extends RecyclerView.Adapter<DebtLoanAdapter.ViewHo
                 return nf.format(amount.setScale(0, RoundingMode.HALF_UP));
             } catch (Exception e) {
                 return amount.setScale(0, RoundingMode.HALF_UP).toString();
+            }
+        }
+
+        private static long calculateDaysElapsed(String createdAtStr) {
+            if (createdAtStr == null || createdAtStr.trim().isEmpty()) {
+                return 0;
+            }
+            try {
+                String clean = createdAtStr;
+                if (clean.contains("T")) {
+                    clean = clean.split("T")[0];
+                } else if (clean.contains(" ")) {
+                    clean = clean.split(" ")[0];
+                }
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US);
+                java.util.Date created = sdf.parse(clean);
+                java.util.Date today = new java.util.Date();
+                long diff = today.getTime() - created.getTime();
+                long days = diff / (24 * 60 * 60 * 1000);
+                return days < 0 ? 0 : days;
+            } catch (Exception e) {
+                return 0;
             }
         }
     }

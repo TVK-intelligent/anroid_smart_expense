@@ -17,6 +17,7 @@ import com.example.smartexpense.api.ApiClient;
 import com.example.smartexpense.api.CategoryCache;
 import com.example.smartexpense.models.Category;
 import com.example.smartexpense.models.RecurringTransaction;
+import com.example.smartexpense.models.Wallet;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.textfield.TextInputEditText;
@@ -31,6 +32,9 @@ import retrofit2.Response;
 
 public class RecurringTransactionsActivity extends BaseActivity {
 
+    private TextView btnToggleExpense, btnToggleIncome;
+    private boolean isExpenseMode = true;
+    private List<RecurringTransaction> allRecurringTransactions = new ArrayList<>();
     private ImageView btnBack;
     private LinearLayout layoutRecurringContainer;
     private TextView tvEmptyState;
@@ -38,6 +42,7 @@ public class RecurringTransactionsActivity extends BaseActivity {
 
     private final DecimalFormat formatter = new DecimalFormat("#,###");
     private int userId = 1;
+    private int defaultWalletId = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,11 +55,63 @@ public class RecurringTransactionsActivity extends BaseActivity {
         layoutRecurringContainer = findViewById(R.id.layout_recurring_container);
         tvEmptyState = findViewById(R.id.tv_empty_state);
         btnAddRecurring = findViewById(R.id.btn_add_recurring);
+        btnToggleExpense = findViewById(R.id.btn_toggle_expense);
+        btnToggleIncome = findViewById(R.id.btn_toggle_income);
 
         btnBack.setOnClickListener(v -> finish());
-        btnAddRecurring.setOnClickListener(v -> showAddRecurringDialog());
+        btnAddRecurring.setOnClickListener(v -> showAddRecurringDialog(null));
+        setupToggles();
 
-        loadRecurringTransactions();
+        loadWallets();
+        triggerAndLoadRecurring();
+    }
+
+    private void triggerAndLoadRecurring() {
+        ApiClient.getApiService().triggerRecurringTransactions().enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
+                loadRecurringTransactions();
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                loadRecurringTransactions();
+            }
+        });
+    }
+
+    private void setupToggles() {
+        btnToggleExpense.setOnClickListener(v -> {
+            isExpenseMode = true;
+            btnToggleExpense.setBackgroundResource(R.drawable.bg_toggle_expense_active);
+            btnToggleExpense.setTextColor(getResources().getColor(R.color.surface_white));
+            btnToggleIncome.setBackground(null);
+            btnToggleIncome.setTextColor(getResources().getColor(R.color.text_secondary));
+            filterAndDisplay();
+        });
+
+        btnToggleIncome.setOnClickListener(v -> {
+            isExpenseMode = false;
+            btnToggleIncome.setBackgroundResource(R.drawable.bg_toggle_income_active);
+            btnToggleIncome.setTextColor(getResources().getColor(R.color.surface_white));
+            btnToggleExpense.setBackground(null);
+            btnToggleExpense.setTextColor(getResources().getColor(R.color.text_secondary));
+            filterAndDisplay();
+        });
+    }
+
+    private void loadWallets() {
+        ApiClient.getApiService().getWallets(userId).enqueue(new Callback<List<Wallet>>() {
+            @Override
+            public void onResponse(Call<List<Wallet>> call, Response<List<Wallet>> response) {
+                if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                    defaultWalletId = response.body().get(0).getWalletId();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Wallet>> call, Throwable t) {}
+        });
     }
 
     private void loadRecurringTransactions() {
@@ -62,20 +119,44 @@ public class RecurringTransactionsActivity extends BaseActivity {
             @Override
             public void onResponse(Call<List<RecurringTransaction>> call, Response<List<RecurringTransaction>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    List<RecurringTransaction> list = response.body();
-                    updateUI(list);
+                    allRecurringTransactions = response.body();
+                    filterAndDisplay();
                 } else {
-                    tvEmptyState.setVisibility(View.VISIBLE);
-                    layoutRecurringContainer.removeAllViews();
+                    allRecurringTransactions.clear();
+                    filterAndDisplay();
                 }
             }
 
             @Override
             public void onFailure(Call<List<RecurringTransaction>> call, Throwable t) {
                 Toast.makeText(RecurringTransactionsActivity.this, "Lỗi kết nối tới server!", Toast.LENGTH_SHORT).show();
-                tvEmptyState.setVisibility(View.VISIBLE);
+                allRecurringTransactions.clear();
+                filterAndDisplay();
             }
         });
+    }
+
+    private void filterAndDisplay() {
+        List<RecurringTransaction> filtered = new ArrayList<>();
+        for (RecurringTransaction rt : allRecurringTransactions) {
+            Category matchedCat = null;
+            List<Category> categoriesList = CategoryCache.getCategories();
+            if (categoriesList != null) {
+                for (Category c : categoriesList) {
+                    if (c.getCategoryId() != null && c.getCategoryId().equals(rt.getCategoryId())) {
+                        matchedCat = c;
+                        break;
+                    }
+                }
+            }
+            boolean isIncome = matchedCat != null && "INCOME".equalsIgnoreCase(matchedCat.getType());
+            if (isExpenseMode && !isIncome) {
+                filtered.add(rt);
+            } else if (!isExpenseMode && isIncome) {
+                filtered.add(rt);
+            }
+        }
+        updateUI(filtered);
     }
 
     private void updateUI(List<RecurringTransaction> list) {
@@ -106,25 +187,50 @@ public class RecurringTransactionsActivity extends BaseActivity {
             int padding = (int) (16 * getResources().getDisplayMetrics().density);
             rootLayout.setPadding(padding, padding, padding, padding);
 
-            // Row 1: Note and Amount
+            // Resolve Category from cache
+            Category matchedCat = null;
+            List<Category> categoriesList = CategoryCache.getCategories();
+            if (categoriesList != null) {
+                for (Category c : categoriesList) {
+                    if (c.getCategoryId() != null && c.getCategoryId().equals(rt.getCategoryId())) {
+                        matchedCat = c;
+                        break;
+                    }
+                }
+            }
+
+            boolean isIncome = matchedCat != null && "INCOME".equalsIgnoreCase(matchedCat.getType());
+            String catName = matchedCat != null ? matchedCat.getName() : "Định kỳ";
+
+            // Resolve Category Icon Resource ID
+            String iconName = matchedCat != null ? matchedCat.getIcon() : "other";
+            int iconRes = CategoryCache.getIconResource(iconName);
+
+            // Row 1: Icon, Note and Amount
             RelativeLayout row1 = new RelativeLayout(this);
 
-            TextView tvNote = new TextView(this);
-            tvNote.setId(View.generateViewId());
-            tvNote.setText(rt.getNote() != null && !rt.getNote().isEmpty() ? rt.getNote() : "Giao dịch định kỳ");
-            tvNote.setTextColor(getResources().getColor(R.color.text_primary));
-            tvNote.setTextSize(14);
-            tvNote.setTypeface(null, android.graphics.Typeface.BOLD);
-            RelativeLayout.LayoutParams noteParams = new RelativeLayout.LayoutParams(
-                    RelativeLayout.LayoutParams.WRAP_CONTENT,
-                    RelativeLayout.LayoutParams.WRAP_CONTENT
+            ImageView ivIcon = new ImageView(this);
+            ivIcon.setId(View.generateViewId());
+            ivIcon.setImageResource(iconRes);
+            ivIcon.setColorFilter(getResources().getColor(isIncome ? R.color.emerald_income : R.color.accent_blue));
+            RelativeLayout.LayoutParams iconParams = new RelativeLayout.LayoutParams(
+                    (int) (24 * getResources().getDisplayMetrics().density),
+                    (int) (24 * getResources().getDisplayMetrics().density)
             );
-            noteParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
-            tvNote.setLayoutParams(noteParams);
+            iconParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+            iconParams.addRule(RelativeLayout.CENTER_VERTICAL);
+            ivIcon.setLayoutParams(iconParams);
+            row1.addView(ivIcon);
 
             TextView tvAmount = new TextView(this);
-            tvAmount.setText(formatter.format(rt.getAmount()) + "đ");
-            tvAmount.setTextColor(getResources().getColor(R.color.crimson_expense)); // default red, since we usually recurring pay
+            tvAmount.setId(View.generateViewId());
+            if (isIncome) {
+                tvAmount.setText("+" + formatter.format(rt.getAmount()) + "đ");
+                tvAmount.setTextColor(getResources().getColor(R.color.emerald_income));
+            } else {
+                tvAmount.setText("-" + formatter.format(rt.getAmount()) + "đ");
+                tvAmount.setTextColor(getResources().getColor(R.color.crimson_expense));
+            }
             tvAmount.setTextSize(16);
             tvAmount.setTypeface(null, android.graphics.Typeface.BOLD);
             RelativeLayout.LayoutParams amtParams = new RelativeLayout.LayoutParams(
@@ -132,14 +238,32 @@ public class RecurringTransactionsActivity extends BaseActivity {
                     RelativeLayout.LayoutParams.WRAP_CONTENT
             );
             amtParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+            amtParams.addRule(RelativeLayout.CENTER_VERTICAL);
             tvAmount.setLayoutParams(amtParams);
 
-            row1.addView(tvNote);
+            TextView tvNote = new TextView(this);
+            tvNote.setId(View.generateViewId());
+            String displayTitle = catName + (rt.getNote() != null && !rt.getNote().isEmpty() ? " - " + rt.getNote() : "");
+            tvNote.setText(displayTitle);
+            tvNote.setTextColor(getResources().getColor(R.color.text_primary));
+            tvNote.setTextSize(14);
+            tvNote.setTypeface(null, android.graphics.Typeface.BOLD);
+            RelativeLayout.LayoutParams noteParams = new RelativeLayout.LayoutParams(
+                    RelativeLayout.LayoutParams.MATCH_PARENT,
+                    RelativeLayout.LayoutParams.WRAP_CONTENT
+            );
+            noteParams.addRule(RelativeLayout.RIGHT_OF, ivIcon.getId());
+            noteParams.addRule(RelativeLayout.LEFT_OF, tvAmount.getId());
+            noteParams.addRule(RelativeLayout.CENTER_VERTICAL);
+            noteParams.leftMargin = (int) (8 * getResources().getDisplayMetrics().density);
+            noteParams.rightMargin = (int) (8 * getResources().getDisplayMetrics().density);
+            tvNote.setLayoutParams(noteParams);
+
             row1.addView(tvAmount);
+            row1.addView(tvNote);
 
             rootLayout.addView(row1);
 
-            // Row 2: Frequency & Next Due Date
             TextView tvFreq = new TextView(this);
             String freqText = "Tần suất: " + rt.getFrequency();
             tvFreq.setText(freqText);
@@ -167,7 +291,7 @@ public class RecurringTransactionsActivity extends BaseActivity {
             divider.setLayoutParams(divParams);
             rootLayout.addView(divider);
 
-            // Row 3: Action Buttons (Toggle state & Delete)
+            // Row 3: Action Buttons (Toggle state & Edit & Delete)
             RelativeLayout row3 = new RelativeLayout(this);
             float density = getResources().getDisplayMetrics().density;
 
@@ -191,15 +315,35 @@ public class RecurringTransactionsActivity extends BaseActivity {
             final boolean finalIsActive = isActive;
             btnToggle.setOnClickListener(v -> toggleStatus(id, !finalIsActive));
 
+            // Edit button (pencil icon)
+            ImageView btnEdit = new ImageView(this);
+            btnEdit.setId(View.generateViewId());
+            btnEdit.setImageResource(android.R.drawable.ic_menu_edit);
+            int paddingEdit = (int) (8 * density);
+            btnEdit.setPadding(paddingEdit, paddingEdit, paddingEdit, paddingEdit);
+            
+            // Add ripple background effect
+            android.util.TypedValue outValue = new android.util.TypedValue();
+            getTheme().resolveAttribute(android.R.attr.selectableItemBackgroundBorderless, outValue, true);
+            btnEdit.setBackgroundResource(outValue.resourceId);
+            btnEdit.setClickable(true);
+            btnEdit.setFocusable(true);
+            btnEdit.setColorFilter(getResources().getColor(R.color.text_secondary));
+
+            RelativeLayout.LayoutParams editParams = new RelativeLayout.LayoutParams(
+                    (int) (36 * density),
+                    (int) (36 * density)
+            );
+            editParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+            editParams.addRule(RelativeLayout.CENTER_VERTICAL);
+            btnEdit.setLayoutParams(editParams);
+            btnEdit.setOnClickListener(v -> showAddRecurringDialog(rt));
+
             // Premium vector delete icon button
             ImageView btnDelete = new ImageView(this);
             btnDelete.setImageResource(R.drawable.ic_delete);
             int paddingDelete = (int) (8 * density);
             btnDelete.setPadding(paddingDelete, paddingDelete, paddingDelete, paddingDelete);
-            
-            // Add ripple background effect
-            android.util.TypedValue outValue = new android.util.TypedValue();
-            getTheme().resolveAttribute(android.R.attr.selectableItemBackgroundBorderless, outValue, true);
             btnDelete.setBackgroundResource(outValue.resourceId);
             btnDelete.setClickable(true);
             btnDelete.setFocusable(true);
@@ -208,13 +352,14 @@ public class RecurringTransactionsActivity extends BaseActivity {
                     (int) (36 * density),
                     (int) (36 * density)
             );
-            deleteParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+            deleteParams.addRule(RelativeLayout.LEFT_OF, btnEdit.getId());
             deleteParams.addRule(RelativeLayout.CENTER_VERTICAL);
             btnDelete.setLayoutParams(deleteParams);
 
             btnDelete.setOnClickListener(v -> deleteRecurring(id));
 
             row3.addView(btnToggle);
+            row3.addView(btnEdit);
             row3.addView(btnDelete);
 
             rootLayout.addView(row3);
@@ -265,19 +410,87 @@ public class RecurringTransactionsActivity extends BaseActivity {
                 .show();
     }
 
-    private void showAddRecurringDialog() {
+    private void showAddRecurringDialog(final RecurringTransaction rtToEdit) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_recurring_transaction, null);
         builder.setView(dialogView);
 
         AutoCompleteTextView actCategory = dialogView.findViewById(R.id.act_dialog_category);
+        AutoCompleteTextView actWallet = dialogView.findViewById(R.id.act_dialog_wallet);
         TextInputEditText etAmount = dialogView.findViewById(R.id.et_dialog_amount);
         AutoCompleteTextView actFrequency = dialogView.findViewById(R.id.act_dialog_frequency);
         TextInputEditText etNote = dialogView.findViewById(R.id.et_dialog_note);
+        TextInputEditText etDueDate = dialogView.findViewById(R.id.et_dialog_due_date);
+        TextInputLayout tilCategory = dialogView.findViewById(R.id.til_dialog_category);
 
-        // Load Categories from Cache
-        List<Category> categoriesList = CategoryCache.getCategories();
+        if (tilCategory != null) {
+            tilCategory.setHint(isExpenseMode ? "Danh mục chi tiêu" : "Danh mục thu nhập");
+        }
+
+        final java.util.Calendar cal = java.util.Calendar.getInstance();
+        final java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US);
+        etDueDate.setText(sdf.format(cal.getTime()));
+
+        etDueDate.setOnClickListener(v -> {
+            new android.app.DatePickerDialog(
+                    this,
+                    (view, year, month, dayOfMonth) -> {
+                        java.util.Calendar picked = java.util.Calendar.getInstance();
+                        picked.set(year, month, dayOfMonth);
+                        etDueDate.setText(sdf.format(picked.getTime()));
+                    },
+                    cal.get(java.util.Calendar.YEAR),
+                    cal.get(java.util.Calendar.MONTH),
+                    cal.get(java.util.Calendar.DAY_OF_MONTH)
+            ).show();
+        });
+
+        // Load Wallets
+        final List<Wallet> walletList = new ArrayList<>();
+        final List<String> walletDisplayList = new ArrayList<>();
+        ApiClient.getApiService().getWallets(userId).enqueue(new Callback<List<Wallet>>() {
+            @Override
+            public void onResponse(Call<List<Wallet>> call, Response<List<Wallet>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    walletList.addAll(response.body());
+                    for (Wallet w : walletList) {
+                        walletDisplayList.add(w.getName() + " (" + formatter.format(w.getBalance()) + "đ)");
+                    }
+                    ArrayAdapter<String> walletAdapter = new ArrayAdapter<>(
+                            RecurringTransactionsActivity.this,
+                            android.R.layout.simple_dropdown_item_1line,
+                            walletDisplayList
+                    );
+                    actWallet.setAdapter(walletAdapter);
+
+                    // Preselect wallet
+                    if (rtToEdit != null) {
+                        for (int i = 0; i < walletList.size(); i++) {
+                            if (walletList.get(i).getWalletId().equals(rtToEdit.getWalletId())) {
+                                actWallet.setText(walletDisplayList.get(i), false);
+                                break;
+                            }
+                        }
+                    } else if (!walletDisplayList.isEmpty()) {
+                        actWallet.setText(walletDisplayList.get(0), false);
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Wallet>> call, Throwable t) {}
+        });
+
+        // Load Categories from Cache and filter by current tab
+        List<Category> allCategories = CategoryCache.getCategories();
+        List<Category> categoriesList = new ArrayList<>();
+        String typeFilter = isExpenseMode ? "EXPENSE" : "INCOME";
+        for (Category c : allCategories) {
+            if (typeFilter.equalsIgnoreCase(c.getType())) {
+                categoriesList.add(c);
+            }
+        }
         ArrayAdapter<Category> catAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, categoriesList);
         actCategory.setAdapter(catAdapter);
         if (!categoriesList.isEmpty()) {
@@ -290,11 +503,30 @@ public class RecurringTransactionsActivity extends BaseActivity {
         actFrequency.setAdapter(freqAdapter);
         actFrequency.setText(frequencies[2], false); // MONTHLY default
 
-        builder.setPositiveButton("Lên lịch", (dialog, which) -> {
+        if (rtToEdit != null) {
+            etAmount.setText(rtToEdit.getAmount() != null ? rtToEdit.getAmount().setScale(0, java.math.RoundingMode.HALF_UP).toPlainString() : "");
+            etNote.setText(rtToEdit.getNote());
+            actFrequency.setText(rtToEdit.getFrequency(), false);
+            if (rtToEdit.getNextDueDate() != null) {
+                etDueDate.setText(rtToEdit.getNextDueDate());
+            }
+            
+            // preselect category
+            for (Category cat : categoriesList) {
+                if (cat.getCategoryId() != null && cat.getCategoryId().equals(rtToEdit.getCategoryId())) {
+                    actCategory.setText(cat.getName(), false);
+                    break;
+                }
+            }
+        }
+
+        builder.setPositiveButton(rtToEdit == null ? "Lên lịch" : "Cập nhật", (dialog, which) -> {
             String catText = actCategory.getText() != null ? actCategory.getText().toString().trim() : "";
+            String walletText = actWallet.getText().toString();
             String amtStr = etAmount.getText() != null ? etAmount.getText().toString().trim() : "";
             String freqStr = actFrequency.getText() != null ? actFrequency.getText().toString().trim() : "MONTHLY";
             String noteStr = etNote.getText() != null ? etNote.getText().toString().trim() : "";
+            String dueStr = etDueDate.getText() != null ? etDueDate.getText().toString().trim() : "";
 
             if (catText.isEmpty() || amtStr.isEmpty()) {
                 Toast.makeText(this, "Vui lòng nhập đầy đủ hạng mục và số tiền!", Toast.LENGTH_SHORT).show();
@@ -312,6 +544,12 @@ public class RecurringTransactionsActivity extends BaseActivity {
                 }
             }
 
+            int selectedWalletId = defaultWalletId != -1 ? defaultWalletId : 1;
+            int selectedIndex = walletDisplayList.indexOf(walletText);
+            if (selectedIndex >= 0) {
+                selectedWalletId = walletList.get(selectedIndex).getWalletId();
+            }
+
             BigDecimal amount;
             try {
                 amount = new BigDecimal(amtStr);
@@ -320,34 +558,62 @@ public class RecurringTransactionsActivity extends BaseActivity {
                 return;
             }
 
-            RecurringTransaction rt = new RecurringTransaction();
+            RecurringTransaction rt = rtToEdit;
+            if (rt == null) {
+                rt = new RecurringTransaction();
+                rt.setIsActive(true);
+            }
             rt.setUserId(userId);
-            rt.setWalletId(1); // Mặc định ví chính
+            rt.setWalletId(selectedWalletId);
             rt.setCategoryId(categoryId);
             rt.setAmount(amount);
             rt.setFrequency(freqStr);
             rt.setNote(noteStr);
-            rt.setIsActive(true);
+            rt.setNextDueDate(dueStr);
 
-            ApiClient.getApiService().createRecurringTransaction(rt).enqueue(new Callback<RecurringTransaction>() {
-                @Override
-                public void onResponse(Call<RecurringTransaction> call, Response<RecurringTransaction> response) {
-                    if (response.isSuccessful()) {
-                        Toast.makeText(RecurringTransactionsActivity.this, "Đã lên lịch giao dịch thành công!", Toast.LENGTH_SHORT).show();
-                        loadRecurringTransactions();
-                    } else {
-                        Toast.makeText(RecurringTransactionsActivity.this, "Lỗi tạo lịch giao dịch!", Toast.LENGTH_SHORT).show();
+            if (rtToEdit == null) {
+                ApiClient.getApiService().createRecurringTransaction(rt).enqueue(new Callback<RecurringTransaction>() {
+                    @Override
+                    public void onResponse(Call<RecurringTransaction> call, Response<RecurringTransaction> response) {
+                        if (response.isSuccessful()) {
+                            Toast.makeText(RecurringTransactionsActivity.this, "Đã lên lịch giao dịch thành công!", Toast.LENGTH_SHORT).show();
+                            loadRecurringTransactions();
+                        } else {
+                            Toast.makeText(RecurringTransactionsActivity.this, "Lỗi tạo lịch giao dịch!", Toast.LENGTH_SHORT).show();
+                        }
                     }
-                }
 
-                @Override
-                public void onFailure(Call<RecurringTransaction> call, Throwable t) {
-                    Toast.makeText(RecurringTransactionsActivity.this, "Lỗi kết nối!", Toast.LENGTH_SHORT).show();
-                }
-            });
+                    @Override
+                    public void onFailure(Call<RecurringTransaction> call, Throwable t) {
+                        Toast.makeText(RecurringTransactionsActivity.this, "Lỗi kết nối!", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } else {
+                updateRecurringOnServer(rt);
+            }
         });
 
         builder.setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss());
         builder.show();
     }
+
+    private void updateRecurringOnServer(RecurringTransaction rt) {
+        ApiClient.getApiService().updateRecurringTransaction(rt.getRecurringId(), userId, rt).enqueue(new Callback<RecurringTransaction>() {
+            @Override
+            public void onResponse(Call<RecurringTransaction> call, Response<RecurringTransaction> response) {
+                if (response.isSuccessful()) {
+                    Toast.makeText(RecurringTransactionsActivity.this, "Đã cập nhật giao dịch định kỳ!", Toast.LENGTH_SHORT).show();
+                    loadRecurringTransactions();
+                } else {
+                    Toast.makeText(RecurringTransactionsActivity.this, "Lỗi cập nhật!", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<RecurringTransaction> call, Throwable t) {
+                Toast.makeText(RecurringTransactionsActivity.this, "Lỗi kết nối!", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
 }
+

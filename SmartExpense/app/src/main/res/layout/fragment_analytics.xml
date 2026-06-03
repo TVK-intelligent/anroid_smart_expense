@@ -209,10 +209,11 @@
                                 android:textStyle="bold" />
 
                             <TextView
+                                android:id="@+id/tv_weekly_comparison"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_alignParentRight="true"
-                                android:text="-12.4% so với tuần trước"
+                                android:text="Đang tính toán..."
                                 android:textColor="@color/emerald_income"
                                 android:textSize="11sp"
                                 android:textStyle="bold" />
@@ -253,9 +254,10 @@
                             android:letterSpacing="0.1" />
 
                         <TextView
+                            android:id="@+id/tv_ai_smart_insight"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="&quot;Tuần này bạn tiết kiệm được 15% ăn uống bằng cách đi chợ truyền thống. Nếu tiếp tục duy trì, bạn sẽ tích lũy dư ra 980,000đ để đạt mục tiêu mua Laptop sớm 1 tháng!&quot;"
+                            android:text="&quot;Đang tải phân tích thông minh từ AI...&quot;"
                             android:textColor="@color/surface_white"
                             android:textSize="13sp"
                             android:layout_marginTop="8dp"

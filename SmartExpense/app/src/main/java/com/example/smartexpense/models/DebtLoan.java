@@ -12,6 +12,7 @@ public class DebtLoan {
     private String dueDate; // yyyy-MM-dd
     private String status; // "UNPAID", "PARTIALLY_PAID", "PAID"
     private String note;
+    private String createdAt;
 
     public Integer getDebtId() {
         return debtId;
@@ -83,5 +84,13 @@ public class DebtLoan {
 
     public void setNote(String note) {
         this.note = note;
+    }
+
+    public String getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
     }
 }
