@@ -493,8 +493,22 @@ public class RecurringTransactionsActivity extends BaseActivity {
         }
         ArrayAdapter<Category> catAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, categoriesList);
         actCategory.setAdapter(catAdapter);
+        final List<Category> finalCategoriesList = categoriesList;
+        actCategory.setOnItemClickListener((parent, view, position, id) -> {
+            Category selected = finalCategoriesList.get(position);
+            if (tilCategory != null && selected != null && selected.getIcon() != null) {
+                int iconRes = CategoryCache.getIconResource(selected.getIcon());
+                tilCategory.setStartIconDrawable(iconRes);
+            }
+        });
+
         if (!categoriesList.isEmpty()) {
-            actCategory.setText(categoriesList.get(0).getName(), false);
+            Category defaultCat = categoriesList.get(0);
+            actCategory.setText(defaultCat.getName(), false);
+            if (tilCategory != null && defaultCat.getIcon() != null) {
+                int iconRes = CategoryCache.getIconResource(defaultCat.getIcon());
+                tilCategory.setStartIconDrawable(iconRes);
+            }
         }
 
         // Set frequencies
@@ -515,6 +529,10 @@ public class RecurringTransactionsActivity extends BaseActivity {
             for (Category cat : categoriesList) {
                 if (cat.getCategoryId() != null && cat.getCategoryId().equals(rtToEdit.getCategoryId())) {
                     actCategory.setText(cat.getName(), false);
+                    if (tilCategory != null && cat.getIcon() != null) {
+                        int iconRes = CategoryCache.getIconResource(cat.getIcon());
+                        tilCategory.setStartIconDrawable(iconRes);
+                    }
                     break;
                 }
             }

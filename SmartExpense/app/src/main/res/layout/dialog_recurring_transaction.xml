@@ -30,7 +30,7 @@
         app:boxCornerRadiusBottomStart="12dp"
         app:boxCornerRadiusBottomEnd="12dp"
         app:boxBackgroundColor="@color/background_slate"
-        app:startIconDrawable="@drawable/ic_favorite"
+        app:startIconDrawable="@drawable/ic_category"
         app:startIconTint="@color/accent_blue"
         android:layout_marginBottom="16dp">
 

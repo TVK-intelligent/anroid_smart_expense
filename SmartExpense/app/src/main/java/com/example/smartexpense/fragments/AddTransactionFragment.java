@@ -43,6 +43,7 @@ public class AddTransactionFragment extends Fragment {
     private EditText etAmount, etNote;
     private TextView tvAmountSymbol;
     private AutoCompleteTextView actWallet, actCategory;
+    private com.google.android.material.textfield.TextInputLayout tilCategory;
     private TextView tvDate;
     private MaterialButton btnScanAnomaly, btnSaveTransaction;
 
@@ -73,6 +74,7 @@ public class AddTransactionFragment extends Fragment {
         etNote = view.findViewById(R.id.et_note);
         actWallet = view.findViewById(R.id.act_wallet);
         actCategory = view.findViewById(R.id.act_category);
+        tilCategory = view.findViewById(R.id.til_category);
         tvDate = view.findViewById(R.id.tv_transaction_date);
 
         btnScanAnomaly = view.findViewById(R.id.btn_scan_anomaly);
@@ -163,9 +165,16 @@ public class AddTransactionFragment extends Fragment {
         if (!categories.isEmpty()) {
             selectedCategory = categories.get(0);
             actCategory.setText(selectedCategory.getName(), false);
+            if (tilCategory != null) {
+                int iconRes = com.example.smartexpense.api.CategoryCache.getIconResource(selectedCategory.getIcon());
+                tilCategory.setStartIconDrawable(iconRes);
+            }
         } else {
             selectedCategory = null;
             actCategory.setText("", false);
+            if (tilCategory != null) {
+                tilCategory.setStartIconDrawable(R.drawable.ic_category);
+            }
         }
     }
 
@@ -243,6 +252,10 @@ public class AddTransactionFragment extends Fragment {
 
         actCategory.setOnItemClickListener((parent, view, position, id) -> {
             selectedCategory = categories.get(position);
+            if (tilCategory != null && selectedCategory != null) {
+                int iconRes = com.example.smartexpense.api.CategoryCache.getIconResource(selectedCategory.getIcon());
+                tilCategory.setStartIconDrawable(iconRes);
+            }
         });
     }
 
@@ -353,58 +366,79 @@ public class AddTransactionFragment extends Fragment {
             t.setTransactionDate(selectedDate);
             t.setNote(note);
 
-            ApiClient.getApiService().createTransaction(t).enqueue(new Callback<Transaction>() {
-                @Override
-                public void onResponse(Call<Transaction> call, Response<Transaction> response) {
-                    if (!isAdded()) return;
-                    if (response.isSuccessful()) {
-                        Toast.makeText(getContext(), "Lưu giao dịch thành công!", Toast.LENGTH_SHORT).show();
+            BigDecimal currentBalance = selectedWallet.getBalance() != null ? selectedWallet.getBalance() : BigDecimal.ZERO;
+            if (isExpense && amount.compareTo(currentBalance) > 0) {
+                new android.app.AlertDialog.Builder(getContext())
+                        .setTitle("⚠️ Cảnh báo số dư ví")
+                        .setMessage(String.format("Ví '%s' hiện tại không đủ số dư để thực hiện giao dịch này (Hiện có: %sđ, cần chi: %sđ). Ví sẽ bị âm tiền sau khi lưu.\n\nBạn có chắc chắn muốn tiếp tục ghi nhận giao dịch này không?",
+                                selectedWallet.getName(),
+                                new java.text.DecimalFormat("#,###").format(currentBalance),
+                                new java.text.DecimalFormat("#,###").format(amount)))
+                        .setPositiveButton("Vẫn Lưu", (dialog, which) -> {
+                            saveTransactionOnServer(t, desiredType);
+                        })
+                        .setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss())
+                        .show();
+            } else {
+                saveTransactionOnServer(t, desiredType);
+            }
+        });
+    }
+
+    private void saveTransactionOnServer(final Transaction t, final String desiredType) {
+        ApiClient.getApiService().createTransaction(t).enqueue(new Callback<Transaction>() {
+            @Override
+            public void onResponse(Call<Transaction> call, Response<Transaction> response) {
+                if (!isAdded()) return;
+                if (response.isSuccessful()) {
+                    Toast.makeText(getContext(), "Lưu giao dịch thành công!", Toast.LENGTH_SHORT).show();
+                    
+                    if ("EXPENSE".equalsIgnoreCase(desiredType)) {
+                        final Context appContext = getContext().getApplicationContext();
+                        final Integer catId = t.getCategoryId();
+                        final int userId = getUserId();
                         
-                        if ("EXPENSE".equalsIgnoreCase(desiredType)) {
-                            final Context appContext = getContext().getApplicationContext();
-                            final Integer catId = t.getCategoryId();
-                            final int userId = getUserId();
-                            
-                            ApiClient.getApiService().getBudgetDetails(userId).enqueue(new Callback<List<BudgetDetailResponse>>() {
-                                @Override
-                                public void onResponse(Call<List<BudgetDetailResponse>> budgetCall, Response<List<BudgetDetailResponse>> budgetResponse) {
-                                    if (budgetResponse.isSuccessful() && budgetResponse.body() != null) {
-                                        for (BudgetDetailResponse bd : budgetResponse.body()) {
-                                            if (bd.getCategoryId() != null && bd.getCategoryId().equals(catId)) {
-                                                if ("OVER_LIMIT".equalsIgnoreCase(bd.getStatus())) {
-                                                    String catName = bd.getCategoryName() != null ? bd.getCategoryName() : "danh mục";
-                                                    String warningMsg = "Ối trời ơi! Bạn lại vung tay quá trán cho mục " + catName + " rồi kìa! Ví đang khóc thét mất thôi!";
-                                                    com.example.smartexpense.utils.TextToSpeechHelper.getInstance(appContext).speak(appContext, warningMsg);
-                                                }
-                                                break;
+                        ApiClient.getApiService().getBudgetDetails(userId).enqueue(new Callback<List<BudgetDetailResponse>>() {
+                            @Override
+                            public void onResponse(Call<List<BudgetDetailResponse>> budgetCall, Response<List<BudgetDetailResponse>> budgetResponse) {
+                                if (budgetResponse.isSuccessful() && budgetResponse.body() != null) {
+                                    for (BudgetDetailResponse bd : budgetResponse.body()) {
+                                        if (bd.getCategoryId() != null && bd.getCategoryId().equals(catId)) {
+                                            if ("OVER_LIMIT".equalsIgnoreCase(bd.getStatus())) {
+                                                String catName = bd.getCategoryName() != null ? bd.getCategoryName() : "danh mục";
+                                                String warningMsg = "Ối trời ơi! Bạn lại vung tay quá trán cho mục " + catName + " rồi kìa! Ví đang khóc thét mất thôi!";
+                                                com.example.smartexpense.utils.TextToSpeechHelper.getInstance(appContext).speak(appContext, warningMsg);
                                             }
+                                            break;
                                         }
                                     }
                                 }
+                            }
 
-                                @Override
-                                public void onFailure(Call<List<BudgetDetailResponse>> budgetCall, Throwable t2) {}
-                            });
-                        }
-
-                        if (getActivity() != null) {
-                            getActivity().getSupportFragmentManager().popBackStack();
-                        }
-                    } else {
-                        String msg = "Không lưu được giao dịch";
-                        try {
-                            if (response.errorBody() != null) msg = response.errorBody().string();
-                        } catch (Exception ignored) {}
-                        Toast.makeText(getContext(), msg, Toast.LENGTH_LONG).show();
+                            @Override
+                            public void onFailure(Call<List<BudgetDetailResponse>> budgetCall, Throwable t2) {}
+                        });
                     }
-                }
 
-                @Override
-                public void onFailure(Call<Transaction> call, Throwable t) {
-                    if (!isAdded()) return;
-                    Toast.makeText(getContext(), "Lỗi kết nối", Toast.LENGTH_SHORT).show();
+                    if (getActivity() != null) {
+                        getActivity().getSupportFragmentManager().popBackStack();
+                    }
+                } else {
+                    String msg = "Không lưu được giao dịch";
+                    try {
+                        if (response.errorBody() != null) msg = response.errorBody().string();
+                    } catch (Exception ignored) {}
+                    Toast.makeText(getContext(), msg, Toast.LENGTH_LONG).show();
                 }
-            });
+            }
+
+            @Override
+            public void onFailure(Call<Transaction> call, Throwable t) {
+                if (!isAdded()) return;
+                Toast.makeText(getContext(), "Lỗi kết nối", Toast.LENGTH_SHORT).show();
+            }
         });
     }
 }
+
+

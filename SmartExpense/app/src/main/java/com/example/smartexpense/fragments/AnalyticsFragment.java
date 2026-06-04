@@ -1007,14 +1007,24 @@ public class AnalyticsFragment extends Fragment {
         );
         actCat.setAdapter(catAdapter);
 
+        com.google.android.material.textfield.TextInputLayout tilCat = dialogView.findViewById(R.id.til_budget_category);
+
         // Pre-select first category if available
         if (!categoriesList.isEmpty()) {
             selectedBudgetCategory = categoriesList.get(0);
             actCat.setText(selectedBudgetCategory.getName(), false);
+            if (tilCat != null && selectedBudgetCategory.getIcon() != null) {
+                int iconRes = com.example.smartexpense.api.CategoryCache.getIconResource(selectedBudgetCategory.getIcon());
+                tilCat.setStartIconDrawable(iconRes);
+            }
         }
 
         actCat.setOnItemClickListener((parent, view, position, id) -> {
             selectedBudgetCategory = categoriesList.get(position);
+            if (tilCat != null && selectedBudgetCategory != null && selectedBudgetCategory.getIcon() != null) {
+                int iconRes = com.example.smartexpense.api.CategoryCache.getIconResource(selectedBudgetCategory.getIcon());
+                tilCat.setStartIconDrawable(iconRes);
+            }
         });
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
