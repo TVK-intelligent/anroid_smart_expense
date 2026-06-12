@@ -4,7 +4,9 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ApiClient {
-    private static final String BASE_URL = "http://192.168.1.200:8080/";
+    // Backend Spring Boot đang chạy trên máy tính cùng mạng LAN với điện thoại.
+    // Đổi IP này nếu máy tính của bạn đổi mạng.
+    private static final String BASE_URL = "http://172.16.1.80:8080/";
     private static Retrofit retrofit = null;
 
     public static synchronized ApiService getApiService() {
