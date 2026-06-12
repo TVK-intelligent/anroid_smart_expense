@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,17 +24,20 @@ public class WalletRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    private final RowMapper<Wallet> walletRowMapper = (rs, rowNum) -> Wallet.builder()
-            .walletId(rs.getInt("wallet_id"))
-            .userId(rs.getInt("user_id"))
-            .name(rs.getString("name"))
-            .balance(rs.getBigDecimal("balance"))
-            .type(rs.getString("type"))
-            .createdAt(rs.getTimestamp("created_at").toLocalDateTime())
-            .build();
+    private final RowMapper<Wallet> walletRowMapper = (rs, rowNum) -> {
+        Timestamp createdAt = rs.getTimestamp("created_at");
+        return Wallet.builder()
+                .walletId(rs.getInt("wallet_id"))
+                .userId(rs.getInt("user_id"))
+                .name(rs.getString("name"))
+                .balance(rs.getBigDecimal("balance"))
+                .type(rs.getString("type"))
+                .createdAt(createdAt != null ? createdAt.toLocalDateTime() : null)
+                .build();
+    };
 
     public Wallet save(Wallet wallet) {
-        String sql = "INSERT INTO wallets (user_id, name, balance, type) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO wallets (user_id, name, balance, type, created_at) VALUES (?, ?, ?, ?, NOW())";
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {
@@ -62,7 +66,7 @@ public class WalletRepository {
     }
 
     public List<Wallet> findByUserId(Integer userId) {
-        String sql = "SELECT * FROM wallets WHERE user_id = ?";
+        String sql = "SELECT * FROM wallets WHERE user_id = ? ORDER BY created_at DESC, wallet_id DESC";
         return jdbcTemplate.query(sql, walletRowMapper, userId);
     }
 

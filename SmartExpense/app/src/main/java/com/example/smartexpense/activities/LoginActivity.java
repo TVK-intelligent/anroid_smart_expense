@@ -66,27 +66,9 @@ public class LoginActivity extends BaseActivity {
                         Toast.makeText(LoginActivity.this, "Email hoặc mật khẩu không chính xác!", Toast.LENGTH_SHORT).show();
                     }
                 }
-
                 @Override
                 public void onFailure(Call<User> call, Throwable t) {
-                    // Fallback to offline SharedPreferences if backend server is not reachable
-                    SharedPreferences sp = getSharedPreferences("smart_expense_prefs", Context.MODE_PRIVATE);
-                    String savedEmail = sp.getString("user_email", "alex@smartexpense.com");
-                    String savedPassword = sp.getString("user_password", "password123");
-
-                    if (email.equals(savedEmail) && password.equals(savedPassword)) {
-                        sp.edit().putBoolean("is_logged_in", true)
-                                 .putInt("user_id", 1)
-                                 .putString("user_name", sp.getString("user_name", "Alex Johnson"))
-                                 .putString("user_email", email)
-                                 .apply();
-
-                        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                        startActivity(intent);
-                        finish();
-                    } else {
-                        Toast.makeText(LoginActivity.this, "Không thể kết nối máy chủ Spring Boot & đăng nhập sai!", Toast.LENGTH_SHORT).show();
-                    }
+                    Toast.makeText(LoginActivity.this, "Khong the ket noi may chu Spring Boot!", Toast.LENGTH_LONG).show();
                 }
             });
         });
@@ -97,3 +79,4 @@ public class LoginActivity extends BaseActivity {
         });
     }
 }
+

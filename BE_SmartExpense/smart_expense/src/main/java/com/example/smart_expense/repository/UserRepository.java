@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.Optional;
 
 @Repository
@@ -21,17 +22,20 @@ public class UserRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    private final RowMapper<User> userRowMapper = (rs, rowNum) -> User.builder()
-            .userId(rs.getInt("user_id"))
-            .name(rs.getString("name"))
-            .email(rs.getString("email"))
-            .passwordHash(rs.getString("password_hash"))
-            .currency(rs.getString("currency"))
-            .createdAt(rs.getTimestamp("created_at").toLocalDateTime())
-            .build();
+    private final RowMapper<User> userRowMapper = (rs, rowNum) -> {
+        Timestamp createdAt = rs.getTimestamp("created_at");
+        return User.builder()
+                .userId(rs.getInt("user_id"))
+                .name(rs.getString("name"))
+                .email(rs.getString("email"))
+                .passwordHash(rs.getString("password_hash"))
+                .currency(rs.getString("currency"))
+                .createdAt(createdAt != null ? createdAt.toLocalDateTime() : null)
+                .build();
+    };
 
     public User save(User user) {
-        String sql = "INSERT INTO users (name, email, password_hash, currency) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO users (name, email, password_hash, currency, created_at) VALUES (?, ?, ?, ?, NOW())";
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {

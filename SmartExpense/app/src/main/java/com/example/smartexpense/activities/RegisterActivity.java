@@ -64,18 +64,9 @@ public class RegisterActivity extends BaseActivity {
                         Toast.makeText(RegisterActivity.this, "Lỗi đăng ký: Email có thể đã tồn tại!", Toast.LENGTH_SHORT).show();
                     }
                 }
-
                 @Override
                 public void onFailure(Call<User> call, Throwable t) {
-                    // Fallback to local SharedPreferences
-                    SharedPreferences sp = getSharedPreferences("smart_expense_prefs", Context.MODE_PRIVATE);
-                    sp.edit().putString("user_name", name)
-                             .putString("user_email", email)
-                             .putString("user_password", password)
-                             .apply();
-
-                    Toast.makeText(RegisterActivity.this, "Spring Boot ngoại tuyến: Đã lưu đăng ký ngoại tuyến thành công!", Toast.LENGTH_LONG).show();
-                    finish();
+                    Toast.makeText(RegisterActivity.this, "Khong the ket noi may chu Spring Boot!", Toast.LENGTH_LONG).show();
                 }
             });
         });
@@ -83,3 +74,4 @@ public class RegisterActivity extends BaseActivity {
         tvGotoLogin.setOnClickListener(v -> finish());
     }
 }
+
