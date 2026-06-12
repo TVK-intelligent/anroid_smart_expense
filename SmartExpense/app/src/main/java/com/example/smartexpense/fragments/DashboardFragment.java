@@ -243,7 +243,7 @@ public class DashboardFragment extends Fragment {
         tvMonthlyExpense.setText("-" + formatter.format(expense) + "đ");
         if (tvMonthlyNet != null) {
             String prefix = net.compareTo(BigDecimal.ZERO) >= 0 ? "+" : "";
-            tvMonthlyNet.setText("Net this month: " + prefix + formatter.format(net) + "đ");
+            tvMonthlyNet.setText("Chênh lệch tháng này: " + prefix + formatter.format(net) + "đ");
         }
 
         recentTransactionList.clear();
@@ -340,7 +340,7 @@ public class DashboardFragment extends Fragment {
             emptyView.setLayoutParams(new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT, (int) (72 * getResources().getDisplayMetrics().density)));
             emptyView.setGravity(android.view.Gravity.CENTER);
-            emptyView.setText("No active warnings. System running smoothly.");
+            emptyView.setText("Không có cảnh báo nào. Hệ thống đang ổn định.");
             emptyView.setTextColor(getResources().getColor(R.color.text_secondary));
             emptyView.setTextSize(12);
             layoutAlerts.addView(emptyView);
