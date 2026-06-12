@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,20 +28,24 @@ public class TransactionRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    private final RowMapper<Transaction> transactionRowMapper = (rs, rowNum) -> Transaction.builder()
-            .transactionId(rs.getInt("transaction_id"))
-            .userId(rs.getInt("user_id"))
-            .walletId(rs.getInt("wallet_id"))
-            .categoryId(rs.getInt("category_id"))
-            .type(rs.getString("type"))
-            .amount(rs.getBigDecimal("amount"))
-            .transactionDate(rs.getDate("transaction_date").toLocalDate())
-            .note(rs.getString("note"))
-            .createdAt(rs.getTimestamp("created_at").toLocalDateTime())
-            .build();
+    private final RowMapper<Transaction> transactionRowMapper = (rs, rowNum) -> {
+        Date transactionDate = rs.getDate("transaction_date");
+        Timestamp createdAt = rs.getTimestamp("created_at");
+        return Transaction.builder()
+                .transactionId(rs.getInt("transaction_id"))
+                .userId(rs.getInt("user_id"))
+                .walletId(rs.getInt("wallet_id"))
+                .categoryId(rs.getInt("category_id"))
+                .type(rs.getString("type"))
+                .amount(rs.getBigDecimal("amount"))
+                .transactionDate(transactionDate != null ? transactionDate.toLocalDate() : null)
+                .note(rs.getString("note"))
+                .createdAt(createdAt != null ? createdAt.toLocalDateTime() : null)
+                .build();
+    };
 
     public Transaction save(Transaction transaction) {
-        String sql = "INSERT INTO transactions (user_id, wallet_id, category_id, amount, transaction_date, note, type) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO transactions (user_id, wallet_id, category_id, amount, transaction_date, note, type, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())";
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {

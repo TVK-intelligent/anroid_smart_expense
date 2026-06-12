@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,20 +25,24 @@ public class SavingsGoalRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    private final RowMapper<SavingsGoal> goalRowMapper = (rs, rowNum) -> SavingsGoal.builder()
-            .goalId(rs.getInt("goal_id"))
-            .userId(rs.getInt("user_id"))
-            .goalName(rs.getString("goal_name"))
-            .targetAmount(rs.getBigDecimal("target_amount"))
-            .currentAmount(rs.getBigDecimal("current_amount"))
-            .walletId(rs.getObject("wallet_id") != null ? rs.getInt("wallet_id") : null)
-            .deadline(rs.getDate("deadline").toLocalDate())
-            .status(rs.getString("status"))
-            .createdAt(rs.getTimestamp("created_at").toLocalDateTime())
-            .build();
+    private final RowMapper<SavingsGoal> goalRowMapper = (rs, rowNum) -> {
+        Date deadline = rs.getDate("deadline");
+        Timestamp createdAt = rs.getTimestamp("created_at");
+        return SavingsGoal.builder()
+                .goalId(rs.getInt("goal_id"))
+                .userId(rs.getInt("user_id"))
+                .goalName(rs.getString("goal_name"))
+                .targetAmount(rs.getBigDecimal("target_amount"))
+                .currentAmount(rs.getBigDecimal("current_amount"))
+                .walletId(rs.getObject("wallet_id") != null ? rs.getInt("wallet_id") : null)
+                .deadline(deadline != null ? deadline.toLocalDate() : null)
+                .status(rs.getString("status"))
+                .createdAt(createdAt != null ? createdAt.toLocalDateTime() : null)
+                .build();
+    };
 
     public SavingsGoal save(SavingsGoal goal) {
-        String sql = "INSERT INTO savings_goals (user_id, goal_name, target_amount, current_amount, wallet_id, deadline, status) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO savings_goals (user_id, goal_name, target_amount, current_amount, wallet_id, deadline, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())";
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {

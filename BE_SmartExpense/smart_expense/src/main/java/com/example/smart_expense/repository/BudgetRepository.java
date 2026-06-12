@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,19 +24,24 @@ public class BudgetRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    private final RowMapper<Budget> budgetRowMapper = (rs, rowNum) -> Budget.builder()
-            .budgetId(rs.getInt("budget_id"))
-            .userId(rs.getInt("user_id"))
-            .categoryId(rs.getInt("category_id"))
-            .amount(rs.getBigDecimal("amount"))
-            .startDate(rs.getDate("start_date").toLocalDate())
-            .endDate(rs.getDate("end_date").toLocalDate())
-            .alertThreshold(rs.getBigDecimal("alert_threshold"))
-            .createdAt(rs.getTimestamp("created_at").toLocalDateTime())
-            .build();
+    private final RowMapper<Budget> budgetRowMapper = (rs, rowNum) -> {
+        Date startDate = rs.getDate("start_date");
+        Date endDate = rs.getDate("end_date");
+        Timestamp createdAt = rs.getTimestamp("created_at");
+        return Budget.builder()
+                .budgetId(rs.getInt("budget_id"))
+                .userId(rs.getInt("user_id"))
+                .categoryId(rs.getInt("category_id"))
+                .amount(rs.getBigDecimal("amount"))
+                .startDate(startDate != null ? startDate.toLocalDate() : null)
+                .endDate(endDate != null ? endDate.toLocalDate() : null)
+                .alertThreshold(rs.getBigDecimal("alert_threshold"))
+                .createdAt(createdAt != null ? createdAt.toLocalDateTime() : null)
+                .build();
+    };
 
     public Budget save(Budget budget) {
-        String sql = "INSERT INTO budgets (user_id, category_id, amount, start_date, end_date, alert_threshold) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO budgets (user_id, category_id, amount, start_date, end_date, alert_threshold, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())";
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {

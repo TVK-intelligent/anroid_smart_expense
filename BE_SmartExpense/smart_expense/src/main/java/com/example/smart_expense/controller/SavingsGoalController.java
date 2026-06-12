@@ -82,33 +82,41 @@ public class SavingsGoalController {
         SavingsGoal goal = goalOpt.get();
         Integer resolvedWalletId = walletId != null ? walletId : goal.getWalletId();
 
-        if (resolvedWalletId != null) {
-            Optional<Wallet> walletOpt = walletRepository.findByIdAndUserId(resolvedWalletId, goal.getUserId());
-            if (walletOpt.isPresent()) {
-                Wallet wallet = walletOpt.get();
-                if (wallet.getBalance().compareTo(amount) < 0) {
-                    Map<String, Object> error = new HashMap<>();
-                    error.put("success", false);
-                    error.put("message", String.format("Ví liên kết '%s' không đủ số dư để tích lũy (Cần: %sđ, Hiện có: %sđ)!", 
-                            wallet.getName(), amount.setScale(0), wallet.getBalance().setScale(0)));
-                    return ResponseEntity.badRequest().body(error);
-                }
-
-                // Trừ tiền ví thực tế bằng cách tạo giao dịch EXPENSE
-                Transaction transaction = Transaction.builder()
-                        .userId(goal.getUserId())
-                        .walletId(resolvedWalletId)
-                        .categoryId(8) // Danh mục "Khác" làm mặc định
-                        .amount(amount)
-                        .type("EXPENSE")
-                        .transactionDate(LocalDate.now())
-                        .note("Tích lũy heo đất: " + goal.getGoalName())
-                        .build();
-
-                transactionService.createTransaction(transaction);
-            }
+        if (resolvedWalletId == null) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("success", false);
+            error.put("message", "Vui long chon vi nguon de nap quy!");
+            return ResponseEntity.badRequest().body(error);
         }
-        
+
+        Optional<Wallet> walletOpt = walletRepository.findByIdAndUserId(resolvedWalletId, goal.getUserId());
+        if (walletOpt.isEmpty()) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("success", false);
+            error.put("message", "Vi nguon khong ton tai hoac khong thuoc nguoi dung nay!");
+            return ResponseEntity.badRequest().body(error);
+        }
+
+        Wallet wallet = walletOpt.get();
+        if (wallet.getBalance() == null || wallet.getBalance().compareTo(amount) < 0) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("success", false);
+            error.put("message", String.format("Vi '%s' khong du so du de nap quy (Can: %s, Hien co: %s)!",
+                    wallet.getName(), amount.setScale(0), wallet.getBalance() != null ? wallet.getBalance().setScale(0) : BigDecimal.ZERO));
+            return ResponseEntity.badRequest().body(error);
+        }
+
+        Transaction transaction = Transaction.builder()
+                .userId(goal.getUserId())
+                .walletId(resolvedWalletId)
+                .categoryId(8)
+                .amount(amount)
+                .type("EXPENSE")
+                .transactionDate(LocalDate.now())
+                .note("Nap quy tiet kiem: " + goal.getGoalName())
+                .build();
+
+        transactionService.createTransaction(transaction);
         savingsGoalRepository.updateCurrentAmount(goalId, amount);
         
         Map<String, Object> response = new HashMap<>();
@@ -157,3 +165,4 @@ public class SavingsGoalController {
         return ResponseEntity.ok(updated);
     }
 }
+

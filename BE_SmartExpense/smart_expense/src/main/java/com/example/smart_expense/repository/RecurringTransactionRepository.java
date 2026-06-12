@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.List;
 
 @Repository
@@ -22,21 +23,25 @@ public class RecurringTransactionRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    private final RowMapper<RecurringTransaction> recurringRowMapper = (rs, rowNum) -> RecurringTransaction.builder()
-            .recurringId(rs.getInt("recurring_id"))
-            .userId(rs.getInt("user_id"))
-            .walletId(rs.getInt("wallet_id"))
-            .categoryId(rs.getInt("category_id"))
-            .amount(rs.getBigDecimal("amount"))
-            .frequency(rs.getString("frequency"))
-            .nextDueDate(rs.getDate("next_due_date").toLocalDate())
-            .note(rs.getString("note"))
-            .isActive(rs.getBoolean("is_active"))
-            .createdAt(rs.getTimestamp("created_at").toLocalDateTime())
-            .build();
+    private final RowMapper<RecurringTransaction> recurringRowMapper = (rs, rowNum) -> {
+        Date nextDueDate = rs.getDate("next_due_date");
+        Timestamp createdAt = rs.getTimestamp("created_at");
+        return RecurringTransaction.builder()
+                .recurringId(rs.getInt("recurring_id"))
+                .userId(rs.getInt("user_id"))
+                .walletId(rs.getInt("wallet_id"))
+                .categoryId(rs.getInt("category_id"))
+                .amount(rs.getBigDecimal("amount"))
+                .frequency(rs.getString("frequency"))
+                .nextDueDate(nextDueDate != null ? nextDueDate.toLocalDate() : null)
+                .note(rs.getString("note"))
+                .isActive(rs.getBoolean("is_active"))
+                .createdAt(createdAt != null ? createdAt.toLocalDateTime() : null)
+                .build();
+    };
 
     public RecurringTransaction save(RecurringTransaction rt) {
-        String sql = "INSERT INTO recurring_transactions (user_id, wallet_id, category_id, amount, frequency, next_due_date, note, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO recurring_transactions (user_id, wallet_id, category_id, amount, frequency, next_due_date, note, is_active, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())";
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {

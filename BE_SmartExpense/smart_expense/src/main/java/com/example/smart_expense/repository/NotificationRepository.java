@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.List;
 
 @Repository
@@ -20,17 +21,20 @@ public class NotificationRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    private final RowMapper<Notification> notificationRowMapper = (rs, rowNum) -> Notification.builder()
-            .notificationId(rs.getInt("notification_id"))
-            .userId(rs.getInt("user_id"))
-            .title(rs.getString("title"))
-            .content(rs.getString("content"))
-            .isRead(rs.getBoolean("is_read"))
-            .createdAt(rs.getTimestamp("created_at").toLocalDateTime())
-            .build();
+    private final RowMapper<Notification> notificationRowMapper = (rs, rowNum) -> {
+        Timestamp createdAt = rs.getTimestamp("created_at");
+        return Notification.builder()
+                .notificationId(rs.getInt("notification_id"))
+                .userId(rs.getInt("user_id"))
+                .title(rs.getString("title"))
+                .content(rs.getString("content"))
+                .isRead(rs.getBoolean("is_read"))
+                .createdAt(createdAt != null ? createdAt.toLocalDateTime() : null)
+                .build();
+    };
 
     public Notification save(Notification notification) {
-        String sql = "INSERT INTO notifications (user_id, title, content, is_read) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO notifications (user_id, title, content, is_read, created_at) VALUES (?, ?, ?, ?, NOW())";
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {

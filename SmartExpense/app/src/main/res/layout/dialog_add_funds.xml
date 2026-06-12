@@ -15,30 +15,29 @@
         android:textStyle="bold"
         android:layout_marginBottom="20dp" />
 
-    <!-- Source Wallet Dropdown Spinner -->
-    <com.google.android.material.textfield.TextInputLayout
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/savings_goals_hint_wallet"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-        app:boxStrokeColor="@color/accent_blue"
-        app:hintTextColor="@color/accent_blue"
-        app:boxCornerRadiusTopStart="12dp"
-        app:boxCornerRadiusTopEnd="12dp"
-        app:boxCornerRadiusBottomStart="12dp"
-        app:boxCornerRadiusBottomEnd="12dp"
-        app:boxBackgroundColor="@color/background_slate"
-        app:startIconDrawable="@drawable/ic_card_chip"
-        app:startIconTint="@color/accent_blue"
-        android:layout_marginBottom="16dp">
+        android:text="@string/savings_goals_hint_wallet"
+        android:textColor="@color/text_secondary"
+        android:textSize="12sp"
+        android:layout_marginBottom="6dp" />
 
-        <AutoCompleteTextView
-            android:id="@+id/act_source_wallet"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="none"
-            android:textColor="@color/text_primary" />
-    </com.google.android.material.textfield.TextInputLayout>
+    <AutoCompleteTextView
+        android:id="@+id/act_source_wallet"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginBottom="16dp"
+        android:background="@android:drawable/edit_text"
+        android:completionThreshold="0"
+        android:dropDownHeight="wrap_content"
+        android:hint="@string/savings_goals_hint_wallet"
+        android:inputType="none"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:singleLine="true"
+        android:textColor="@color/text_primary"
+        android:textColorHint="@color/text_secondary" />
 
     <!-- Amount to Add -->
     <com.google.android.material.textfield.TextInputLayout

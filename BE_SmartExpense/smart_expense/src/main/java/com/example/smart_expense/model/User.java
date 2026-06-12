@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -21,5 +22,7 @@ public class User {
     private String email;
     private String passwordHash;
     private String currency;
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 }

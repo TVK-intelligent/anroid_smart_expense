@@ -471,9 +471,11 @@ public class SavingsGoalsActivity extends BaseActivity {
                             Toast.LENGTH_SHORT).show();
                     loadSavingsGoals();
                 } else {
-                    Toast.makeText(SavingsGoalsActivity.this, 
-                            Locale.getDefault().getLanguage().equals("vi") ? "Không tạo được mục tiêu!" : "Failed to create savings goal!", 
-                            Toast.LENGTH_SHORT).show();
+                    String msg = Locale.getDefault().getLanguage().equals("vi") ? "Khong lay duoc danh sach vi!" : "Failed to load wallets!";
+                    try {
+                        if (response.errorBody() != null) msg = response.errorBody().string();
+                    } catch (Exception ignored) {}
+                    Toast.makeText(SavingsGoalsActivity.this, msg, Toast.LENGTH_LONG).show();
                 }
             }
 
@@ -530,10 +532,20 @@ public class SavingsGoalsActivity extends BaseActivity {
                             walletDisplayList
                     );
                     actWallet.setAdapter(adapter);
+                    actWallet.setThreshold(0);
+                    actWallet.setOnClickListener(v -> actWallet.showDropDown());
+                    actWallet.setOnFocusChangeListener((v, hasFocus) -> {
+                        if (hasFocus) actWallet.showDropDown();
+                    });
+                    if (!walletDisplayList.isEmpty()) {
+                        actWallet.setText(walletDisplayList.get(0), false);
+                    }
                 } else {
-                    Toast.makeText(SavingsGoalsActivity.this, 
-                            Locale.getDefault().getLanguage().equals("vi") ? "Không lấy được danh sách ví!" : "Failed to load wallets!", 
-                            Toast.LENGTH_SHORT).show();
+                    String msg = Locale.getDefault().getLanguage().equals("vi") ? "Khong nap duoc quy tiet kiem!" : "Failed to deposit funds!";
+                    try {
+                        if (response.errorBody() != null) msg = response.errorBody().string();
+                    } catch (Exception ignored) {}
+                    Toast.makeText(SavingsGoalsActivity.this, msg, Toast.LENGTH_LONG).show();
                 }
             }
 
@@ -545,9 +557,9 @@ public class SavingsGoalsActivity extends BaseActivity {
             }
         });
 
-        new AlertDialog.Builder(this)
+        AlertDialog alertDialog = new AlertDialog.Builder(this)
                 .setView(dialogView)
-                .setPositiveButton(getString(R.string.savings_goals_label_confirm), (dialog, which) -> {
+                .setPositiveButton(getString(R.string.savings_goals_label_confirm), (dialogInterface, which) -> {
                     String selectedWalletStr = actWallet.getText().toString();
                     String depositStr = etDeposit.getText() != null ? etDeposit.getText().toString().trim() : "";
 
@@ -600,8 +612,10 @@ public class SavingsGoalsActivity extends BaseActivity {
 
                     processDeposit(goal, selectedWallet, depositAmt);
                 })
-                .setNegativeButton(getString(R.string.savings_goals_label_cancel), (dialog, which) -> dialog.dismiss())
-                .show();
+                .setNegativeButton(getString(R.string.savings_goals_label_cancel), (dialogInterface, which) -> dialogInterface.dismiss())
+                .create();
+        alertDialog.setOnShowListener(d -> actWallet.postDelayed(actWallet::showDropDown, 200));
+        alertDialog.show();
     }
 
     private void processDeposit(SavingsGoal goal, Wallet wallet, BigDecimal amount) {
@@ -613,9 +627,11 @@ public class SavingsGoalsActivity extends BaseActivity {
                             Locale.getDefault().getLanguage().equals("vi") ? "Nạp quỹ tiết kiệm thành công!" : "Funds successfully deposited!", 
                             Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(SavingsGoalsActivity.this, 
-                            Locale.getDefault().getLanguage().equals("vi") ? "Không nạp được quỹ tiết kiệm!" : "Failed to deposit funds!", 
-                            Toast.LENGTH_SHORT).show();
+                    String msg = Locale.getDefault().getLanguage().equals("vi") ? "Khong nap duoc quy tiet kiem!" : "Failed to deposit funds!";
+                    try {
+                        if (response.errorBody() != null) msg = response.errorBody().string();
+                    } catch (Exception ignored) {}
+                    Toast.makeText(SavingsGoalsActivity.this, msg, Toast.LENGTH_LONG).show();
                 }
                 loadSavingsGoals();
             }
@@ -630,3 +646,4 @@ public class SavingsGoalsActivity extends BaseActivity {
         });
     }
 }
+
