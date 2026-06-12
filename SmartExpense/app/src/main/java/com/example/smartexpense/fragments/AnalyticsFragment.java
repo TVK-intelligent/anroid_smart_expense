@@ -21,6 +21,7 @@ import com.example.smartexpense.models.Budget;
 import com.example.smartexpense.models.BudgetDetailResponse;
 import com.example.smartexpense.models.SavingsGoal;
 import com.example.smartexpense.models.BurnRateResponse;
+import com.example.smartexpense.models.Wallet;
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
@@ -917,6 +918,128 @@ public class AnalyticsFragment extends Fragment {
 
     private void showAddFundsDialog(Integer goalId, BigDecimal suggestedAmount) {
         if (getContext() == null) return;
+        if (goalId != null) {
+            View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_add_funds, null);
+            AutoCompleteTextView actWallet = dialogView.findViewById(R.id.act_source_wallet);
+            TextInputEditText etAmount = dialogView.findViewById(R.id.et_deposit_amount);
+
+            if (suggestedAmount != null && suggestedAmount.compareTo(BigDecimal.ZERO) > 0) {
+                etAmount.setText(suggestedAmount.setScale(0, java.math.RoundingMode.HALF_UP).toString());
+                etAmount.setSelection(etAmount.getText() != null ? etAmount.getText().length() : 0);
+            }
+
+            final List<Wallet> walletList = new ArrayList<>();
+            final List<String> walletDisplayList = new ArrayList<>();
+            ArrayAdapter<String> walletAdapter = new ArrayAdapter<>(
+                    getContext(),
+                    android.R.layout.simple_dropdown_item_1line,
+                    walletDisplayList
+            );
+            actWallet.setAdapter(walletAdapter);
+            actWallet.setThreshold(0);
+            actWallet.setOnClickListener(v -> actWallet.showDropDown());
+            actWallet.setOnFocusChangeListener((v, hasFocus) -> {
+                if (hasFocus) actWallet.showDropDown();
+            });
+
+            AlertDialog alertDialog = new AlertDialog.Builder(getContext())
+                    .setView(dialogView)
+                    .setPositiveButton("Nạp Ngay", null)
+                    .setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss())
+                    .create();
+
+            alertDialog.setOnShowListener(dialog -> {
+                alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+                alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+                    String selectedWalletStr = actWallet.getText() != null ? actWallet.getText().toString() : "";
+                    int selectedIndex = walletDisplayList.indexOf(selectedWalletStr);
+                    if (selectedIndex < 0) {
+                        Toast.makeText(getContext(), "Vui lòng chọn ví nguồn!", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    String valStr = etAmount.getText() != null ? etAmount.getText().toString().trim() : "";
+                    if (valStr.isEmpty()) {
+                        Toast.makeText(getContext(), "Số tiền không hợp lệ!", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    BigDecimal amount;
+                    try {
+                        amount = new BigDecimal(valStr);
+                        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+                            Toast.makeText(getContext(), "Số tiền nạp phải lớn hơn 0!", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                    } catch (Exception e) {
+                        Toast.makeText(getContext(), "Số tiền không hợp lệ!", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    Wallet selectedWallet = walletList.get(selectedIndex);
+                    if (selectedWallet.getBalance() == null || selectedWallet.getBalance().compareTo(amount) < 0) {
+                        Toast.makeText(getContext(), "Số dư ví không đủ để chuyển!", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+                    ApiClient.getApiService().addFundsToGoal(goalId, amount, selectedWallet.getWalletId()).enqueue(new Callback<Map<String, Object>>() {
+                        @Override
+                        public void onResponse(Call<Map<String, Object>> call, Response<Map<String, Object>> response) {
+                            if (getContext() == null) return;
+
+                            if (response.isSuccessful()) {
+                                Toast.makeText(getContext(), "Đã nạp +" + formatter.format(amount) + "đ vào quỹ!", Toast.LENGTH_SHORT).show();
+                                alertDialog.dismiss();
+                                loadSavingsSuggestions();
+                            } else {
+                                alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
+                                Toast.makeText(getContext(), "Nạp quỹ thất bại, thử lại!", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<Map<String, Object>> call, Throwable t) {
+                            if (getContext() == null) return;
+                            alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
+                            Toast.makeText(getContext(), "Lỗi kết nối!", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                });
+
+                ApiClient.getApiService().getWallets(getUserId()).enqueue(new Callback<List<Wallet>>() {
+                    @Override
+                    public void onResponse(Call<List<Wallet>> call, Response<List<Wallet>> response) {
+                        if (getContext() == null) return;
+
+                        if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                            walletList.clear();
+                            walletDisplayList.clear();
+                            walletList.addAll(response.body());
+                            for (Wallet wallet : walletList) {
+                                BigDecimal balance = wallet.getBalance() != null ? wallet.getBalance() : BigDecimal.ZERO;
+                                walletDisplayList.add(wallet.getName() + " (" + formatter.format(balance) + "đ)");
+                            }
+                            walletAdapter.notifyDataSetChanged();
+                            actWallet.setText(walletDisplayList.get(0), false);
+                            alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
+                            actWallet.postDelayed(actWallet::showDropDown, 200);
+                        } else {
+                            Toast.makeText(getContext(), "Không có ví để nạp quỹ!", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<List<Wallet>> call, Throwable t) {
+                        if (getContext() == null) return;
+                        Toast.makeText(getContext(), "Lỗi mạng khi tải ví!", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            });
+
+            alertDialog.show();
+            return;
+        }
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         builder.setTitle(suggestedAmount != null

@@ -118,10 +118,18 @@ public class SavingsGoalController {
 
         transactionService.createTransaction(transaction);
         savingsGoalRepository.updateCurrentAmount(goalId, amount);
+
+        BigDecimal walletBalanceAfter = walletRepository
+                .findByIdAndUserId(resolvedWalletId, goal.getUserId())
+                .map(Wallet::getBalance)
+                .orElse(BigDecimal.ZERO);
         
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
         response.put("goalId", goalId);
+        response.put("walletId", resolvedWalletId);
+        response.put("walletName", wallet.getName());
+        response.put("walletBalanceAfter", walletBalanceAfter);
         response.put("amountAdded", amount);
         response.put("message", "Nạp quỹ tích lũy thành công!");
         
