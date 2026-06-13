@@ -48,7 +48,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:gravity="center"
-                android:text="Phân Tích"
+                android:text="@string/analytics_tab_analysis"
                 android:textSize="12sp"
                 android:textStyle="bold"
                 android:textColor="@color/primary"
@@ -62,7 +62,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:gravity="center"
-                android:text="Ngân Sách"
+                android:text="@string/analytics_tab_budget"
                 android:textSize="12sp"
                 android:textStyle="bold"
                 android:textColor="@color/text_secondary"
@@ -76,7 +76,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:gravity="center"
-                android:text="Mục Tiêu"
+                android:text="@string/analytics_tab_goals"
                 android:textSize="12sp"
                 android:textStyle="bold"
                 android:textColor="@color/text_secondary"
@@ -162,7 +162,7 @@
                                     android:id="@+id/tv_health_status"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="Trạng thái: Xuất sắc"
+                                    android:text="@string/health_status_excellent"
                                     android:textColor="@color/emerald_income"
                                     android:textSize="13sp"
                                     android:textStyle="bold" />
@@ -171,7 +171,7 @@
                                     android:id="@+id/tv_health_desc"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="Thói quen tích lũy của bạn tốt hơn 95% người dùng trong tuần này."
+                                    android:text="@string/health_desc_excellent"
                                     android:textColor="@color/text_secondary"
                                     android:textSize="11sp"
                                     android:layout_marginTop="4dp" />
@@ -203,7 +203,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Spending Trends (Xu hướng)"
+                                android:text="@string/analytics_spending_trends"
                                 android:textColor="@color/text_primary"
                                 android:textSize="15sp"
                                 android:textStyle="bold" />
@@ -213,7 +213,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_alignParentRight="true"
-                                android:text="Đang tính toán..."
+                                android:text="@string/analytics_calculating"
                                 android:textColor="@color/emerald_income"
                                 android:textSize="11sp"
                                 android:textStyle="bold" />
@@ -247,7 +247,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="AI SMART INSIGHT"
+                            android:text="@string/analytics_ai_insight_header"
                             android:textColor="#CCFFFFFF"
                             android:textSize="11sp"
                             android:textStyle="bold"
@@ -257,7 +257,7 @@
                             android:id="@+id/tv_ai_smart_insight"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="&quot;Đang tải phân tích thông minh từ AI...&quot;"
+                            android:text="@string/analytics_ai_insight_loading"
                             android:textColor="@color/surface_white"
                             android:textSize="13sp"
                             android:layout_marginTop="8dp"
@@ -283,7 +283,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Đo Lường Tốc Độ Chi Tiêu (Burn Rate)"
+                            android:text="@string/analytics_burn_rate_title"
                             android:textColor="@color/text_primary"
                             android:textSize="14sp"
                             android:textStyle="bold" />
@@ -291,7 +291,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Nhấn nút để chạy thuật toán kiểm tra tốc độ rút số dư ví offline của bạn."
+                            android:text="@string/analytics_burn_rate_desc"
                             android:textColor="@color/text_secondary"
                             android:textSize="11sp"
                             android:layout_marginTop="4dp"
@@ -301,7 +301,7 @@
                             android:id="@+id/btn_check_burn_rate"
                             android:layout_width="match_parent"
                             android:layout_height="48dp"
-                            android:text="Chạy Thuật Toán Phân Tích"
+                            android:text="@string/analytics_burn_rate_btn"
                             android:textColor="@color/surface_white"
                             android:textSize="12sp"
                             android:textStyle="bold"
@@ -368,7 +368,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="TỔNG QUAN NGÂN SÁCH THÁNG NÀY"
+                            android:text="@string/analytics_budget_overview"
                             android:textColor="@color/text_secondary"
                             android:textSize="11sp"
                             android:textStyle="bold"
@@ -399,11 +399,12 @@
                                 android:textSize="14sp" />
 
                             <TextView
+                                android:id="@+id/tv_budget_status_pill"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_alignParentRight="true"
                                 android:layout_centerVertical="true"
-                                android:text="Đúng Kế Hoạch"
+                                android:text="@string/analytics_budget_status_on_track"
                                 android:textColor="@color/emerald_income"
                                 android:textSize="11sp"
                                 android:textStyle="bold"
@@ -438,7 +439,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Ngân Sách Theo Hạng Mục"
+                    android:text="@string/analytics_category_budgets_title"
                     android:textColor="@color/text_primary"
                     android:textSize="15sp"
                     android:textStyle="bold"
@@ -458,7 +459,7 @@
                     android:id="@+id/btn_add_budget"
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
-                    android:text="+ Thêm Mới Ngân Sách Hạng Mục"
+                    android:text="@string/analytics_add_budget_btn"
                     android:textColor="@color/text_secondary"
                     android:textSize="12sp"
                     android:textStyle="bold"
@@ -495,7 +496,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="TỔNG TIẾN TRÌNH TÍCH LŨY"
+                            android:text="@string/analytics_savings_progress_title"
                             android:textColor="@color/text_secondary"
                             android:textSize="11sp"
                             android:textStyle="bold"
@@ -561,7 +562,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="AI SAVINGS SUGGESTION (GỢI Ý TỪ AI)"
+                        android:text="@string/analytics_ai_suggestions_title"
                         android:textColor="@color/accent_blue"
                         android:textSize="10sp"
                         android:textStyle="bold"
@@ -571,7 +572,7 @@
                         android:id="@+id/tv_ai_surplus_amount"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="💡 Dòng tiền nhàn rỗi dự kiến tháng này: +0đ"
+                        android:text="@string/analytics_ai_suggestions_idle_cash"
                         android:textColor="@color/text_primary"
                         android:textSize="12sp"
                         android:layout_marginTop="4dp" />
@@ -580,7 +581,7 @@
                         android:id="@+id/btn_ai_auto_allocate"
                         android:layout_width="match_parent"
                         android:layout_height="40dp"
-                        android:text="💡 Tự động phân bổ bằng AI (Một click)"
+                        android:text="@string/analytics_ai_suggestions_auto_allocate"
                         android:textColor="@color/surface_white"
                         android:textSize="11sp"
                         android:textStyle="bold"
@@ -597,7 +598,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Danh Sách Mục Tiêu Cá Nhân"
+                    android:text="@string/analytics_personal_goals_title"
                     android:textColor="@color/text_primary"
                     android:textSize="15sp"
                     android:textStyle="bold"
@@ -616,7 +617,7 @@
                     android:id="@+id/btn_create_goal"
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
-                    android:text="+ Thiết Lập Mục Tiêu Tích Lũy Mới"
+                    android:text="@string/analytics_add_goal_btn"
                     android:textColor="@color/text_secondary"
                     android:textSize="12sp"
                     android:textStyle="bold"

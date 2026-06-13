@@ -50,7 +50,7 @@
                     android:layout_alignParentEnd="true"
                     android:layout_alignParentTop="true"
                     android:src="@drawable/ic_card_chip"
-                    android:contentDescription="Card Chip" />
+                    android:contentDescription="@string/wallet_form_desc_chip" />
 
                 <!-- Middle Row: Card / Wallet Name -->
                 <TextView
@@ -58,7 +58,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_centerVertical="true"
-                    android:text="Tên Ví Tài Khoản"
+                    android:text="@string/wallet_form_default_name"
                     android:textColor="@color/surface_white"
                     android:textSize="18sp"
                     android:textStyle="bold"
@@ -75,7 +75,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="SỐ DƯ"
+                        android:text="@string/wallet_form_balance_label"
                         android:textColor="#A0FFFFFF"
                         android:textSize="8sp"
                         android:textStyle="bold"
@@ -99,7 +99,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="THÔNG TIN TÀI KHOẢN"
+            android:text="@string/wallet_form_header_info"
             android:textColor="@color/text_secondary"
             android:textSize="11sp"
             android:textStyle="bold"
@@ -112,7 +112,7 @@
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Tên Ví / Tài khoản (ví dụ: Techcombank, MoMo)"
+            android:hint="@string/wallet_form_hint_name"
             app:boxStrokeColor="@color/accent_blue"
             app:hintTextColor="@color/accent_blue"
             android:layout_marginBottom="16dp">
@@ -131,7 +131,7 @@
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Loại tài khoản / Ví"
+            android:hint="@string/wallet_form_hint_type"
             app:boxStrokeColor="@color/accent_blue"
             app:hintTextColor="@color/accent_blue"
             android:layout_marginBottom="16dp">
@@ -149,7 +149,7 @@
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Số dư ban đầu (VND)"
+            android:hint="@string/wallet_form_hint_balance"
             app:boxStrokeColor="@color/accent_blue"
             app:hintTextColor="@color/accent_blue"
             android:layout_marginBottom="8dp">

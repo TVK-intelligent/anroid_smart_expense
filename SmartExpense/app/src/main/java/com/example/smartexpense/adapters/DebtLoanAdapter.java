@@ -1,6 +1,7 @@
 package com.example.smartexpense.adapters;
 
 import android.content.res.ColorStateList;
+import android.content.Context;
 import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -74,14 +75,26 @@ public class DebtLoanAdapter extends RecyclerView.Adapter<DebtLoanAdapter.ViewHo
         public void bind(DebtLoan dl, OnDebtActionListener listener) {
             tvPartnerName.setText(dl.getPersonName());
 
+            Context context = itemView.getContext();
+            boolean isVi = "vi".equals(com.example.smartexpense.utils.LocaleHelper.getLanguage(context));
+            String currencySymbol = isVi ? "đ" : " VND";
+
             boolean isDebt = "DEBT".equalsIgnoreCase(dl.getType());
-            tvTypeLabel.setText(isDebt ? "Tôi đi vay (DEBT)" : "Tôi cho vay (LOAN)");
+            if (isDebt) {
+                tvTypeLabel.setText(context.getString(R.string.dl_type_debt));
+            } else {
+                tvTypeLabel.setText(context.getString(R.string.dl_type_loan));
+            }
             tvTypeLabel.setTextColor(itemView.getResources().getColor(isDebt ? R.color.crimson_expense : R.color.emerald_income));
 
-            tvAmount.setText(formatCurrency(dl.getAmount()) + "đ");
+            tvAmount.setText(formatCurrency(dl.getAmount()) + currencySymbol);
 
             boolean isPaid = "PAID".equalsIgnoreCase(dl.getStatus());
-            tvStatusBadge.setText(isPaid ? "ĐÃ THANH TOÁN" : "CHƯA THANH TOÁN");
+            if (isPaid) {
+                tvStatusBadge.setText(context.getString(R.string.dl_status_paid));
+            } else {
+                tvStatusBadge.setText(context.getString(R.string.dl_status_unpaid));
+            }
             
             // Set badge background color dynamically
             int badgeColor = itemView.getResources().getColor(isPaid ? R.color.emerald_income : R.color.amber_warning);
@@ -92,7 +105,9 @@ public class DebtLoanAdapter extends RecyclerView.Adapter<DebtLoanAdapter.ViewHo
                 BigDecimal monthlyRate = yearlyRate.divide(new BigDecimal("12"), 2, RoundingMode.HALF_UP);
                 
                 StringBuilder interestText = new StringBuilder();
-                interestText.append("Lãi suất: ").append(monthlyRate).append("%/tháng (").append(yearlyRate).append("%/năm)");
+                interestText.append(context.getString(R.string.dl_interest_rate_label))
+                        .append(monthlyRate).append(isVi ? "%/tháng (" : "%/month (")
+                        .append(yearlyRate).append(isVi ? "%/năm)" : "%/year)");
                 
                 if (!isPaid) {
                     long days = calculateDaysElapsed(dl.getCreatedAt());
@@ -102,8 +117,11 @@ public class DebtLoanAdapter extends RecyclerView.Adapter<DebtLoanAdapter.ViewHo
                             .divide(new BigDecimal("365"), 2, RoundingMode.HALF_UP);
                     
                     if (interestVal.compareTo(BigDecimal.ZERO) > 0) {
-                        interestText.append("\nLãi tích lũy: +").append(formatCurrency(interestVal)).append("đ (").append(days).append(" ngày)")
-                                    .append("\nTổng nợ hiện tại: ").append(formatCurrency(dl.getAmount().add(interestVal))).append("đ");
+                        interestText.append("\n").append(context.getString(R.string.dl_interest_accumulated))
+                                .append("+").append(formatCurrency(interestVal)).append(currencySymbol)
+                                .append(" (").append(days).append(isVi ? " ngày)" : " days)")
+                                .append("\n").append(context.getString(R.string.dl_total_current_debt))
+                                .append(formatCurrency(dl.getAmount().add(interestVal))).append(currencySymbol);
                     }
                 }
                 tvInterest.setText(interestText.toString());
@@ -113,14 +131,14 @@ public class DebtLoanAdapter extends RecyclerView.Adapter<DebtLoanAdapter.ViewHo
             }
 
             if (dl.getDueDate() != null && !dl.getDueDate().trim().isEmpty()) {
-                tvDueDate.setText("Hạn: " + dl.getDueDate());
+                tvDueDate.setText(context.getString(R.string.dl_due_prefix) + dl.getDueDate());
                 tvDueDate.setVisibility(View.VISIBLE);
             } else {
                 tvDueDate.setVisibility(View.GONE);
             }
 
             if (dl.getNote() != null && !dl.getNote().trim().isEmpty()) {
-                tvNote.setText("Ghi chú: " + dl.getNote());
+                tvNote.setText(context.getString(R.string.dl_note_prefix) + dl.getNote());
                 tvNote.setVisibility(View.VISIBLE);
             } else {
                 tvNote.setVisibility(View.GONE);

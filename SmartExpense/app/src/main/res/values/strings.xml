@@ -40,9 +40,234 @@
     <string name="savings_goals_label_cancel">Cancel</string>
     <string name="savings_goals_label_confirm">Confirm</string>
     <string name="profile_voice_warning">Voice Alerts on Warning</string>
-    <string name="profile_btn_debts">Quản lý Nợ nần &amp; Cho vay</string>
+    <string name="profile_btn_debts">Manage Debts &amp; Loans</string>
     <string-array name="debt_loan_types">
         <item>Tôi đi vay (DEBT)</item>
         <item>Tôi cho vay (LOAN)</item>
     </string-array>
+
+    <!-- Dashboard / Overview Strings -->
+    <string name="dashboard_greeting_morning">Good morning,</string>
+    <string name="dashboard_greeting_afternoon">Good afternoon,</string>
+    <string name="dashboard_greeting_evening">Good evening,</string>
+    <string name="dashboard_total_balance">TOTAL BALANCE</string>
+    <string name="dashboard_monthly_income">Monthly Income</string>
+    <string name="dashboard_monthly_expense">Monthly Expense</string>
+    <string name="dashboard_monthly_net">Net difference: %s</string>
+    <string name="dashboard_wallets_title">Accounts &amp; Wallets</string>
+    <string name="dashboard_add_wallet">+ Add Wallet</string>
+    <string name="dashboard_recent_transactions">Recent Transactions</string>
+    <string name="dashboard_top_expenses">Top Expense Categories</string>
+    <string name="dashboard_budget_warnings">Budget Warnings</string>
+    <string name="dashboard_financial_alerts">Financial Alerts</string>
+    <string name="dashboard_empty_data">No data available. Please create a wallet or add your first transaction.</string>
+    <string name="dashboard_create_wallet">+ Create Wallet</string>
+    <string name="dashboard_add_transaction">+ Add Transaction</string>
+    <string name="dashboard_no_warnings">No warnings</string>
+    <string name="dashboard_stable_system">No warnings. System is stable.</string>
+    <string name="dashboard_no_limit_warning">✓ No budget limit warnings</string>
+    <string name="dashboard_approaching_limit">Approaching limit</string>
+    <string name="dashboard_over_budget">Over budget</string>
+    <string name="dashboard_default_wallet_name">Account Wallet Name</string>
+    <string name="dashboard_no_data_italic">No data</string>
+    <string name="dashboard_error_load">Failed to load dashboard</string>
+    <string name="dashboard_error_network">Network error loading dashboard</string>
+    <string name="dashboard_error_load_wallets">Failed to load wallets</string>
+    <string name="dashboard_error_network_wallets">Network error loading wallets</string>
+    <string name="dashboard_category_placeholder">Category</string>
+    <string name="analytics_budget_overview">BUDGET OVERVIEW THIS MONTH</string>
+    <string name="analytics_budget_desc_normal">Spent %1$d%% of budget • %2$s left</string>
+    <string name="analytics_budget_desc_over">Spent %1$d%% of budget • Exceeded by %2$s</string>
+    <!-- Debt & Loan Strings -->
+    <string name="debt_loan_title">Debts &amp; Loans Ledger</string>
+    <string name="debt_loan_tab_all">All</string>
+    <string name="debt_loan_tab_debt">My Debts (DEBT)</string>
+    <string name="debt_loan_tab_loan">My Loans (LOAN)</string>
+    <string name="debt_loan_empty">No recorded debts or loans yet.\nClick + below to add one!</string>
+    <string name="debt_loan_desc_fab">Add new debt or loan</string>
+    <!-- Chat Assistant Strings -->
+    <string name="chat_title">SmartExpense Assistant</string>
+    <string name="chat_status_ready">🟢 Financial Assistant Ready</string>
+    <string name="chat_ai_state_ready">AI System is Ready</string>
+    <string name="chat_ai_state_desc">Tap the Micro button to talk directly via voice</string>
+    <string name="chat_ai_state_thinking">AI Assistant is thinking...</string>
+    <string name="chat_ai_state_thinking_desc">Analyzing your personal financial data</string>
+    <string name="chat_ai_state_speaking">AI Assistant is answering...</string>
+    <string name="chat_ai_state_speaking_desc">Listen to advice or read below directly</string>
+    <string name="chat_tts_enabled">Speech output turned ON</string>
+    <string name="chat_tts_disabled">Speech output turned OFF</string>
+    <string name="chat_input_hint">Ask the assistant about wallets, budget, savings...</string>
+    <!-- Recurring Transactions Strings -->
+    <string name="recurring_title">Recurring Transactions</string>
+    <string name="recurring_tab_expense">Expense</string>
+    <string name="recurring_tab_income">Income</string>
+    <string name="recurring_list_header">List of Scheduled Expenses/Incomes</string>
+    <string name="recurring_empty_state">No recurring transactions established yet.\nCreate a new scheduled transaction below!</string>
+    <string name="recurring_btn_add">+ Add Scheduled Transaction</string>
+    <!-- Add Transaction Strings -->
+    <string name="add_tx_title">Create New Transaction</string>
+    <string name="add_tx_tab_expense">Expense</string>
+    <string name="add_tx_tab_income">Income</string>
+    <string name="add_tx_amount_label">AMOUNT</string>
+    <string name="add_tx_details_label">TRANSACTION DETAILS</string>
+    <string name="add_tx_hint_wallet">Select Account / Wallet</string>
+    <string name="add_tx_hint_category">Select Category</string>
+    <string name="add_tx_hint_date">Transaction Date</string>
+    <string name="add_tx_hint_note">Transaction Note</string>
+    <string name="add_tx_btn_scan">Scan Anomaly</string>
+    <string name="add_tx_btn_save">Save Transaction</string>
+    <string name="add_tx_anomaly_label">ANOMALY DETECTION</string>
+    <string name="add_tx_anomaly_desc">Description...</string>
+    <!-- Wallet Form Dialog Strings -->
+    <string name="wallet_form_default_name">Account Wallet Name</string>
+    <string name="wallet_form_balance_label">BALANCE</string>
+    <string name="wallet_form_header_info">ACCOUNT INFORMATION</string>
+    <string name="wallet_form_hint_name">Wallet / Account Name (e.g. Techcombank, MoMo)</string>
+    <string name="wallet_form_hint_type">Account Type / Wallet</string>
+    <string name="wallet_form_hint_balance">Initial Balance (VND)</string>
+    <string name="wallet_form_desc_chip">Card Chip</string>
+    <!-- Health Score Statuses -->
+    <string name="health_status_excellent">Status: Excellent</string>
+    <string name="health_desc_excellent">Excellent spending habits. Keep it up!</string>
+    <string name="health_status_good">Status: Good</string>
+    <string name="health_desc_good">Your savings habits are better than most users.</string>
+    <string name="health_status_fair">Status: Fair</string>
+    <string name="health_desc_fair">You are spending very close to your budget limit. Consider cutting back.</string>
+    <string name="health_status_warning">Status: Warning</string>
+    <string name="health_desc_warning">You have exceeded budget limits in multiple categories. Tighten your spending!</string>
+
+    <!-- Burn Rate Results -->
+    <string name="burn_rate_over_speed">⚠️ SPENDING OVER SPEED!</string>
+    <string name="burn_rate_safe_speed">✅ SAFE SPENDING SPEED</string>
+
+    <!-- Smart Insight Offline AI Text Templates -->
+    <string name="insight_budget_warning_over">⚠️ Spending Warning: You have exceeded budget limits in categories: %1$s. Please cut down spending urgently for financial safety!</string>
+    <string name="insight_budget_warning_near">⚠️ Speed Warning: You are approaching budget limits in categories: %1$s. Consider limiting additional purchases in these areas.</string>
+    <string name="insight_speed_warning">⚠️ Spending Speed Warning: You have used %1$.0f%% of this month\'s budget while only %2$.0f%% of the month has passed (%3$d/%4$d days). This spending speed is TOO FAST!</string>
+    <string name="insight_all_completed">🎉 Congratulations! You have successfully completed all your savings goals. Keep setting new goals!</string>
+    <string name="insight_savings_superior">🌟 Superior Savings: You have only used %1$.1f%% of this month\'s budget. Your budget control is outstanding!</string>
+    <string name="insight_ai_suggestion">💡 AI Suggestion: This month you expect to have +%1$s VND of idle cash flow. Depositing it into goal \'%2$s\' will help you complete your plan sooner!</string>
+    <string name="insight_financial_advice_stable">💡 Financial Advice: Your spending is stable. However, idle cash flow is low this month, consider optimizing non-essential expenses.</string>
+    <string name="insight_financial_advice_empty">💡 Financial Advice: You have not set any budgets or personal goals. Create them now so the AI can analyze your behavior and optimize your financial health score!</string>
+    <!-- Analytics Strings -->
+    <string name="analytics_tab_analysis">Analysis</string>
+    <string name="analytics_tab_budget">Budget</string>
+    <string name="analytics_tab_goals">Goals</string>
+    <string name="analytics_ai_insight_header">AI SMART INSIGHT</string>
+    <string name="analytics_ai_insight_loading">\"Loading smart analysis from AI...\"</string>
+    <string name="analytics_burn_rate_title">Spending Burn Rate Calculator</string>
+    <string name="analytics_burn_rate_desc">Press the button below to analyze your offline wallet spending speed.</string>
+    <string name="analytics_burn_rate_btn">Run Analysis Algorithm</string>
+    <string name="analytics_category_budgets_title">Category Budgets</string>
+    <string name="analytics_add_budget_btn">+ Add New Category Budget</string>
+    <string name="analytics_savings_progress_title">TOTAL SAVINGS PROGRESS</string>
+    <string name="analytics_ai_suggestions_title">AI SAVINGS SUGGESTIONS</string>
+    <string name="analytics_ai_suggestions_idle_cash">💡 Expected idle cash flow this month: +%1$s VND</string>
+    <string name="analytics_ai_suggestions_auto_allocate">💡 Auto-allocate with AI (One click)</string>
+    <string name="analytics_personal_goals_title">Personal Goals List</string>
+    <string name="analytics_add_goal_btn">+ Set Up New Savings Goal</string>
+    <string name="analytics_goal_progress_desc">Achieved %1$d%% of overall goal</string>
+    <string name="analytics_goal_target_label">Goal: %1$sđ</string>
+    <string name="analytics_spending_trends">Spending Trends</string>
+    <string name="analytics_calculating">Calculating...</string>
+    <string name="analytics_weekly_comparison_desc">%1$s vs last week</string>
+    <string name="analytics_weekly_no_spending_last">No spending last week</string>
+    <string name="analytics_weekly_no_spending_this">No spending this week</string>
+    <string name="analytics_daily_spending_axis">Daily spending (VND)</string>
+    <string name="analytics_budget_status_on_track">On Track</string>
+    <string name="analytics_budget_status_over">Over Budget</string>
+
+    <!-- Debt & Loan Additional -->
+    <string name="dl_error_load">Failed to load debt data</string>
+    <string name="dl_error_conn">Server connection error, showing offline mode</string>
+    <string name="dl_term_month">% / month</string>
+    <string name="dl_term_year">% / year</string>
+    <string name="dl_add_title">Add Debt Record</string>
+    <string name="dl_edit_title">Edit Debt Record</string>
+    <string name="dl_btn_save">Save</string>
+    <string name="dl_btn_cancel">Cancel</string>
+    <string name="dl_validation_empty">Please enter partner name and amount!</string>
+    <string name="dl_validation_invalid">Invalid amount!</string>
+    <string name="dl_save_success">Saved debt record successfully!</string>
+    <string name="dl_save_error">Failed to save debt record</string>
+    <string name="dl_conn_error">Server connection error</string>
+    <string name="dl_update_success">Updated debt record successfully!</string>
+    <string name="dl_update_error">Failed to update debt record</string>
+    <string name="dl_status_success">Updated payment status!</string>
+    <string name="dl_status_error">Failed to update status</string>
+    <string name="dl_delete_title">Delete Debt Record</string>
+    <string name="dl_delete_message">Are you sure you want to delete this debt record?</string>
+    <string name="dl_delete_btn">Delete</string>
+    <string name="dl_delete_success">Deleted successfully!</string>
+    <string name="dl_delete_error">Failed to delete record</string>
+    
+    <string name="dl_detail_type_label">Transaction Type: </string>
+    <string name="dl_type_debt">I owe (DEBT)</string>
+    <string name="dl_type_loan">Owed to me (LOAN)</string>
+    <string name="dl_detail_partner">Partner: </string>
+    <string name="dl_detail_amount">Amount: </string>
+    <string name="dl_detail_due">Due Date: </string>
+    <string name="dl_detail_interest">Interest: </string>
+    <string name="dl_detail_note">Note: </string>
+    <string name="dl_detail_status">Status: </string>
+    <string name="dl_status_unpaid">UNPAID</string>
+    <string name="dl_status_paid">PAID</string>
+    <string name="dl_detail_title">Debt Details</string>
+    <string name="dl_detail_mark_paid">Mark as Paid</string>
+    <string name="dl_detail_close">Close</string>
+
+    <string name="dl_interest_rate_label">Interest: </string>
+    <string name="dl_interest_accumulated">Accumulated Interest: </string>
+    <string name="dl_total_current_debt">Total Current Debt: </string>
+    <string name="dl_due_prefix">Due: </string>
+    <string name="dl_note_prefix">Note: </string>
+    
+    <!-- Recurring Transactions Additional -->
+    <string name="rec_error_conn">Server connection error!</string>
+    <string name="rec_status_updated">Status updated!</string>
+    <string name="rec_delete_title">Confirm Delete</string>
+    <string name="rec_delete_message">Are you sure you want to delete this scheduled transaction?</string>
+    <string name="rec_delete_btn">Delete</string>
+    <string name="rec_delete_success">Scheduled transaction deleted!</string>
+    <string name="rec_btn_schedule">Schedule</string>
+    <string name="rec_btn_update">Update</string>
+    <string name="rec_hint_expense">Spending Category</string>
+    <string name="rec_hint_income">Income Category</string>
+    <string name="rec_validation_empty">Please fill in category and amount!</string>
+    <string name="rec_validation_invalid">Invalid amount!</string>
+    <string name="rec_save_success">Scheduled transaction created successfully!</string>
+    <string name="rec_save_error">Failed to create scheduled transaction!</string>
+    <string name="rec_update_success">Recurring transaction updated!</string>
+    <string name="rec_update_error">Failed to update!</string>
+    <string name="rec_btn_cancel">Cancel</string>
+    <string name="rec_freq_prefix">Frequency: </string>
+    <string name="rec_due_date_prefix">Next due date: </string>
+    <string name="rec_status_active">Active</string>
+    <string name="rec_status_paused">Paused</string>
+    <string name="rec_default_name">Recurring</string>
+
+    <!-- Debt Dialog Layout -->
+    <string name="dl_type_selector_label">Transaction Category</string>
+    <string name="dl_hint_partner">Partner name (e.g. John Doe)</string>
+    <string name="dl_hint_amount">Amount (VND)</string>
+    <string name="dl_hint_due_date">Due Date</string>
+    <string name="dl_hint_interest_rate">Interest Rate</string>
+    <string name="dl_hint_note">Detailed note for debt/loan...</string>
+
+    <!-- Recurring Dialog Layout -->
+    <string name="rec_dialog_title">Schedule Recurring Transaction</string>
+    <string name="rec_hint_wallet">Account / Wallet</string>
+    <string name="rec_hint_amount">Amount (VND)</string>
+    <string name="rec_hint_frequency">Repeat Frequency</string>
+    <string name="rec_hint_due_date">Start Date / Next Payment Date</string>
+    <string name="rec_hint_note">Note</string>
+
+    <!-- Edit Transaction Dialog Layout -->
+    <string name="edit_tx_title">Edit Transaction</string>
+    <string name="edit_tx_type">Transaction Type</string>
+    <string name="edit_tx_amount">Amount (VND)</string>
+    <string name="edit_tx_wallet">Account Wallet</string>
+    <string name="edit_tx_category">Category</string>
+    <string name="edit_tx_date">Transaction Date</string>
+    <string name="edit_tx_note">Note</string>
 </resources>

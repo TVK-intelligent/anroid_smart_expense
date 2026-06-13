@@ -14,7 +14,7 @@
             android:id="@+id/tv_dialog_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Thêm Khoản Nợ / Cho Vay"
+            android:text="@string/dl_add_title"
             android:textColor="@color/text_primary"
             android:textSize="18sp"
             android:textStyle="bold"
@@ -24,7 +24,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Phân loại giao dịch nợ"
+            android:text="@string/dl_type_selector_label"
             android:textColor="@color/text_secondary"
             android:textSize="12sp"
             android:layout_marginBottom="6dp" />
@@ -58,7 +58,7 @@
                 android:id="@+id/et_person_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Tên đối tác (ví dụ: Anh Nam, Chị Vy)"
+                android:hint="@string/dl_hint_partner"
                 android:textColor="@color/text_primary"
                 android:inputType="textPersonName" />
         </com.google.android.material.textfield.TextInputLayout>
@@ -85,7 +85,7 @@
                 android:id="@+id/et_amount"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Số tiền nợ/cho vay (VND)"
+                android:hint="@string/dl_hint_amount"
                 android:textColor="@color/text_primary"
                 android:inputType="numberDecimal" />
         </com.google.android.material.textfield.TextInputLayout>
@@ -95,7 +95,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            android:hint="Hạn thanh toán trả nợ"
+            android:hint="@string/dl_hint_due_date"
             app:boxStrokeColor="@color/accent_blue"
             app:hintTextColor="@color/accent_blue"
             app:boxCornerRadiusTopStart="12dp"
@@ -144,7 +144,7 @@
                     android:id="@+id/et_interest_rate"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Lãi suất"
+                    android:hint="@string/dl_hint_interest_rate"
                     android:textColor="@color/text_primary"
                     android:inputType="numberDecimal" />
             </com.google.android.material.textfield.TextInputLayout>
@@ -191,7 +191,7 @@
                 android:id="@+id/et_note"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Ghi chú chi tiết khoản vay/nợ..."
+                android:hint="@string/dl_hint_note"
                 android:textColor="@color/text_primary"
                 android:inputType="textMultiLine" />
         </com.google.android.material.textfield.TextInputLayout>

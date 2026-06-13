@@ -36,7 +36,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Trợ lý ảo SmartExpense"
+                android:text="@string/chat_title"
                 android:textColor="@color/text_primary"
                 android:textSize="17sp"
                 android:textStyle="bold" />
@@ -44,7 +44,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🟢 Sẵn sàng tư vấn tài chính"
+                android:text="@string/chat_status_ready"
                 android:textColor="@color/emerald_income"
                 android:textSize="11sp" />
         </LinearLayout>
@@ -124,7 +124,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:background="@drawable/bg_chat_input"
-                android:hint="Hỏi trợ lý về ví, ngân sách, tiết kiệm..."
+                android:hint="@string/chat_input_hint"
                 android:textColor="@color/text_primary"
                 android:textColorHint="@color/text_secondary"
                 android:textSize="15sp"
@@ -206,7 +206,7 @@
                     android:id="@+id/tv_ai_state_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Hệ thống AI đang sẵn sàng"
+                    android:text="@string/chat_ai_state_ready"
                     android:textColor="@color/text_primary"
                     android:textSize="13sp"
                     android:textStyle="bold" />
@@ -215,7 +215,7 @@
                     android:id="@+id/tv_ai_state_desc"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Chạm nút Micro để nói chuyện trực tiếp bằng giọng nói"
+                    android:text="@string/chat_ai_state_desc"
                     android:textColor="@color/text_secondary"
                     android:textSize="10sp"
                     android:layout_marginTop="2dp" />

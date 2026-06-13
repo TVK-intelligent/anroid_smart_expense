@@ -74,7 +74,7 @@ public class TextToSpeechHelper {
         }
     }
 
-    private String translateToEnglish(String text) {
+    public static String translateToEnglish(String text) {
         if (text == null) return "";
         
         // 1. Normal Spending

@@ -30,7 +30,7 @@ public class CategoryCache {
 
     public static synchronized String getCategoryName(Integer id) {
         Category c = categoriesMap.get(id);
-        return c != null ? c.getName() : "Khác";
+        return c != null ? localizeCategoryName(c.getName()) : localizeCategoryName("Khác");
     }
 
     public static synchronized String getCategoryIcon(Integer id) {
@@ -78,6 +78,47 @@ public class CategoryCache {
                 return com.example.smartexpense.R.drawable.ic_favorite;
             default:
                 return android.R.drawable.ic_menu_today;
+        }
+    }
+
+    public static String localizeCategoryName(String name) {
+        if (name == null) return "Other";
+        String lang = com.example.smartexpense.utils.LocaleHelper.getAppLanguage();
+        if ("vi".equals(lang)) {
+            switch (name.toLowerCase().trim()) {
+                case "salary": return "Lương";
+                case "bonus": return "Thưởng";
+                case "investment": return "Đầu tư";
+                case "other_income": return "Thu nhập khác";
+                case "food": return "Ăn uống";
+                case "transport": return "Di chuyển";
+                case "home": return "Nhà cửa";
+                case "bill": return "Hóa đơn";
+                case "shopping": return "Mua sắm";
+                case "leisure": return "Giải trí";
+                case "health": return "Sức khỏe";
+                case "other": return "Khác";
+                case "khác": return "Khác";
+                default: return name;
+            }
+        } else {
+            switch (name.toLowerCase().trim()) {
+                case "lương": return "Salary";
+                case "thưởng": return "Bonus";
+                case "đầu tư": return "Investment";
+                case "thu nhập khác": return "Other Income";
+                case "ăn uống": return "Food & Beverage";
+                case "di chuyển": return "Transportation";
+                case "đi lại": return "Transportation";
+                case "nhà cửa": return "Housing/Home";
+                case "hóa đơn": return "Bills & Utilities";
+                case "mua sắm": return "Shopping";
+                case "giải trí": return "Leisure & Entertainment";
+                case "sức khỏe": return "Health & Fitness";
+                case "khác": return "Other";
+                case "other": return "Other";
+                default: return name;
+            }
         }
     }
 }

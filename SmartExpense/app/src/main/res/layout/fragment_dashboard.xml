@@ -14,9 +14,10 @@
 
         <!-- Greeting Section -->
         <TextView
+            android:id="@+id/tv_greeting_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Chào buổi sáng,"
+            android:text="@string/dashboard_greeting_morning"
             android:textColor="@color/text_secondary"
             android:textSize="14sp" />
 
@@ -49,7 +50,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="TỔNG SỐ DƯ"
+                    android:text="@string/dashboard_total_balance"
                     android:textColor="#CCFFFFFF"
                     android:textSize="11sp"
                     android:textStyle="bold"
@@ -99,7 +100,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Thu nhập tháng"
+                                android:text="@string/dashboard_monthly_income"
                                 android:textColor="#CCFFFFFF"
                                 android:textSize="11sp"
                                 android:layout_marginStart="4dp" />
@@ -138,7 +139,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Chi tiêu tháng"
+                                android:text="@string/dashboard_monthly_expense"
                                 android:textColor="#CCFFFFFF"
                                 android:textSize="11sp"
                                 android:layout_marginStart="4dp" />
@@ -198,7 +199,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Bạn chưa có dữ liệu. Hãy tạo ví hoặc thêm giao dịch đầu tiên."
+                android:text="@string/dashboard_empty_data"
                 android:textColor="@color/text_secondary"
                 android:textSize="12sp"
                 android:gravity="center"
@@ -214,7 +215,7 @@
                     android:id="@+id/btn_guidance_add_wallet"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="+ Tạo ví"
+                    android:text="@string/dashboard_create_wallet"
                     android:textColor="@color/primary"
                     android:textStyle="bold"
                     android:padding="8dp"
@@ -226,7 +227,7 @@
                     android:id="@+id/btn_guidance_add_transaction"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="+ Thêm giao dịch"
+                    android:text="@string/dashboard_add_transaction"
                     android:textColor="@color/primary"
                     android:textStyle="bold"
                     android:padding="8dp"
@@ -246,7 +247,7 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentLeft="true"
                 android:layout_centerVertical="true"
-                android:text="Tài Khoản &amp; Ví"
+                android:text="@string/dashboard_wallets_title"
                 android:textColor="@color/text_primary"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -257,7 +258,7 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentRight="true"
                 android:layout_centerVertical="true"
-                android:text="+ Thêm Ví"
+                android:text="@string/dashboard_add_wallet"
                 android:textColor="@color/primary"
                 android:textSize="13sp"
                 android:textStyle="bold"
@@ -298,7 +299,7 @@
             android:id="@+id/tv_recent_transactions_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Giao dịch gần đây"
+            android:text="@string/dashboard_recent_transactions"
             android:textColor="@color/text_primary"
             android:textSize="16sp"
             android:textStyle="bold"
@@ -315,7 +316,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Danh mục chi nhiều nhất"
+            android:text="@string/dashboard_top_expenses"
             android:textColor="@color/text_primary"
             android:textSize="16sp"
             android:textStyle="bold"
@@ -339,7 +340,7 @@
                     android:id="@+id/tv_top_expense_categories"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Chưa có dữ liệu"
+                    android:text="@string/dashboard_no_data_italic"
                     android:textColor="@color/text_secondary"
                     android:textSize="12sp" />
             </LinearLayout>
@@ -349,7 +350,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Cảnh báo ngân sách"
+            android:text="@string/dashboard_budget_warnings"
             android:textColor="@color/text_primary"
             android:textSize="16sp"
             android:textStyle="bold"
@@ -373,7 +374,7 @@
                     android:id="@+id/tv_budget_warnings"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Không có cảnh báo"
+                    android:text="@string/dashboard_no_warnings"
                     android:textColor="@color/text_secondary"
                     android:textSize="12sp" />
             </LinearLayout>
@@ -383,7 +384,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Cảnh báo tài chính"
+            android:text="@string/dashboard_financial_alerts"
             android:textColor="@color/text_primary"
             android:textSize="16sp"
             android:textStyle="bold"
@@ -409,7 +410,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="72dp"
                     android:gravity="center"
-                    android:text="Không có cảnh báo nào. Hệ thống đang ổn định."
+                    android:text="@string/dashboard_stable_system"
                     android:textColor="@color/text_secondary"
                     android:textSize="12sp" />
             </LinearLayout>

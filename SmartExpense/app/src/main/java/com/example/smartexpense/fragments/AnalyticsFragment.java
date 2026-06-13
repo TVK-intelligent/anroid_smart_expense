@@ -80,7 +80,7 @@ public class AnalyticsFragment extends Fragment {
     private final java.util.Map<Integer, com.example.smartexpense.models.SavingsSuggestion> savingsSuggestionsMap = new java.util.HashMap<>();
 
     // Budget Category Views (for Tab 2)
-    private TextView tvBudgetSpendTotal, tvBudgetLimitTotal;
+    private TextView tvBudgetSpendTotal, tvBudgetLimitTotal, tvBudgetStatusPill;
     private MaterialButton btnAddBudgetCategory;
     private MaterialButton btnCreateSavingsGoal;
 
@@ -145,6 +145,7 @@ public class AnalyticsFragment extends Fragment {
         // Find Budget info components (Tab 2)
         tvBudgetSpendTotal = view.findViewById(R.id.tv_budget_spend_total);
         tvBudgetLimitTotal = view.findViewById(R.id.tv_budget_limit_total);
+        tvBudgetStatusPill = view.findViewById(R.id.tv_budget_status_pill);
         layoutBudgetsContainer = view.findViewById(R.id.layout_budgets_container);
 
         // Find Health score components (Tab 1)
@@ -286,18 +287,18 @@ public class AnalyticsFragment extends Fragment {
                 BigDecimal diff = thisWeekTotal.subtract(lastWeekTotal);
                 double pct = diff.multiply(new BigDecimal("100"))
                         .divide(lastWeekTotal, 2, java.math.RoundingMode.HALF_UP).doubleValue();
+                String pctStr = (pct >= 0 ? "+" : "") + String.format(Locale.US, "%.1f", pct) + "%";
+                tvWeeklyComparison.setText(getString(R.string.analytics_weekly_comparison_desc, pctStr));
                 if (pct >= 0) {
-                    tvWeeklyComparison.setText("+" + String.format(Locale.US, "%.1f", pct) + "% so với tuần trước");
                     tvWeeklyComparison.setTextColor(getResources().getColor(R.color.crimson_expense));
                 } else {
-                    tvWeeklyComparison.setText(String.format(Locale.US, "%.1f", pct) + "% so với tuần trước");
                     tvWeeklyComparison.setTextColor(getResources().getColor(R.color.emerald_income));
                 }
             } else {
                 if (thisWeekTotal.compareTo(BigDecimal.ZERO) > 0) {
-                    tvWeeklyComparison.setText("Tuần trước không chi tiêu");
+                    tvWeeklyComparison.setText(getString(R.string.analytics_weekly_no_spending_last));
                 } else {
-                    tvWeeklyComparison.setText("Không có chi tiêu tuần này");
+                    tvWeeklyComparison.setText(getString(R.string.analytics_weekly_no_spending_this));
                 }
                 tvWeeklyComparison.setTextColor(getResources().getColor(R.color.text_secondary));
             }
@@ -308,7 +309,7 @@ public class AnalyticsFragment extends Fragment {
             entries.add(new BarEntry(i, daySums[i].floatValue()));
         }
 
-        BarDataSet dataSet = new BarDataSet(entries, "Chi tiêu ngày (đ)");
+        BarDataSet dataSet = new BarDataSet(entries, getString(R.string.analytics_daily_spending_axis));
         
         int primaryColor = getResources().getColor(R.color.accent_blue);
         int secondaryColor = getResources().getColor(R.color.progress_track);
@@ -328,7 +329,8 @@ public class AnalyticsFragment extends Fragment {
             @Override
             public String getFormattedValue(float value) {
                 if (value == 0f) return "";
-                return formatter.format(value) + "đ";
+                boolean isVi = "vi".equals(com.example.smartexpense.utils.LocaleHelper.getAppLanguage());
+                return formatter.format(value) + (isVi ? "đ" : " VND");
             }
         });
 
@@ -351,7 +353,10 @@ public class AnalyticsFragment extends Fragment {
         xAxis.setTextColor(getResources().getColor(R.color.text_secondary));
         xAxis.setTextSize(9f);
         
-        final String[] days = new String[]{"T2", "T3", "T4", "T5", "T6", "T7", "CN"};
+        boolean isVi = "vi".equals(com.example.smartexpense.utils.LocaleHelper.getAppLanguage());
+        final String[] days = isVi
+                ? new String[]{"T2", "T3", "T4", "T5", "T6", "T7", "CN"}
+                : new String[]{"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
         xAxis.setValueFormatter(new ValueFormatter() {
             @Override
             public String getFormattedValue(float value) {
@@ -384,10 +389,16 @@ public class AnalyticsFragment extends Fragment {
                     if (response.isSuccessful() && response.body() != null) {
                         BurnRateResponse br = response.body();
                         layoutBurnRateResult.setVisibility(View.VISIBLE);
-                        tvBurnRateDesc.setText(br.getAlertMessage());
+                        
+                        boolean isVi = "vi".equals(com.example.smartexpense.utils.LocaleHelper.getAppLanguage());
+                        String alertMsg = br.getAlertMessage();
+                        if (!isVi) {
+                            alertMsg = com.example.smartexpense.utils.TextToSpeechHelper.translateToEnglish(alertMsg);
+                        }
+                        tvBurnRateDesc.setText(alertMsg);
 
                         if (br.isHasAlert()) {
-                            tvBurnRateTitle.setText("⚠️ CHI TIÊU VƯỢT TIẾN ĐỘ!");
+                            tvBurnRateTitle.setText(getString(R.string.burn_rate_over_speed));
                             tvBurnRateTitle.setTextColor(getResources().getColor(R.color.crimson_expense));
                             layoutBurnRateResult.setBackgroundResource(R.drawable.bg_pill_chip);
                             
@@ -395,7 +406,7 @@ public class AnalyticsFragment extends Fragment {
                             com.example.smartexpense.utils.TextToSpeechHelper.getInstance(getContext())
                                     .speak(getContext(), br.getAlertMessage());
                         } else {
-                            tvBurnRateTitle.setText("✅ TỐC ĐỘ CHI TIÊU AN TOÀN");
+                            tvBurnRateTitle.setText(getString(R.string.burn_rate_safe_speed));
                             tvBurnRateTitle.setTextColor(getResources().getColor(R.color.emerald_income));
                             layoutBurnRateResult.setBackgroundResource(R.drawable.bg_pill_chip_active);
                         }
@@ -404,7 +415,7 @@ public class AnalyticsFragment extends Fragment {
 
                 @Override
                 public void onFailure(Call<BurnRateResponse> call, Throwable t) {
-                    Toast.makeText(getContext(), "Lỗi kết nối tới Spring Boot cổng 8080!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), Locale.getDefault().getLanguage().equals("vi") ? "Lỗi kết nối tới Spring Boot cổng 8080!" : "Spring Boot server connection error!", Toast.LENGTH_SHORT).show();
                 }
             });
         });
@@ -464,18 +475,25 @@ public class AnalyticsFragment extends Fragment {
 
         layoutBudgetsContainer.removeAllViews();
 
+        boolean isVi = "vi".equals(com.example.smartexpense.utils.LocaleHelper.getAppLanguage());
         if (budgets == null || budgets.isEmpty()) {
-            tvBudgetSpendTotal.setText("0đ");
-            tvBudgetLimitTotal.setText(" / 0đ");
+            tvBudgetSpendTotal.setText(isVi ? "0đ" : "0 VND");
+            tvBudgetLimitTotal.setText(isVi ? " / 0đ" : " / 0 VND");
+            if (tvBudgetStatusPill != null) {
+                tvBudgetStatusPill.setText(isVi ? "Chưa có dữ liệu" : "No Data");
+                tvBudgetStatusPill.setTextColor(getResources().getColor(R.color.text_secondary));
+            }
             if (tvHealthScore != null) tvHealthScore.setText("--");
             if (tvHealthStatus != null) {
-                tvHealthStatus.setText("Trạng thái: Chưa có dữ liệu");
+                tvHealthStatus.setText(isVi ? "Trạng thái: Chưa có dữ liệu" : "Status: No data");
                 tvHealthStatus.setTextColor(getResources().getColor(R.color.text_secondary));
             }
             if (tvHealthDesc != null) {
-                tvHealthDesc.setText("Vui lòng thiết lập ngân sách chi tiêu ở tab Ngân Sách để AI đánh giá sức khỏe tài chính.");
+                tvHealthDesc.setText(isVi
+                        ? "Vui lòng thiết lập ngân sách chi tiêu ở tab Ngân Sách để AI đánh giá sức khỏe tài chính."
+                        : "Please establish spending budgets in the Budget tab so AI can evaluate your financial health.");
             }
-            if (tvBudgetGlobalDesc != null) tvBudgetGlobalDesc.setText("Chưa có ngân sách được thiết lập");
+            if (tvBudgetGlobalDesc != null) tvBudgetGlobalDesc.setText(isVi ? "Chưa có ngân sách được thiết lập" : "No budgets established yet");
             if (pbBudgetGlobal != null) pbBudgetGlobal.setProgress(0);
             return;
         }
@@ -522,7 +540,7 @@ public class AnalyticsFragment extends Fragment {
             tvTitle.setLayoutParams(titleParams);
 
             TextView tvValue = new TextView(getContext());
-            tvValue.setText(formatter.format(b.getSpentAmount()) + "đ / " + formatter.format(b.getLimitAmount()) + "đ");
+            tvValue.setText(formatter.format(b.getSpentAmount()) + (isVi ? "đ / " : " VND / ") + formatter.format(b.getLimitAmount()) + (isVi ? "đ" : " VND"));
             tvValue.setTextColor(getResources().getColor(R.color.text_secondary));
             tvValue.setTextSize(11);
             RelativeLayout.LayoutParams valParams = new RelativeLayout.LayoutParams(
@@ -546,7 +564,9 @@ public class AnalyticsFragment extends Fragment {
             if ("OVER_LIMIT".equals(status)) {
                 tvAlert = new TextView(getContext());
                 BigDecimal over = b.getSpentAmount().subtract(b.getLimitAmount());
-                tvAlert.setText("❌ Vượt ngân sách +" + formatter.format(over) + "đ");
+                tvAlert.setText(isVi 
+                        ? "❌ Vượt ngân sách +" + formatter.format(over) + "đ" 
+                        : "❌ Over budget +" + formatter.format(over) + " VND");
                 tvAlert.setTextColor(getResources().getColor(R.color.crimson_expense));
                 tvAlert.setTextSize(10);
                 tvAlert.setTypeface(null, android.graphics.Typeface.BOLD);
@@ -554,7 +574,9 @@ public class AnalyticsFragment extends Fragment {
                 progressColor = getResources().getColor(R.color.crimson_expense);
             } else if ("NEAR_LIMIT".equals(status)) {
                 tvAlert = new TextView(getContext());
-                tvAlert.setText("⚠️ Sắp chạm hạn mức (" + b.getSpentPercent() + "%)");
+                tvAlert.setText(isVi 
+                        ? "⚠️ Sắp chạm hạn mức (" + b.getSpentPercent() + "%)"
+                        : "⚠️ Approaching limit (" + b.getSpentPercent() + "%)");
                 tvAlert.setTextColor(getResources().getColor(R.color.crimson_expense));
                 tvAlert.setTextSize(10);
                 tvAlert.setTypeface(null, android.graphics.Typeface.BOLD);
@@ -588,8 +610,8 @@ public class AnalyticsFragment extends Fragment {
         }
 
         // Cập nhật text tổng quan ở Header
-        tvBudgetSpendTotal.setText(formatter.format(totalSpent) + "đ");
-        tvBudgetLimitTotal.setText(" / " + formatter.format(totalLimit) + "đ");
+        tvBudgetSpendTotal.setText(formatter.format(totalSpent) + (isVi ? "đ" : " VND"));
+        tvBudgetLimitTotal.setText(" / " + formatter.format(totalLimit) + (isVi ? "đ" : " VND"));
 
         // Dynamic Global Progress calculation
         int globalPercent = 0;
@@ -601,10 +623,19 @@ public class AnalyticsFragment extends Fragment {
 
         if (tvBudgetGlobalDesc != null) {
             if (remaining.compareTo(BigDecimal.ZERO) >= 0) {
-                tvBudgetGlobalDesc.setText("Đã chi tiêu " + globalPercent + "% ngân sách • Còn lại " + formatter.format(remaining) + "đ");
+                tvBudgetGlobalDesc.setText(getString(R.string.analytics_budget_desc_normal, globalPercent, formatter.format(remaining)));
             } else {
                 BigDecimal overSpent = remaining.negate();
-                tvBudgetGlobalDesc.setText("Đã chi tiêu " + globalPercent + "% ngân sách • Vượt hạn mức " + formatter.format(overSpent) + "đ");
+                tvBudgetGlobalDesc.setText(getString(R.string.analytics_budget_desc_over, globalPercent, formatter.format(overSpent)));
+            }
+        }
+        if (tvBudgetStatusPill != null) {
+            if (remaining.compareTo(BigDecimal.ZERO) >= 0) {
+                tvBudgetStatusPill.setText(getString(R.string.analytics_budget_status_on_track));
+                tvBudgetStatusPill.setTextColor(getResources().getColor(R.color.emerald_income));
+            } else {
+                tvBudgetStatusPill.setText(getString(R.string.analytics_budget_status_over));
+                tvBudgetStatusPill.setTextColor(getResources().getColor(R.color.crimson_expense));
             }
         }
         if (pbBudgetGlobal != null) {
@@ -657,21 +688,21 @@ public class AnalyticsFragment extends Fragment {
 
         if (tvHealthStatus != null && tvHealthDesc != null) {
             if (finalScore >= 90) {
-                tvHealthStatus.setText("Trạng thái: Xuất sắc");
+                tvHealthStatus.setText(getString(R.string.health_status_excellent));
                 tvHealthStatus.setTextColor(getResources().getColor(R.color.emerald_income));
-                tvHealthDesc.setText("Thói quen chi tiêu cực kỳ tốt. Hãy tiếp tục duy trì nhé!");
+                tvHealthDesc.setText(getString(R.string.health_desc_excellent));
             } else if (finalScore >= 80) {
-                tvHealthStatus.setText("Trạng thái: Tốt");
+                tvHealthStatus.setText(getString(R.string.health_status_good));
                 tvHealthStatus.setTextColor(getResources().getColor(R.color.emerald_income));
-                tvHealthDesc.setText("Thói quen tích lũy của bạn tốt hơn phần lớn người dùng.");
+                tvHealthDesc.setText(getString(R.string.health_desc_good));
             } else if (finalScore >= 65) {
-                tvHealthStatus.setText("Trạng thái: Trung bình");
+                tvHealthStatus.setText(getString(R.string.health_status_fair));
                 tvHealthStatus.setTextColor(getResources().getColor(R.color.accent_blue));
-                tvHealthDesc.setText("Bạn đang chi tiêu khá sát giới hạn. Nên cân nhắc tiết giảm.");
+                tvHealthDesc.setText(getString(R.string.health_desc_fair));
             } else {
-                tvHealthStatus.setText("Trạng thái: Cảnh báo");
+                tvHealthStatus.setText(getString(R.string.health_status_warning));
                 tvHealthStatus.setTextColor(getResources().getColor(R.color.crimson_expense));
-                tvHealthDesc.setText("Bạn đã chi tiêu vượt quá giới hạn ngân sách nhiều hạng mục. Hãy thắt chặt chi tiêu!");
+                tvHealthDesc.setText(getString(R.string.health_desc_warning));
             }
         }
     }
@@ -699,10 +730,11 @@ public class AnalyticsFragment extends Fragment {
         lastGoals = goals;
         updateAiSmartInsight(lastBudgets, lastGoals);
 
+        boolean isVi = "vi".equals(com.example.smartexpense.utils.LocaleHelper.getAppLanguage());
         if (goals == null || goals.isEmpty()) {
-            if (tvSavingsTotalCurrent != null) tvSavingsTotalCurrent.setText("0đ");
-            if (tvSavingsTotalTarget != null) tvSavingsTotalTarget.setText("Mục tiêu: 0đ");
-            if (tvSavingsTotalPercent != null) tvSavingsTotalPercent.setText("Đã đạt 0% mục tiêu chung");
+            if (tvSavingsTotalCurrent != null) tvSavingsTotalCurrent.setText(isVi ? "0đ" : "0 VND");
+            if (tvSavingsTotalTarget != null) tvSavingsTotalTarget.setText(getString(R.string.analytics_goal_target_label, "0"));
+            if (tvSavingsTotalPercent != null) tvSavingsTotalPercent.setText(getString(R.string.analytics_goal_progress_desc, 0));
             if (pbSavingsTotal != null) pbSavingsTotal.setProgress(0);
             if (layoutAiSurplusContainer != null) layoutAiSurplusContainer.setVisibility(View.GONE);
             layoutSavingsSuggestions.removeAllViews();
@@ -719,8 +751,8 @@ public class AnalyticsFragment extends Fragment {
             totalTarget = totalTarget.add(goal.getTargetAmount() != null ? goal.getTargetAmount() : BigDecimal.ZERO);
         }
 
-        if (tvSavingsTotalCurrent != null) tvSavingsTotalCurrent.setText(formatter.format(totalCurrent) + "đ");
-        if (tvSavingsTotalTarget != null) tvSavingsTotalTarget.setText("Mục tiêu: " + formatter.format(totalTarget) + "đ");
+        if (tvSavingsTotalCurrent != null) tvSavingsTotalCurrent.setText(formatter.format(totalCurrent) + (isVi ? "đ" : " VND"));
+        if (tvSavingsTotalTarget != null) tvSavingsTotalTarget.setText(getString(R.string.analytics_goal_target_label, formatter.format(totalTarget)));
 
         double totalProgressPct = 0;
         if (totalTarget.compareTo(BigDecimal.ZERO) > 0) {
@@ -728,7 +760,7 @@ public class AnalyticsFragment extends Fragment {
                     .divide(totalTarget, 2, java.math.RoundingMode.HALF_UP).doubleValue();
         }
         if (tvSavingsTotalPercent != null)
-            tvSavingsTotalPercent.setText(String.format("Đã đạt %.0f%% mục tiêu chung", totalProgressPct));
+            tvSavingsTotalPercent.setText(getString(R.string.analytics_goal_progress_desc, (int) totalProgressPct));
         if (pbSavingsTotal != null)
             pbSavingsTotal.setProgress((int) Math.min(totalProgressPct, 100));
 
@@ -742,7 +774,7 @@ public class AnalyticsFragment extends Fragment {
             if (totalAllocated.compareTo(BigDecimal.ZERO) > 0) {
                 layoutAiSurplusContainer.setVisibility(View.VISIBLE);
                 if (tvAiSurplusAmount != null)
-                    tvAiSurplusAmount.setText("💡 Dòng tiền nhàn rỗi dự kiến tháng này: +" + formatter.format(totalAllocated) + "đ");
+                    tvAiSurplusAmount.setText(getString(R.string.analytics_ai_suggestions_idle_cash, formatter.format(totalAllocated)));
             } else {
                 layoutAiSurplusContainer.setVisibility(View.GONE);
             }
@@ -771,10 +803,10 @@ public class AnalyticsFragment extends Fragment {
             tvTitle.setId(View.generateViewId());
             String goalName = goal.getGoalName() != null && !goal.getGoalName().isEmpty()
                     ? goal.getGoalName()
-                    : (goal.getGoalId() == 1 ? "Tích Lũy Mua Laptop Workstation"
-                        : goal.getGoalId() == 2 ? "Đi Du Lịch Phú Quốc"
-                        : goal.getGoalId() == 3 ? "Quỹ Dự Phòng Khẩn Cấp"
-                        : "Mục Tiêu Tích Lũy #" + goal.getGoalId());
+                    : (goal.getGoalId() == 1 ? (isVi ? "Tích Lũy Mua Laptop Workstation" : "Laptop Workstation Savings")
+                        : goal.getGoalId() == 2 ? (isVi ? "Đi Du Lịch Phú Quốc" : "Phu Quoc Vacation Trip")
+                        : goal.getGoalId() == 3 ? (isVi ? "Quỹ Dự Phòng Khẩn Cấp" : "Emergency Fund")
+                        : (isVi ? "Mục Tiêu Tích Lũy #" : "Savings Goal #") + goal.getGoalId());
             tvTitle.setText(goalName);
             tvTitle.setTextColor(getResources().getColor(R.color.text_primary));
             tvTitle.setTextSize(14);
@@ -813,14 +845,14 @@ public class AnalyticsFragment extends Fragment {
 
             // --- Row 2: Hạn chót ---
             TextView tvSub = new TextView(getContext());
-            tvSub.setText("Hạn chót: " + (goal.getDeadline() != null ? goal.getDeadline() : "Chưa đặt"));
+            tvSub.setText((isVi ? "Hạn chót: " : "Deadline: ") + (goal.getDeadline() != null ? goal.getDeadline() : (isVi ? "Chưa đặt" : "Not set")));
             tvSub.setTextColor(getResources().getColor(R.color.text_secondary));
             tvSub.setTextSize(11);
             tvSub.setPadding(0, 4, 0, 6);
 
             // --- Số tiền đã tích lũy ---
             TextView tvVal = new TextView(getContext());
-            tvVal.setText("Đã tích lũy: " + formatter.format(currentAmt) + "đ / " + formatter.format(targetAmt) + "đ");
+            tvVal.setText((isVi ? "Đã tích lũy: " : "Saved: ") + formatter.format(currentAmt) + (isVi ? "đ / " : " VND / ") + formatter.format(targetAmt) + (isVi ? "đ" : " VND"));
             tvVal.setTextColor(getResources().getColor(R.color.text_secondary));
             tvVal.setTextSize(12);
             tvVal.setPadding(0, 0, 0, 8);
@@ -857,15 +889,16 @@ public class AnalyticsFragment extends Fragment {
             tvTip.setLayoutParams(tipParams);
 
             if (isCompleted) {
-                tvTip.setText("🎉 Bạn đã đạt mục tiêu này!");
+                tvTip.setText(isVi ? "🎉 Bạn đã đạt mục tiêu này!" : "🎉 You completed this goal!");
                 tvTip.setTextColor(getResources().getColor(R.color.emerald_income));
             } else if (sug != null && suggestedAmount != null && suggestedAmount.compareTo(BigDecimal.ZERO) > 0) {
                 String pctStr = sug.getAllocationPercent() != null ? sug.getAllocationPercent().toString() + "%" : "";
-                tvTip.setText(String.format("💡 Gợi ý trích: +%sđ/tháng (%s dòng dư)",
-                        formatter.format(suggestedAmount), pctStr));
+                tvTip.setText(isVi 
+                        ? String.format("💡 Gợi ý trích: +%sđ/tháng (%s dòng dư)", formatter.format(suggestedAmount), pctStr)
+                        : String.format("💡 Suggested: +%s VND/month (%s surplus)", formatter.format(suggestedAmount), pctStr));
                 tvTip.setTextColor(getResources().getColor(R.color.accent_blue));
             } else {
-                tvTip.setText("💡 Trích lũy thông minh được bật");
+                tvTip.setText(isVi ? "💡 Trích lũy thông minh được bật" : "💡 Smart savings enabled");
                 tvTip.setTextColor(getResources().getColor(R.color.text_secondary));
             }
 
@@ -875,7 +908,7 @@ public class AnalyticsFragment extends Fragment {
             if (isCompleted) {
                 // Badge Đã Hoàn Thành thay thế nút Nạp Quỹ
                 TextView tvCompleted = new TextView(getContext());
-                tvCompleted.setText("✅ ĐÃ HOÀN THÀNH");
+                tvCompleted.setText(isVi ? "✅ ĐÃ HOÀN THÀNH" : "✅ COMPLETED");
                 tvCompleted.setTextColor(getResources().getColor(R.color.emerald_income));
                 tvCompleted.setTextSize(11);
                 tvCompleted.setTypeface(null, android.graphics.Typeface.BOLD);
@@ -888,7 +921,7 @@ public class AnalyticsFragment extends Fragment {
             } else {
                 // Nút Nạp Quỹ (tự điền sẵn số tiền gợi ý)
                 MaterialButton btnAddFunds = new MaterialButton(getContext());
-                btnAddFunds.setText("Nạp Quỹ");
+                btnAddFunds.setText(isVi ? "Nạp Quỹ" : "Deposit");
                 btnAddFunds.setTextColor(getResources().getColor(R.color.surface_white));
                 btnAddFunds.setTextSize(10);
                 btnAddFunds.setTypeface(null, android.graphics.Typeface.BOLD);
@@ -918,6 +951,7 @@ public class AnalyticsFragment extends Fragment {
 
     private void showAddFundsDialog(Integer goalId, BigDecimal suggestedAmount) {
         if (getContext() == null) return;
+        final boolean isVi = "vi".equals(com.example.smartexpense.utils.LocaleHelper.getAppLanguage());
         if (goalId != null) {
             View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_add_funds, null);
             AutoCompleteTextView actWallet = dialogView.findViewById(R.id.act_source_wallet);
@@ -944,8 +978,8 @@ public class AnalyticsFragment extends Fragment {
 
             AlertDialog alertDialog = new AlertDialog.Builder(getContext())
                     .setView(dialogView)
-                    .setPositiveButton("Nạp Ngay", null)
-                    .setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss())
+                    .setPositiveButton(isVi ? "Nạp Ngay" : "Deposit", null)
+                    .setNegativeButton(isVi ? "Hủy" : "Cancel", (dialog, which) -> dialog.dismiss())
                     .create();
 
             alertDialog.setOnShowListener(dialog -> {
@@ -954,13 +988,13 @@ public class AnalyticsFragment extends Fragment {
                     String selectedWalletStr = actWallet.getText() != null ? actWallet.getText().toString() : "";
                     int selectedIndex = walletDisplayList.indexOf(selectedWalletStr);
                     if (selectedIndex < 0) {
-                        Toast.makeText(getContext(), "Vui lòng chọn ví nguồn!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), isVi ? "Vui lòng chọn ví nguồn!" : "Please select a source wallet!", Toast.LENGTH_SHORT).show();
                         return;
                     }
 
                     String valStr = etAmount.getText() != null ? etAmount.getText().toString().trim() : "";
                     if (valStr.isEmpty()) {
-                        Toast.makeText(getContext(), "Số tiền không hợp lệ!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), isVi ? "Số tiền không hợp lệ!" : "Invalid amount!", Toast.LENGTH_SHORT).show();
                         return;
                     }
 
@@ -968,17 +1002,17 @@ public class AnalyticsFragment extends Fragment {
                     try {
                         amount = new BigDecimal(valStr);
                         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-                            Toast.makeText(getContext(), "Số tiền nạp phải lớn hơn 0!", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getContext(), isVi ? "Số tiền nạp phải lớn hơn 0!" : "Deposit amount must be greater than 0!", Toast.LENGTH_SHORT).show();
                             return;
                         }
                     } catch (Exception e) {
-                        Toast.makeText(getContext(), "Số tiền không hợp lệ!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), isVi ? "Số tiền không hợp lệ!" : "Invalid amount!", Toast.LENGTH_SHORT).show();
                         return;
                     }
 
                     Wallet selectedWallet = walletList.get(selectedIndex);
                     if (selectedWallet.getBalance() == null || selectedWallet.getBalance().compareTo(amount) < 0) {
-                        Toast.makeText(getContext(), "Số dư ví không đủ để chuyển!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), isVi ? "Số dư ví không đủ để chuyển!" : "Insufficient wallet balance!", Toast.LENGTH_SHORT).show();
                         return;
                     }
 
@@ -989,12 +1023,12 @@ public class AnalyticsFragment extends Fragment {
                             if (getContext() == null) return;
 
                             if (response.isSuccessful()) {
-                                Toast.makeText(getContext(), "Đã nạp +" + formatter.format(amount) + "đ vào quỹ!", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(getContext(), isVi ? "Đã nạp +" + formatter.format(amount) + "đ vào quỹ!" : "Deposited +" + formatter.format(amount) + " VND into the fund!", Toast.LENGTH_SHORT).show();
                                 alertDialog.dismiss();
                                 loadSavingsSuggestions();
                             } else {
                                 alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
-                                Toast.makeText(getContext(), "Nạp quỹ thất bại, thử lại!", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(getContext(), isVi ? "Nạp quỹ thất bại, thử lại!" : "Deposit failed, please try again!", Toast.LENGTH_SHORT).show();
                             }
                         }
 
@@ -1002,7 +1036,7 @@ public class AnalyticsFragment extends Fragment {
                         public void onFailure(Call<Map<String, Object>> call, Throwable t) {
                             if (getContext() == null) return;
                             alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
-                            Toast.makeText(getContext(), "Lỗi kết nối!", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getContext(), isVi ? "Lỗi kết nối!" : "Connection error!", Toast.LENGTH_SHORT).show();
                         }
                     });
                 });
@@ -1018,21 +1052,21 @@ public class AnalyticsFragment extends Fragment {
                             walletList.addAll(response.body());
                             for (Wallet wallet : walletList) {
                                 BigDecimal balance = wallet.getBalance() != null ? wallet.getBalance() : BigDecimal.ZERO;
-                                walletDisplayList.add(wallet.getName() + " (" + formatter.format(balance) + "đ)");
+                                walletDisplayList.add(wallet.getName() + " (" + formatter.format(balance) + (isVi ? "đ)" : " VND)"));
                             }
                             walletAdapter.notifyDataSetChanged();
                             actWallet.setText(walletDisplayList.get(0), false);
                             alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
                             actWallet.postDelayed(actWallet::showDropDown, 200);
                         } else {
-                            Toast.makeText(getContext(), "Không có ví để nạp quỹ!", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getContext(), isVi ? "Không có ví để nạp quỹ!" : "No wallets available to deposit!", Toast.LENGTH_SHORT).show();
                         }
                     }
 
                     @Override
                     public void onFailure(Call<List<Wallet>> call, Throwable t) {
                         if (getContext() == null) return;
-                        Toast.makeText(getContext(), "Lỗi mạng khi tải ví!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), isVi ? "Lỗi mạng khi tải ví!" : "Network error loading wallets!", Toast.LENGTH_SHORT).show();
                     }
                 });
             });
@@ -1041,10 +1075,11 @@ public class AnalyticsFragment extends Fragment {
             return;
         }
 
+
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         builder.setTitle(suggestedAmount != null
-                ? "Nạp quỹ tích lũy (AI gợi ý)"
-                : "Nạp thêm vào quỹ tích lũy");
+                ? (isVi ? "Nạp quỹ tích lũy (AI gợi ý)" : "Deposit to Savings (AI Suggestion)")
+                : (isVi ? "Nạp thêm vào quỹ tích lũy" : "Deposit into Savings Goal"));
 
         LinearLayout container = new LinearLayout(getContext());
         container.setOrientation(LinearLayout.VERTICAL);
@@ -1054,7 +1089,9 @@ public class AnalyticsFragment extends Fragment {
         // Nếu có gợi ý AI, hiển thị dòng chú thích
         if (suggestedAmount != null && suggestedAmount.compareTo(BigDecimal.ZERO) > 0) {
             TextView tvHint = new TextView(getContext());
-            tvHint.setText("💡 AI gợi ý nạp: +" + formatter.format(suggestedAmount) + "đ tháng này");
+            tvHint.setText(isVi 
+                    ? "💡 AI gợi ý nạp: +" + formatter.format(suggestedAmount) + "đ tháng này"
+                    : "💡 AI suggests depositing: +" + formatter.format(suggestedAmount) + " VND this month");
             tvHint.setTextColor(getResources().getColor(R.color.accent_blue));
             tvHint.setTextSize(12);
             tvHint.setTypeface(null, android.graphics.Typeface.BOLD);
@@ -1065,7 +1102,9 @@ public class AnalyticsFragment extends Fragment {
         TextInputLayout layoutInput = new TextInputLayout(getContext());
         layoutInput.setBoxBackgroundMode(TextInputLayout.BOX_BACKGROUND_OUTLINE);
         layoutInput.setBoxStrokeColor(getResources().getColor(R.color.accent_blue));
-        layoutInput.setHint(suggestedAmount != null ? "Số tiền nạp (đã điền sẵn gợi ý AI)" : "Số tiền nạp (VND)");
+        layoutInput.setHint(suggestedAmount != null 
+                ? (isVi ? "Số tiền nạp (đã điền sẵn gợi ý AI)" : "Deposit amount (AI suggestion pre-filled)")
+                : (isVi ? "Số tiền nạp (VND)" : "Deposit amount (VND)"));
 
         TextInputEditText etAmount = new TextInputEditText(getContext());
         etAmount.setInputType(InputType.TYPE_CLASS_NUMBER);
@@ -1081,10 +1120,10 @@ public class AnalyticsFragment extends Fragment {
         container.addView(layoutInput);
         builder.setView(container);
 
-        builder.setPositiveButton("Nạp Ngay", (dialog, which) -> {
+        builder.setPositiveButton(isVi ? "Nạp Ngay" : "Deposit", (dialog, which) -> {
             String valStr = etAmount.getText() != null ? etAmount.getText().toString().trim() : "";
             if (valStr.isEmpty()) {
-                Toast.makeText(getContext(), "Số tiền không hợp lệ!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), isVi ? "Số tiền không hợp lệ!" : "Invalid amount!", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -1093,21 +1132,23 @@ public class AnalyticsFragment extends Fragment {
                 @Override
                 public void onResponse(Call<Map<String, Object>> call, Response<Map<String, Object>> response) {
                     if (response.isSuccessful()) {
-                        Toast.makeText(getContext(), "🎉 Đã nạp +" + formatter.format(amount) + "đ vào quỹ!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), isVi 
+                                ? "🎉 Đã nạp +" + formatter.format(amount) + "đ vào quỹ!" 
+                                : "🎉 Deposited +" + formatter.format(amount) + " VND into the fund!", Toast.LENGTH_SHORT).show();
                         loadSavingsSuggestions(); // Refresh cả gợi ý lẫn Goals
                     } else {
-                        Toast.makeText(getContext(), "Nạp quỹ thất bại, thử lại!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), isVi ? "Nạp quỹ thất bại, thử lại!" : "Deposit failed, please try again!", Toast.LENGTH_SHORT).show();
                     }
                 }
 
                 @Override
                 public void onFailure(Call<Map<String, Object>> call, Throwable t) {
-                    Toast.makeText(getContext(), "Lỗi kết nối!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), isVi ? "Lỗi kết nối!" : "Connection error!", Toast.LENGTH_SHORT).show();
                 }
             });
         });
 
-        builder.setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss());
+        builder.setNegativeButton(isVi ? "Hủy" : "Cancel", (dialog, which) -> dialog.dismiss());
         builder.show();
     }
 
@@ -1115,6 +1156,7 @@ public class AnalyticsFragment extends Fragment {
 
     private void showAddBudgetDialog() {
         if (getContext() == null) return;
+        boolean isVi = "vi".equals(com.example.smartexpense.utils.LocaleHelper.getAppLanguage());
 
         View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_add_budget, null);
         AutoCompleteTextView actCat = dialogView.findViewById(R.id.act_budget_category);
@@ -1153,16 +1195,16 @@ public class AnalyticsFragment extends Fragment {
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         builder.setView(dialogView);
 
-        builder.setPositiveButton("Thiết Lập", (dialog, which) -> {
+        builder.setPositiveButton(isVi ? "Thiết Lập" : "Set Limit", (dialog, which) -> {
             String amtStr = etAmt.getText() != null ? etAmt.getText().toString().trim() : "";
 
             if (selectedBudgetCategory == null || selectedBudgetCategory.getCategoryId() == null) {
-                Toast.makeText(getContext(), "Vui lòng chọn hạng mục chi tiêu!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), isVi ? "Vui lòng chọn hạng mục chi tiêu!" : "Please select a spending category!", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             if (amtStr.isEmpty()) {
-                Toast.makeText(getContext(), "Hạn mức không được để trống!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), isVi ? "Hạn mức không được để trống!" : "Limit amount cannot be empty!", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -1170,12 +1212,12 @@ public class AnalyticsFragment extends Fragment {
             try {
                 amount = new BigDecimal(amtStr);
             } catch (Exception ignored) {
-                Toast.makeText(getContext(), "Hạn mức không hợp lệ!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), isVi ? "Hạn mức không hợp lệ!" : "Invalid limit amount!", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-                Toast.makeText(getContext(), "Hạn mức phải > 0!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), isVi ? "Hạn mức phải > 0!" : "Limit amount must be greater than 0!", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -1188,26 +1230,27 @@ public class AnalyticsFragment extends Fragment {
                 @Override
                 public void onResponse(Call<Budget> call, Response<Budget> response) {
                     if (response.isSuccessful()) {
-                        Toast.makeText(getContext(), "Thiết lập ngân sách thành công!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), isVi ? "Thiết lập ngân sách thành công!" : "Budget set up successfully!", Toast.LENGTH_SHORT).show();
                         loadBudgets(); // Refresh list
                     } else {
-                        Toast.makeText(getContext(), "Lỗi khi thiết lập ngân sách!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), isVi ? "Lỗi khi thiết lập ngân sách!" : "Failed to set up budget!", Toast.LENGTH_SHORT).show();
                     }
                 }
 
                 @Override
                 public void onFailure(Call<Budget> call, Throwable t) {
-                    Toast.makeText(getContext(), "Lỗi kết nối!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), isVi ? "Lỗi kết nối!" : "Connection error!", Toast.LENGTH_SHORT).show();
                 }
             });
         });
 
-        builder.setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss());
+        builder.setNegativeButton(isVi ? "Hủy" : "Cancel", (dialog, which) -> dialog.dismiss());
         builder.show();
     }
 
     private void showCreateGoalDialog() {
         if (getContext() == null) return;
+        boolean isVi = "vi".equals(com.example.smartexpense.utils.LocaleHelper.getAppLanguage());
 
         View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_add_goal, null);
         TextInputEditText etName = dialogView.findViewById(R.id.et_goal_name);
@@ -1234,14 +1277,14 @@ public class AnalyticsFragment extends Fragment {
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         builder.setView(dialogView);
 
-        builder.setPositiveButton("Thiết Lập Ngay", (dialog, which) -> {
+        builder.setPositiveButton(isVi ? "Thiết Lập Ngay" : "Set Goal", (dialog, which) -> {
             String nameStr = etName.getText() != null ? etName.getText().toString().trim() : "";
             String tarStr = etTarget.getText() != null ? etTarget.getText().toString().trim() : "";
             String initStr = etInitial.getText() != null ? etInitial.getText().toString().trim() : "";
             String dlStr = etDeadline.getText() != null ? etDeadline.getText().toString().trim() : "";
 
             if (tarStr.isEmpty()) {
-                Toast.makeText(getContext(), "Số tiền mục tiêu không được để trống!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), isVi ? "Số tiền mục tiêu không được để trống!" : "Target amount cannot be empty!", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -1249,7 +1292,7 @@ public class AnalyticsFragment extends Fragment {
             try {
                 targetAmt = new BigDecimal(tarStr);
             } catch (Exception ignored) {
-                Toast.makeText(getContext(), "Số tiền mục tiêu không hợp lệ!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), isVi ? "Số tiền mục tiêu không hợp lệ!" : "Invalid target amount!", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -1262,7 +1305,7 @@ public class AnalyticsFragment extends Fragment {
 
             SavingsGoal goal = new SavingsGoal();
             goal.setUserId(getUserId());
-            goal.setGoalName(nameStr.isEmpty() ? "Mục Tiêu Tích Lũy" : nameStr);
+            goal.setGoalName(nameStr.isEmpty() ? (isVi ? "Mục Tiêu Tích Lũy" : "Savings Goal") : nameStr);
             goal.setTargetAmount(targetAmt);
             goal.setCurrentAmount(initialAmt);
             if (!dlStr.isEmpty()) {
@@ -1274,22 +1317,24 @@ public class AnalyticsFragment extends Fragment {
                 @Override
                 public void onResponse(Call<SavingsGoal> call, Response<SavingsGoal> response) {
                     if (response.isSuccessful()) {
-                        String gName = nameStr.isEmpty() ? "Mục tiêu" : nameStr;
-                        Toast.makeText(getContext(), "🎉 Đã tạo mục tiêu \"" + gName + "\" thành công!", Toast.LENGTH_SHORT).show();
+                        String gName = nameStr.isEmpty() ? (isVi ? "Mục tiêu" : "Goal") : nameStr;
+                        Toast.makeText(getContext(), isVi 
+                                ? "🎉 Đã tạo mục tiêu \"" + gName + "\" thành công!" 
+                                : "🎉 Goal \"" + gName + "\" created successfully!", Toast.LENGTH_SHORT).show();
                         loadSavingsSuggestions(); // Refresh cả suggestions + goals
                     } else {
-                        Toast.makeText(getContext(), "Tạo mục tiêu thất bại!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), isVi ? "Tạo mục tiêu thất bại!" : "Failed to create goal!", Toast.LENGTH_SHORT).show();
                     }
                 }
 
                 @Override
                 public void onFailure(Call<SavingsGoal> call, Throwable t) {
-                    Toast.makeText(getContext(), "Lỗi kết nối!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), isVi ? "Lỗi kết nối!" : "Connection error!", Toast.LENGTH_SHORT).show();
                 }
             });
         });
 
-        builder.setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss());
+        builder.setNegativeButton(isVi ? "Hủy" : "Cancel", (dialog, which) -> dialog.dismiss());
         builder.show();
     }
 
@@ -1316,6 +1361,7 @@ public class AnalyticsFragment extends Fragment {
     private void setupAiAutoAllocateAction() {
         if (btnAiAutoAllocate == null) return;
         btnAiAutoAllocate.setOnClickListener(v -> {
+            boolean isVi = "vi".equals(com.example.smartexpense.utils.LocaleHelper.getAppLanguage());
             if (savingsSuggestionsMap.isEmpty()) return;
 
             BigDecimal surplusTemp = BigDecimal.ZERO;
@@ -1325,17 +1371,19 @@ public class AnalyticsFragment extends Fragment {
             final BigDecimal totalSurplus = surplusTemp; // effectively final để dùng trong lambda
 
             if (totalSurplus.compareTo(BigDecimal.ZERO) <= 0) {
-                Toast.makeText(getContext(), "Không có dòng tiền nhàn rỗi để phân bổ!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), isVi ? "Không có dòng tiền nhàn rỗi để phân bổ!" : "No idle cash flow to allocate!", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-            builder.setTitle("Tối ưu hóa dòng tiền bằng AI 💡");
-            builder.setMessage(String.format("Bạn có muốn tự động trích phân bổ tổng cộng +%sđ dòng tiền nhàn rỗi dự kiến vào các mục tiêu tích lũy theo tỷ lệ tối ưu của AI không?", formatter.format(totalSurplus)));
+            builder.setTitle(isVi ? "Tối ưu hóa dòng tiền bằng AI 💡" : "Optimize Cash Flow with AI 💡");
+            builder.setMessage(isVi 
+                    ? String.format("Bạn có muốn tự động trích phân bổ tổng cộng +%sđ dòng tiền nhàn rỗi dự kiến vào các mục tiêu tích lũy theo tỷ lệ tối ưu của AI không?", formatter.format(totalSurplus))
+                    : String.format("Do you want to automatically allocate +%s VND of projected idle cash flow to your savings goals according to AI optimal ratios?", formatter.format(totalSurplus)));
 
-            builder.setPositiveButton("Phân Bổ Ngay", (dialog, which) -> {
+            builder.setPositiveButton(isVi ? "Phân Bổ Ngay" : "Allocate Now", (dialog, which) -> {
                 AlertDialog progressDialog = new AlertDialog.Builder(getContext())
-                        .setMessage("AI đang tự động phân bổ dòng tiền nhàn rỗi của bạn...")
+                        .setMessage(isVi ? "AI đang tự động phân bổ dòng tiền nhàn rỗi của bạn..." : "AI is automatically allocating your idle cash flow...")
                         .setCancelable(false)
                         .show();
 
@@ -1380,16 +1428,21 @@ public class AnalyticsFragment extends Fragment {
                 }
             });
 
-            builder.setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss());
+            builder.setNegativeButton(isVi ? "Hủy" : "Cancel", (dialog, which) -> dialog.dismiss());
             builder.show();
         });
     }
 
     private void finishAllocation(int successCount, BigDecimal totalAllocated) {
+        boolean isVi = "vi".equals(com.example.smartexpense.utils.LocaleHelper.getAppLanguage());
         if (successCount > 0) {
-            Toast.makeText(getContext(), String.format("Chúc mừng! AI đã phân bổ thành công +%sđ vào các quỹ tích lũy!", formatter.format(totalAllocated)), Toast.LENGTH_LONG).show();
+            Toast.makeText(getContext(), isVi 
+                    ? String.format("Chúc mừng! AI đã phân bổ thành công +%sđ vào các quỹ tích lũy!", formatter.format(totalAllocated))
+                    : String.format("Congratulations! AI successfully allocated +%s VND into your savings funds!", formatter.format(totalAllocated)), Toast.LENGTH_LONG).show();
         } else {
-            Toast.makeText(getContext(), "Không phân bổ được mục nào. Vui lòng kiểm tra lại!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), isVi 
+                    ? "Không phân bổ được mục nào. Vui lòng kiểm tra lại!"
+                    : "No allocations were made. Please check again!", Toast.LENGTH_SHORT).show();
         }
         loadSavingsSuggestions(); // Refresh everything
     }
@@ -1443,21 +1496,15 @@ public class AnalyticsFragment extends Fragment {
         }
 
         if (!overBudgets.isEmpty()) {
-            insight.append("⚠️ Cảnh báo chi tiêu: Bạn đã vượt hạn mức ngân sách ở các danh mục: ")
-                   .append(String.join(", ", overBudgets))
-                   .append(". Hãy cắt giảm chi tiêu khẩn cấp để đảm bảo an toàn tài chính!");
+            insight.append(getString(R.string.insight_budget_warning_over, String.join(", ", overBudgets)));
         } else if (!nearBudgets.isEmpty()) {
-            insight.append("⚠️ Cảnh báo tốc độ: Bạn sắp chạm hạn mức ngân sách ở danh mục: ")
-                   .append(String.join(", ", nearBudgets))
-                   .append(". Nên hạn chế mua sắm thêm ở các mục này.");
+            insight.append(getString(R.string.insight_budget_warning_near, String.join(", ", nearBudgets)));
         } else if (totalLimit.compareTo(BigDecimal.ZERO) > 0 && spentPercent > timePercent + 15.0) {
-            insight.append(String.format("⚠️ Cảnh báo tốc độ chi tiêu: Bạn đã dùng %.0f%% ngân sách tháng này trong khi mới đi qua %.0f%% thời gian của tháng (%d/%d ngày). Tốc độ chi tiêu này là QUÁ NHANH!",
-                    spentPercent, timePercent, dayOfMonth, maxDays));
+            insight.append(getString(R.string.insight_speed_warning, spentPercent, timePercent, dayOfMonth, maxDays));
         } else if (allGoalsCompleted) {
-            insight.append("🎉 Chúc mừng! Bạn đã hoàn thành xuất sắc tất cả mục tiêu tích lũy đặt ra. Hãy tiếp tục thiết lập những mục tiêu mới tiếp theo nhé!");
+            insight.append(getString(R.string.insight_all_completed));
         } else if (totalLimit.compareTo(BigDecimal.ZERO) > 0 && spentPercent < 30.0) {
-            insight.append(String.format("🌟 Tiết kiệm vượt trội: Bạn mới chỉ dùng hết %.1f%% ngân sách tháng này. Kế hoạch kiểm soát chi tiêu của bạn đang vô cùng xuất sắc!",
-                    spentPercent));
+            insight.append(getString(R.string.insight_savings_superior, spentPercent));
         } else if (goals != null && !goals.isEmpty()) {
             // Suggest allocating surplus money to goals
             BigDecimal totalAllocated = BigDecimal.ZERO;
@@ -1475,16 +1522,12 @@ public class AnalyticsFragment extends Fragment {
             }
 
             if (totalAllocated.compareTo(BigDecimal.ZERO) > 0 && !mainGoalName.isEmpty()) {
-                insight.append("💡 Gợi ý AI: Tháng này bạn dự kiến có khoảng +")
-                       .append(formatter.format(totalAllocated))
-                       .append("đ dòng tiền nhàn rỗi. Tích lũy vào mục tiêu '")
-                       .append(mainGoalName)
-                       .append("' sẽ giúp bạn hoàn thành kế hoạch sớm hơn!");
+                insight.append(getString(R.string.insight_ai_suggestion, formatter.format(totalAllocated), mainGoalName));
             } else {
-                insight.append("💡 Lời khuyên tài chính: Bạn đang chi tiêu ổn định. Tuy nhiên dòng tiền nhàn rỗi tháng này khá thấp, hãy tối ưu thêm chi tiêu không thiết yếu nhé.");
+                insight.append(getString(R.string.insight_financial_advice_stable));
             }
         } else {
-            insight.append("💡 Lời khuyên tài chính: Bạn chưa thiết lập ngân sách và mục tiêu cá nhân. Hãy tạo ngay để AI bắt đầu phân tích hành vi và tối ưu điểm sức khỏe tài chính của bạn!");
+            insight.append(getString(R.string.insight_financial_advice_empty));
         }
 
         insight.append("\"");

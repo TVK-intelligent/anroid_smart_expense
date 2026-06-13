@@ -15,7 +15,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Chỉnh Sửa Giao Dịch"
+            android:text="@string/edit_tx_title"
             android:textColor="@color/text_primary"
             android:textSize="18sp"
             android:textStyle="bold"
@@ -26,7 +26,7 @@
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Loại giao dịch"
+            android:hint="@string/edit_tx_type"
             app:boxStrokeColor="@color/accent_blue"
             app:hintTextColor="@color/accent_blue"
             android:layout_marginBottom="16dp">
@@ -44,7 +44,7 @@
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Số tiền (VND)"
+            android:hint="@string/edit_tx_amount"
             app:boxStrokeColor="@color/accent_blue"
             app:hintTextColor="@color/accent_blue"
             android:layout_marginBottom="16dp">
@@ -62,7 +62,7 @@
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Ví tài khoản"
+            android:hint="@string/edit_tx_wallet"
             app:boxStrokeColor="@color/accent_blue"
             app:hintTextColor="@color/accent_blue"
             android:layout_marginBottom="16dp">
@@ -80,7 +80,7 @@
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Hạng mục chi tiêu"
+            android:hint="@string/edit_tx_category"
             app:boxStrokeColor="@color/accent_blue"
             app:hintTextColor="@color/accent_blue"
             android:layout_marginBottom="16dp">
@@ -98,7 +98,7 @@
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Ngày giao dịch"
+            android:hint="@string/edit_tx_date"
             app:boxStrokeColor="@color/accent_blue"
             app:hintTextColor="@color/accent_blue"
             app:startIconDrawable="@drawable/ic_calendar"
@@ -119,7 +119,7 @@
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Ghi chú"
+            android:hint="@string/edit_tx_note"
             app:boxStrokeColor="@color/accent_blue"
             app:hintTextColor="@color/accent_blue"
             app:startIconDrawable="@drawable/ic_note"

@@ -315,10 +315,13 @@ public class SavingsGoalsActivity extends BaseActivity {
     }
 
     private void showGoalDetails(SavingsGoal goal) {
+        boolean isVi = "vi".equals(com.example.smartexpense.utils.LocaleHelper.getLanguage(this));
+        String currencySymbol = isVi ? "đ" : " VND";
         StringBuilder details = new StringBuilder();
-        details.append("Tên mục tiêu: ").append(goal.getGoalName()).append("\n\n");
         
-        java.text.NumberFormat nf = java.text.NumberFormat.getNumberInstance(new Locale("vi", "VN"));
+        details.append(isVi ? "Tên mục tiêu: " : "Goal Name: ").append(goal.getGoalName()).append("\n\n");
+        
+        java.text.NumberFormat nf = java.text.NumberFormat.getNumberInstance(isVi ? new Locale("vi", "VN") : Locale.US);
         BigDecimal target = goal.getTargetAmount() != null ? goal.getTargetAmount() : BigDecimal.ZERO;
         BigDecimal current = goal.getCurrentAmount() != null ? goal.getCurrentAmount() : BigDecimal.ZERO;
         BigDecimal remaining = target.subtract(current);
@@ -329,17 +332,24 @@ public class SavingsGoalsActivity extends BaseActivity {
             percentVal = current.multiply(new BigDecimal(100)).divide(target, 0, RoundingMode.HALF_UP).intValue();
         }
 
-        details.append("Số tiền mục tiêu: ").append(nf.format(target)).append("đ\n");
-        details.append("Số tiền đã tích lũy: ").append(nf.format(current)).append("đ\n");
-        details.append("Còn thiếu: ").append(nf.format(remaining)).append("đ\n\n");
-        details.append("Tiến độ: ").append(percentVal).append("%\n");
-        details.append("Hạn chót: ").append(goal.getDeadline() != null ? goal.getDeadline() : "N/A").append("\n");
-        details.append("Trạng thái: ").append("COMPLETED".equalsIgnoreCase(goal.getStatus()) || percentVal >= 100 ? "Hoàn thành" : "Đang thực hiện").append("\n");
+        details.append(isVi ? "Số tiền mục tiêu: " : "Target Amount: ").append(nf.format(target)).append(currencySymbol).append("\n");
+        details.append(isVi ? "Số tiền đã tích lũy: " : "Accumulated Amount: ").append(nf.format(current)).append(currencySymbol).append("\n");
+        details.append(isVi ? "Còn thiếu: " : "Remaining: ").append(nf.format(remaining)).append(currencySymbol).append("\n\n");
+        details.append(isVi ? "Tiến độ: " : "Progress: ").append(percentVal).append("%\n");
+        details.append(isVi ? "Hạn chót: " : "Deadline: ").append(goal.getDeadline() != null ? goal.getDeadline() : "N/A").append("\n");
+        
+        String statusText;
+        if ("COMPLETED".equalsIgnoreCase(goal.getStatus()) || percentVal >= 100) {
+            statusText = isVi ? "Hoàn thành" : "Completed";
+        } else {
+            statusText = isVi ? "Đang tiến hành" : "In Progress";
+        }
+        details.append(isVi ? "Trạng thái: " : "Status: ").append(statusText).append("\n");
 
         new AlertDialog.Builder(this)
-                .setTitle("Chi Tiết Mục Tiêu Tích Lũy")
+                .setTitle(isVi ? "Chi Tiết Mục Tiêu Tích Lũy" : "Savings Goal Details")
                 .setMessage(details.toString())
-                .setPositiveButton("Đóng", (dialog, which) -> dialog.dismiss())
+                .setPositiveButton(isVi ? "Đóng" : "Close", (dialog, which) -> dialog.dismiss())
                 .show();
     }
 
@@ -370,10 +380,13 @@ public class SavingsGoalsActivity extends BaseActivity {
             etDeadline.setText(goalToEdit.getDeadline());
         }
 
+        boolean isVi = com.example.smartexpense.utils.LocaleHelper.getLanguage(this).equals("vi");
         new AlertDialog.Builder(this)
                 .setView(dialogView)
-                .setTitle(goalToEdit == null ? "Tạo Mục Tiêu Tích Lũy" : "Sửa Mục Tiêu Tích Lũy")
-                .setPositiveButton(goalToEdit == null ? getString(R.string.savings_goals_label_create) : "Cập nhật", (dialog, which) -> {
+                .setTitle(goalToEdit == null 
+                        ? (isVi ? "Tạo Mục Tiêu Tích Lũy" : "Create Savings Goal") 
+                        : (isVi ? "Sửa Mục Tiêu Tích Lũy" : "Edit Savings Goal"))
+                .setPositiveButton(goalToEdit == null ? getString(R.string.savings_goals_label_create) : (isVi ? "Cập nhật" : "Update"), (dialog, which) -> {
                     String name = etName.getText() != null ? etName.getText().toString().trim() : "";
                     String targetStr = etTarget.getText() != null ? etTarget.getText().toString().trim() : "";
                     String initialStr = etInitial.getText() != null ? etInitial.getText().toString().trim() : "";
@@ -492,17 +505,19 @@ public class SavingsGoalsActivity extends BaseActivity {
         ApiClient.getApiService().updateSavingsGoal(goal.getGoalId(), currentUserId, goal).enqueue(new Callback<SavingsGoal>() {
             @Override
             public void onResponse(Call<SavingsGoal> call, Response<SavingsGoal> response) {
+                boolean isVi = com.example.smartexpense.utils.LocaleHelper.getLanguage(SavingsGoalsActivity.this).equals("vi");
                 if (response.isSuccessful()) {
-                    Toast.makeText(SavingsGoalsActivity.this, "Cập nhật mục tiêu thành công!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(SavingsGoalsActivity.this, isVi ? "Cập nhật mục tiêu thành công!" : "Savings goal updated successfully!", Toast.LENGTH_SHORT).show();
                     loadSavingsGoals();
                 } else {
-                    Toast.makeText(SavingsGoalsActivity.this, "Không thể cập nhật mục tiêu!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(SavingsGoalsActivity.this, isVi ? "Không thể cập nhật mục tiêu!" : "Failed to update savings goal!", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(Call<SavingsGoal> call, Throwable t) {
-                Toast.makeText(SavingsGoalsActivity.this, "Lỗi mạng, vui lòng thử lại!", Toast.LENGTH_SHORT).show();
+                boolean isVi = com.example.smartexpense.utils.LocaleHelper.getLanguage(SavingsGoalsActivity.this).equals("vi");
+                Toast.makeText(SavingsGoalsActivity.this, isVi ? "Lỗi mạng, vui lòng thử lại!" : "Network error, please try again!", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -521,8 +536,9 @@ public class SavingsGoalsActivity extends BaseActivity {
             public void onResponse(Call<List<Wallet>> call, Response<List<Wallet>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     walletList.addAll(response.body());
+                    boolean isVi = com.example.smartexpense.utils.LocaleHelper.getLanguage(SavingsGoalsActivity.this).equals("vi");
                     for (Wallet w : walletList) {
-                        String displayName = w.getName() + " (" + formatter.format(w.getBalance()) + "đ)";
+                        String displayName = w.getName() + " (" + formatter.format(w.getBalance()) + (isVi ? "đ)" : " VND)");
                         walletDisplayList.add(displayName);
                     }
 

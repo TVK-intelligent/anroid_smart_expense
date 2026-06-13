@@ -11,8 +11,20 @@ public class ApiClient {
 
     public static synchronized ApiService getApiService() {
         if (retrofit == null) {
+            okhttp3.OkHttpClient client = new okhttp3.OkHttpClient.Builder()
+                    .addInterceptor(chain -> {
+                        okhttp3.Request request = chain.request();
+                        String lang = java.util.Locale.getDefault().getLanguage();
+                        okhttp3.Request newRequest = request.newBuilder()
+                                .header("Accept-Language", lang)
+                                .build();
+                        return chain.proceed(newRequest);
+                    })
+                    .build();
+
             retrofit = new Retrofit.Builder()
                     .baseUrl(resolveBaseUrl())
+                    .client(client)
                     .addConverterFactory(GsonConverterFactory.create())
                     .build();
         }
@@ -20,10 +32,7 @@ public class ApiClient {
     }
 
     private static String resolveBaseUrl() {
-        if (isDebugBuild()) {
-            return "http://10.0.2.2:8080/";
-        }
-        return "http://172.16.1.80:8080/";
+        return "http://192.168.1.200:8080/";
     }
 
     private static boolean isDebugBuild() {

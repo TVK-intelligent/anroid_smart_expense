@@ -38,7 +38,9 @@ public class BudgetWarning {
     public Integer getCategoryId() { return categoryId; }
     public void setCategoryId(Integer categoryId) { this.categoryId = categoryId; }
 
-    public String getCategoryName() { return categoryName; }
+    public String getCategoryName() {
+        return com.example.smartexpense.api.CategoryCache.localizeCategoryName(categoryName);
+    }
     public void setCategoryName(String categoryName) { this.categoryName = categoryName; }
 
     public BigDecimal getBudgetAmount() { return budgetAmount; }

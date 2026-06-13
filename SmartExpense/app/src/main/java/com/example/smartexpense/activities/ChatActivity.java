@@ -21,6 +21,7 @@ import com.example.smartexpense.models.ChatMessage;
 import com.example.smartexpense.models.ChatRequest;
 import com.example.smartexpense.models.ChatResponse;
 import com.example.smartexpense.utils.TextToSpeechHelper;
+import com.example.smartexpense.utils.LocaleHelper;
 import com.google.android.material.card.MaterialCardView;
 import java.util.ArrayList;
 import java.util.List;
@@ -75,8 +76,14 @@ public class ChatActivity extends BaseActivity {
         startBreathingAnimation();
 
         // Welcome introduction message from Assistant
-        addAssistantMessage("Xin chào! Tôi là Trợ lý ảo tài chính SmartExpense của bạn. 🙋‍♂️\n\nHôm nay, bạn có câu hỏi nào cần tư vấn về ví tiền, tình hình chi tiêu tháng này hay cách tối ưu hóa tiết kiệm không? Hãy nhắn tin hoặc nói trực tiếp với tôi nhé!");
-        showSuggestions(new String[]{"Ví tôi còn bao nhiêu?", "Thống kê chi tiêu tháng này", "Tình hình ngân sách", "Tư vấn tiết kiệm"});
+        boolean isVi = "vi".equals(LocaleHelper.getLanguage(this));
+        if (isVi) {
+            addAssistantMessage("Xin chào! Tôi là Trợ lý ảo tài chính SmartExpense của bạn. 🙋‍♂️\n\nHôm nay, bạn có câu hỏi nào cần tư vấn về ví tiền, tình hình chi tiêu tháng này hay cách tối ưu hóa tiết kiệm không? Hãy nhắn tin hoặc nói trực tiếp với tôi nhé!");
+            showSuggestions(new String[]{"Ví tôi còn bao nhiêu?", "Thống kê chi tiêu tháng này", "Tình hình ngân sách", "Tư vấn tiết kiệm"});
+        } else {
+            addAssistantMessage("Hello! I am your SmartExpense AI Financial Assistant. 🙋‍♂️\n\nDo you have any questions today regarding your wallets, monthly spending stats, or how to optimize your savings? Feel free to message or speak to me directly!");
+            showSuggestions(new String[]{"How much is left in my wallet?", "This month's spending stats", "Budget status", "Savings advice"});
+        }
     }
 
     private void setupRecyclerView() {
@@ -95,7 +102,7 @@ public class ChatActivity extends BaseActivity {
                     .putBoolean("enable_chat_tts", isTtsEnabled)
                     .apply();
             updateTtsToggleButton();
-            Toast.makeText(this, isTtsEnabled ? "Đã BẬT đọc câu trả lời" : "Đã TẮT đọc câu trả lời", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, isTtsEnabled ? getString(R.string.chat_tts_enabled) : getString(R.string.chat_tts_disabled), Toast.LENGTH_SHORT).show();
         });
 
         cardSend.setOnClickListener(v -> sendMessage());
@@ -116,6 +123,7 @@ public class ChatActivity extends BaseActivity {
     }
 
     private void sendMessage() {
+        final boolean isVi = "vi".equals(LocaleHelper.getLanguage(this));
         String query = etMessage.getText().toString().trim();
         if (query.isEmpty()) return;
 
@@ -134,7 +142,11 @@ public class ChatActivity extends BaseActivity {
                     if (res.getSuggestions() != null && !res.getSuggestions().isEmpty()) {
                         showSuggestions(res.getSuggestions().toArray(new String[0]));
                     } else {
-                        showSuggestions(new String[]{"Ví tiền của tôi", "Chi tiêu tháng này", "Tư vấn tiết kiệm"});
+                        if (isVi) {
+                            showSuggestions(new String[]{"Ví tiền của tôi", "Chi tiêu tháng này", "Tư vấn tiết kiệm"});
+                        } else {
+                            showSuggestions(new String[]{"My wallets", "Spending this month", "Savings advice"});
+                        }
                     }
 
                     // Speak response if enabled
@@ -147,8 +159,11 @@ public class ChatActivity extends BaseActivity {
                         setAiState(0); // Back to IDLE
                     }
                 } else {
-                    setAiState(0); // Back to IDLE
-                    addAssistantMessage("Xin lỗi, tôi không thể xử lý câu hỏi này lúc này. Vui lòng thử lại sau!");
+                    if (isVi) {
+                        addAssistantMessage("Xin lỗi, tôi không thể xử lý câu hỏi này lúc này. Vui lòng thử lại sau!");
+                    } else {
+                        addAssistantMessage("Sorry, I cannot process this question right now. Please try again later!");
+                    }
                 }
             }
 
@@ -156,21 +171,27 @@ public class ChatActivity extends BaseActivity {
             public void onFailure(Call<ChatResponse> call, Throwable t) {
                 setAiState(0); // Back to IDLE
                 // Smart Offline Fallback if server is not running
-                addAssistantMessage("⚠️ **Không thể kết nối máy chủ Spring Boot**\n\nĐể đảm bảo an toàn dữ liệu, xin vui lòng kiểm tra xem máy chủ backend đã được bật hay chưa. Dưới đây là một số mẹo tài chính bạn có thể áp dụng:\n\n• Luôn tuân thủ quy tắc 50/30/20.\n• Hạn chế chi tiêu các danh mục không thiết yếu.\n• Thường xuyên ghi chép giao dịch đầy đủ.");
-                showSuggestions(new String[]{"Ví tôi còn bao nhiêu?", "Thống kê chi tiêu tháng này", "Tư vấn tiết kiệm"});
+                if (isVi) {
+                    addAssistantMessage("⚠️ **Không thể kết nối máy chủ Spring Boot**\n\nĐể đảm bảo an toàn dữ liệu, xin vui lòng kiểm tra xem máy chủ backend đã được bật hay chưa. Dưới đây là một số mẹo tài chính bạn có thể áp dụng:\n\n• Luôn tuân thủ quy tắc 50/30/20.\n• Hạn chế chi tiêu các danh mục không thiết yếu.\n• Thường xuyên ghi chép giao dịch đầy đủ.");
+                    showSuggestions(new String[]{"Ví tôi còn bao nhiêu?", "Thống kê chi tiêu tháng này", "Tư vấn tiết kiệm"});
+                } else {
+                    addAssistantMessage("⚠️ **Cannot connect to Spring Boot server**\n\nTo ensure data safety, please check if the backend server is running. Here are some financial tips you can apply:\n\n• Always adhere to the 50/30/20 rule.\n• Limit spending on non-essential categories.\n• Regularly and fully record transactions.");
+                    showSuggestions(new String[]{"How much is left in my wallet?", "This month's spending stats", "Savings advice"});
+                }
             }
         });
     }
 
     private void startSpeechToText() {
+        boolean isVi = "vi".equals(LocaleHelper.getLanguage(this));
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "vi-VN");
-        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Đang nghe... Hãy nói câu hỏi tài chính của bạn");
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, isVi ? "vi-VN" : "en-US");
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, isVi ? "Đang nghe... Hãy nói câu hỏi tài chính của bạn" : "Listening... Speak your financial question");
         try {
             startActivityForResult(intent, REQUEST_CODE_SPEECH_INPUT);
         } catch (Exception e) {
-            Toast.makeText(this, "Thiết bị không hỗ trợ nhận dạng giọng nói", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, isVi ? "Thiết bị không hỗ trợ nhận dạng giọng nói" : "Speech recognition not supported on this device", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -255,16 +276,16 @@ public class ChatActivity extends BaseActivity {
         if (tvAiStateTitle == null || tvAiStateDesc == null || breathingAnimator == null) return;
         
         if (state == 0) { // IDLE
-            tvAiStateTitle.setText("Hệ thống AI đang sẵn sàng");
-            tvAiStateDesc.setText("Chạm nút Micro để nói chuyện trực tiếp bằng giọng nói");
+            tvAiStateTitle.setText(getString(R.string.chat_ai_state_ready));
+            tvAiStateDesc.setText(getString(R.string.chat_ai_state_desc));
             breathingAnimator.setDuration(1500); // Normal soft breath
         } else if (state == 1) { // THINKING
-            tvAiStateTitle.setText("Trợ lý AI đang suy nghĩ...");
-            tvAiStateDesc.setText("Đang phân tích thông tin tài chính cá nhân của bạn");
+            tvAiStateTitle.setText(getString(R.string.chat_ai_state_thinking));
+            tvAiStateDesc.setText(getString(R.string.chat_ai_state_thinking_desc));
             breathingAnimator.setDuration(400); // Fast pulse representing activity!
         } else if (state == 2) { // SPEAKING
-            tvAiStateTitle.setText("Trợ lý AI đang trả lời...");
-            tvAiStateDesc.setText("Nghe giọng nói tư vấn hoặc đọc trực tiếp bên dưới");
+            tvAiStateTitle.setText(getString(R.string.chat_ai_state_speaking));
+            tvAiStateDesc.setText(getString(R.string.chat_ai_state_speaking_desc));
             breathingAnimator.setDuration(800); // Medium fluid breathing during speech
         }
     }

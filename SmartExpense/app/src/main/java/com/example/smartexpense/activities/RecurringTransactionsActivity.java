@@ -200,7 +200,7 @@ public class RecurringTransactionsActivity extends BaseActivity {
             }
 
             boolean isIncome = matchedCat != null && "INCOME".equalsIgnoreCase(matchedCat.getType());
-            String catName = matchedCat != null ? matchedCat.getName() : "Định kỳ";
+            String catName = matchedCat != null ? matchedCat.getName() : getString(R.string.rec_default_name);
 
             // Resolve Category Icon Resource ID
             String iconName = matchedCat != null ? matchedCat.getIcon() : "other";
@@ -224,11 +224,12 @@ public class RecurringTransactionsActivity extends BaseActivity {
 
             TextView tvAmount = new TextView(this);
             tvAmount.setId(View.generateViewId());
+            String currencySymbol = "vi".equals(com.example.smartexpense.utils.LocaleHelper.getLanguage(this)) ? "đ" : " VND";
             if (isIncome) {
-                tvAmount.setText("+" + formatter.format(rt.getAmount()) + "đ");
+                tvAmount.setText("+" + formatter.format(rt.getAmount()) + currencySymbol);
                 tvAmount.setTextColor(getResources().getColor(R.color.emerald_income));
             } else {
-                tvAmount.setText("-" + formatter.format(rt.getAmount()) + "đ");
+                tvAmount.setText("-" + formatter.format(rt.getAmount()) + currencySymbol);
                 tvAmount.setTextColor(getResources().getColor(R.color.crimson_expense));
             }
             tvAmount.setTextSize(16);
@@ -265,7 +266,7 @@ public class RecurringTransactionsActivity extends BaseActivity {
             rootLayout.addView(row1);
 
             TextView tvFreq = new TextView(this);
-            String freqText = "Tần suất: " + rt.getFrequency();
+            String freqText = getString(R.string.rec_freq_prefix) + translateFrequency(rt.getFrequency());
             tvFreq.setText(freqText);
             tvFreq.setTextColor(getResources().getColor(R.color.text_secondary));
             tvFreq.setTextSize(12);
@@ -273,7 +274,7 @@ public class RecurringTransactionsActivity extends BaseActivity {
             rootLayout.addView(tvFreq);
 
             TextView tvDue = new TextView(this);
-            String dueText = "Ngày đến hạn tiếp theo: " + rt.getNextDueDate();
+            String dueText = getString(R.string.rec_due_date_prefix) + rt.getNextDueDate();
             tvDue.setText(dueText);
             tvDue.setTextColor(getResources().getColor(R.color.accent_blue));
             tvDue.setTextSize(12);
@@ -297,7 +298,7 @@ public class RecurringTransactionsActivity extends BaseActivity {
 
             MaterialButton btnToggle = new MaterialButton(this);
             boolean isActive = rt.getIsActive() != null ? rt.getIsActive() : true;
-            btnToggle.setText(isActive ? "Đang hoạt động" : "Đã tạm dừng");
+            btnToggle.setText(isActive ? getString(R.string.rec_status_active) : getString(R.string.rec_status_paused));
             btnToggle.setTextColor(getResources().getColor(R.color.surface_white));
             btnToggle.setTextSize(11);
             btnToggle.setBackgroundTintList(android.content.res.ColorStateList.valueOf(
@@ -374,39 +375,39 @@ public class RecurringTransactionsActivity extends BaseActivity {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
                 if (response.isSuccessful()) {
-                    Toast.makeText(RecurringTransactionsActivity.this, "Đã cập nhật trạng thái!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(RecurringTransactionsActivity.this, getString(R.string.rec_status_updated), Toast.LENGTH_SHORT).show();
                     loadRecurringTransactions();
                 }
             }
 
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
-                Toast.makeText(RecurringTransactionsActivity.this, "Lỗi kết nối!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(RecurringTransactionsActivity.this, getString(R.string.rec_error_conn), Toast.LENGTH_SHORT).show();
             }
         });
     }
 
     private void deleteRecurring(Integer id) {
         new AlertDialog.Builder(this)
-                .setTitle("Xác nhận xóa")
-                .setMessage("Bạn có chắc chắn muốn xóa lịch giao dịch này?")
-                .setPositiveButton("Xóa", (dialog, which) -> {
+                .setTitle(getString(R.string.rec_delete_title))
+                .setMessage(getString(R.string.rec_delete_message))
+                .setPositiveButton(getString(R.string.rec_delete_btn), (dialog, which) -> {
                     ApiClient.getApiService().deleteRecurringTransaction(id, userId).enqueue(new Callback<Void>() {
                         @Override
                         public void onResponse(Call<Void> call, Response<Void> response) {
                             if (response.isSuccessful()) {
-                                Toast.makeText(RecurringTransactionsActivity.this, "Đã xóa lịch giao dịch!", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(RecurringTransactionsActivity.this, getString(R.string.rec_delete_success), Toast.LENGTH_SHORT).show();
                                 loadRecurringTransactions();
                             }
                         }
 
                         @Override
                         public void onFailure(Call<Void> call, Throwable t) {
-                            Toast.makeText(RecurringTransactionsActivity.this, "Lỗi kết nối!", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(RecurringTransactionsActivity.this, getString(R.string.rec_error_conn), Toast.LENGTH_SHORT).show();
                         }
                     });
                 })
-                .setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss())
+                .setNegativeButton(getString(R.string.rec_btn_cancel), (dialog, which) -> dialog.dismiss())
                 .show();
     }
 
@@ -425,7 +426,7 @@ public class RecurringTransactionsActivity extends BaseActivity {
         TextInputLayout tilCategory = dialogView.findViewById(R.id.til_dialog_category);
 
         if (tilCategory != null) {
-            tilCategory.setHint(isExpenseMode ? "Danh mục chi tiêu" : "Danh mục thu nhập");
+            tilCategory.setHint(isExpenseMode ? getString(R.string.rec_hint_expense) : getString(R.string.rec_hint_income));
         }
 
         final java.util.Calendar cal = java.util.Calendar.getInstance();
@@ -538,7 +539,7 @@ public class RecurringTransactionsActivity extends BaseActivity {
             }
         }
 
-        builder.setPositiveButton(rtToEdit == null ? "Lên lịch" : "Cập nhật", (dialog, which) -> {
+        builder.setPositiveButton(rtToEdit == null ? getString(R.string.rec_btn_schedule) : getString(R.string.rec_btn_update), (dialog, which) -> {
             String catText = actCategory.getText() != null ? actCategory.getText().toString().trim() : "";
             String walletText = actWallet.getText().toString();
             String amtStr = etAmount.getText() != null ? etAmount.getText().toString().trim() : "";
@@ -547,7 +548,7 @@ public class RecurringTransactionsActivity extends BaseActivity {
             String dueStr = etDueDate.getText() != null ? etDueDate.getText().toString().trim() : "";
 
             if (catText.isEmpty() || amtStr.isEmpty()) {
-                Toast.makeText(this, "Vui lòng nhập đầy đủ hạng mục và số tiền!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.rec_validation_empty), Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -572,7 +573,7 @@ public class RecurringTransactionsActivity extends BaseActivity {
             try {
                 amount = new BigDecimal(amtStr);
             } catch (Exception e) {
-                Toast.makeText(this, "Số tiền không hợp lệ!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.rec_validation_invalid), Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -594,16 +595,16 @@ public class RecurringTransactionsActivity extends BaseActivity {
                     @Override
                     public void onResponse(Call<RecurringTransaction> call, Response<RecurringTransaction> response) {
                         if (response.isSuccessful()) {
-                            Toast.makeText(RecurringTransactionsActivity.this, "Đã lên lịch giao dịch thành công!", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(RecurringTransactionsActivity.this, getString(R.string.rec_save_success), Toast.LENGTH_SHORT).show();
                             loadRecurringTransactions();
                         } else {
-                            Toast.makeText(RecurringTransactionsActivity.this, "Lỗi tạo lịch giao dịch!", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(RecurringTransactionsActivity.this, getString(R.string.rec_save_error), Toast.LENGTH_SHORT).show();
                         }
                     }
 
                     @Override
                     public void onFailure(Call<RecurringTransaction> call, Throwable t) {
-                        Toast.makeText(RecurringTransactionsActivity.this, "Lỗi kết nối!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(RecurringTransactionsActivity.this, getString(R.string.rec_error_conn), Toast.LENGTH_SHORT).show();
                     }
                 });
             } else {
@@ -611,7 +612,7 @@ public class RecurringTransactionsActivity extends BaseActivity {
             }
         });
 
-        builder.setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss());
+        builder.setNegativeButton(getString(R.string.rec_btn_cancel), (dialog, which) -> dialog.dismiss());
         builder.show();
     }
 
@@ -620,18 +621,31 @@ public class RecurringTransactionsActivity extends BaseActivity {
             @Override
             public void onResponse(Call<RecurringTransaction> call, Response<RecurringTransaction> response) {
                 if (response.isSuccessful()) {
-                    Toast.makeText(RecurringTransactionsActivity.this, "Đã cập nhật giao dịch định kỳ!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(RecurringTransactionsActivity.this, getString(R.string.rec_update_success), Toast.LENGTH_SHORT).show();
                     loadRecurringTransactions();
                 } else {
-                    Toast.makeText(RecurringTransactionsActivity.this, "Lỗi cập nhật!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(RecurringTransactionsActivity.this, getString(R.string.rec_update_error), Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(Call<RecurringTransaction> call, Throwable t) {
-                Toast.makeText(RecurringTransactionsActivity.this, "Lỗi kết nối!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(RecurringTransactionsActivity.this, getString(R.string.rec_error_conn), Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private String translateFrequency(String freq) {
+        if (freq == null) return "";
+        boolean isVi = "vi".equals(com.example.smartexpense.utils.LocaleHelper.getLanguage(this));
+        if (!isVi) return freq;
+        switch(freq.toUpperCase()) {
+            case "DAILY": return "Hằng ngày";
+            case "WEEKLY": return "Hằng tuần";
+            case "MONTHLY": return "Hằng tháng";
+            case "YEARLY": return "Hằng năm";
+            default: return freq;
+        }
     }
 }
 

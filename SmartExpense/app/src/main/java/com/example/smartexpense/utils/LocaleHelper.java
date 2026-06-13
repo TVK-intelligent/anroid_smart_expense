@@ -13,18 +13,31 @@ public class LocaleHelper {
 
     private static final String PREF_NAME = "smart_expense_prefs";
     private static final String KEY_LANGUAGE = "app_language";
+    private static String cachedLanguage = null;
 
     public static Context onAttach(Context context) {
-        String lang = getPersistedLanguage(context, "vi"); // Defaulting to "vi" (Tiếng Việt) as requested or default
+        String lang = getPersistedLanguage(context, "vi");
+        cachedLanguage = lang;
         return setLocale(context, lang);
     }
 
     public static String getLanguage(Context context) {
-        return getPersistedLanguage(context, "vi");
+        if (cachedLanguage == null) {
+            cachedLanguage = getPersistedLanguage(context, "vi");
+        }
+        return cachedLanguage;
+    }
+
+    public static String getAppLanguage() {
+        if (cachedLanguage != null) {
+            return cachedLanguage;
+        }
+        return Locale.getDefault().getLanguage();
     }
 
     public static Context setLocale(Context context, String language) {
         persist(context, language);
+        cachedLanguage = language;
         return updateResources(context, language);
     }
 

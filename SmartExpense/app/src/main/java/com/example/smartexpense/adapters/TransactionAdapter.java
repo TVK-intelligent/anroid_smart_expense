@@ -51,13 +51,15 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
             isExpense = categoryId != 6;
         }
         java.math.BigDecimal amount = transaction.getAmount() != null ? transaction.getAmount() : java.math.BigDecimal.ZERO;
+        boolean isVi = "vi".equals(com.example.smartexpense.utils.LocaleHelper.getLanguage(holder.itemView.getContext()));
+        String currencySymbol = isVi ? "đ" : " VND";
         if (isExpense) {
-            holder.tvAmount.setText("-" + formatter.format(amount) + "đ");
+            holder.tvAmount.setText("-" + formatter.format(amount) + currencySymbol);
             holder.tvAmount.setTextColor(holder.itemView.getContext().getResources().getColor(R.color.crimson_expense));
             holder.cardIconBg.setCardBackgroundColor(holder.itemView.getContext().getResources().getColor(R.color.crimson_expense_light));
             holder.ivIcon.setColorFilter(holder.itemView.getContext().getResources().getColor(R.color.crimson_expense));
         } else {
-            holder.tvAmount.setText("+" + formatter.format(amount) + "đ");
+            holder.tvAmount.setText("+" + formatter.format(amount) + currencySymbol);
             holder.tvAmount.setTextColor(holder.itemView.getContext().getResources().getColor(R.color.emerald_income));
             holder.cardIconBg.setCardBackgroundColor(holder.itemView.getContext().getResources().getColor(R.color.emerald_income_light));
             holder.ivIcon.setColorFilter(holder.itemView.getContext().getResources().getColor(R.color.emerald_income));

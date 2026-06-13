@@ -40,4 +40,234 @@
     <string name="savings_goals_label_cancel">Hủy</string>
     <string name="savings_goals_label_confirm">Xác nhận</string>
     <string name="profile_voice_warning">Cảnh báo bằng giọng nói</string>
+    <string name="profile_btn_debts">Quản lý Nợ nần &amp; Cho vay</string>
+    <string-array name="debt_loan_types">
+        <item>Tôi đi vay (DEBT)</item>
+        <item>Tôi cho vay (LOAN)</item>
+    </string-array>
+
+    <!-- Dashboard / Overview Strings -->
+    <string name="dashboard_greeting_morning">Chào buổi sáng,</string>
+    <string name="dashboard_greeting_afternoon">Chào buổi chiều,</string>
+    <string name="dashboard_greeting_evening">Chào buổi tối,</string>
+    <string name="dashboard_total_balance">TỔNG SỐ DƯ</string>
+    <string name="dashboard_monthly_income">Thu nhập tháng</string>
+    <string name="dashboard_monthly_expense">Chi tiêu tháng</string>
+    <string name="dashboard_monthly_net">Chênh lệch tháng này: %s</string>
+    <string name="dashboard_wallets_title">Tài Khoản &amp; Ví</string>
+    <string name="dashboard_add_wallet">+ Thêm Ví</string>
+    <string name="dashboard_recent_transactions">Giao dịch gần đây</string>
+    <string name="dashboard_top_expenses">Danh mục chi nhiều nhất</string>
+    <string name="dashboard_budget_warnings">Cảnh báo ngân sách</string>
+    <string name="dashboard_financial_alerts">Cảnh báo tài chính</string>
+    <string name="dashboard_empty_data">Bạn chưa có dữ liệu. Hãy tạo ví hoặc thêm giao dịch đầu tiên.</string>
+    <string name="dashboard_create_wallet">+ Tạo ví</string>
+    <string name="dashboard_add_transaction">+ Thêm giao dịch</string>
+    <string name="dashboard_no_warnings">Không có cảnh báo</string>
+    <string name="dashboard_stable_system">Không có cảnh báo nào. Hệ thống đang ổn định.</string>
+    <string name="dashboard_no_limit_warning">✓ Không có cảnh báo hạn mức</string>
+    <string name="dashboard_approaching_limit">Sắp chạm hạn mức</string>
+    <string name="dashboard_over_budget">Vượt ngân sách</string>
+    <string name="dashboard_default_wallet_name">Tên Ví Tài Khoản</string>
+    <string name="dashboard_no_data_italic">Chưa có dữ liệu</string>
+    <string name="dashboard_error_load">Không tải được dashboard</string>
+    <string name="dashboard_error_network">Lỗi mạng khi tải dashboard</string>
+    <string name="dashboard_error_load_wallets">Không tải được danh sách ví</string>
+    <string name="dashboard_error_network_wallets">Lỗi mạng khi tải ví</string>
+    <string name="dashboard_category_placeholder">Hạng mục</string>
+    <string name="analytics_budget_overview">TỔNG QUAN NGÂN SÁCH THÁNG NÀY</string>
+    <string name="analytics_budget_desc_normal">Đã chi tiêu %1$d%% ngân sách • Còn lại %2$sđ</string>
+    <string name="analytics_budget_desc_over">Đã chi tiêu %1$d%% ngân sách • Vượt hạn mức %2$sđ</string>
+    <!-- Debt & Loan Strings -->
+    <string name="debt_loan_title">Sổ ghi nợ &amp; Cho vay</string>
+    <string name="debt_loan_tab_all">Tất cả</string>
+    <string name="debt_loan_tab_debt">Tôi nợ người ta (DEBT)</string>
+    <string name="debt_loan_tab_loan">Ai nợ tôi (LOAN)</string>
+    <string name="debt_loan_empty">Chưa ghi nhận khoản nợ hay cho vay nào.\nBấm + bên dưới để ghi chép!</string>
+    <string name="debt_loan_desc_fab">Ghi nợ mới</string>
+    <!-- Chat Assistant Strings -->
+    <string name="chat_title">Trợ lý ảo SmartExpense</string>
+    <string name="chat_status_ready">🟢 Sẵn sàng tư vấn tài chính</string>
+    <string name="chat_ai_state_ready">Hệ thống AI đang sẵn sàng</string>
+    <string name="chat_ai_state_desc">Chạm nút Micro để nói chuyện trực tiếp bằng giọng nói</string>
+    <string name="chat_ai_state_thinking">Trợ lý AI đang suy nghĩ...</string>
+    <string name="chat_ai_state_thinking_desc">Đang phân tích thông tin tài chính cá nhân của bạn</string>
+    <string name="chat_ai_state_speaking">Trợ lý AI đang trả lời...</string>
+    <string name="chat_ai_state_speaking_desc">Nghe giọng nói tư vấn hoặc đọc trực tiếp bên dưới</string>
+    <string name="chat_tts_enabled">Đã BẬT đọc câu trả lời</string>
+    <string name="chat_tts_disabled">Đã TẮT đọc câu trả lời</string>
+    <string name="chat_input_hint">Hỏi trợ lý về ví, ngân sách, tiết kiệm...</string>
+    <!-- Recurring Transactions Strings -->
+    <string name="recurring_title">Giao Dịch Định Kỳ</string>
+    <string name="recurring_tab_expense">Chi tiêu</string>
+    <string name="recurring_tab_income">Thu nhập</string>
+    <string name="recurring_list_header">Danh Sách Lịch Chi Tiêu/Thu Nhập</string>
+    <string name="recurring_empty_state">Chưa có giao dịch định kỳ nào được thiết lập.\nHãy tạo giao dịch mới bên dưới!</string>
+    <string name="recurring_btn_add">+ Thêm Giao Dịch Định Kỳ</string>
+    <!-- Add Transaction Strings -->
+    <string name="add_tx_title">Tạo giao dịch mới</string>
+    <string name="add_tx_tab_expense">Chi tiêu</string>
+    <string name="add_tx_tab_income">Thu nhập</string>
+    <string name="add_tx_amount_label">SỐ TIỀN</string>
+    <string name="add_tx_details_label">CHI TIẾT GIAO DỊCH</string>
+    <string name="add_tx_hint_wallet">Chọn tài khoản / Ví</string>
+    <string name="add_tx_hint_category">Chọn danh mục thu / chi</string>
+    <string name="add_tx_hint_date">Ngày giao dịch</string>
+    <string name="add_tx_hint_note">Ghi chú giao dịch</string>
+    <string name="add_tx_btn_scan">Quét Bất Thường</string>
+    <string name="add_tx_btn_save">Lưu Giao Dịch</string>
+    <string name="add_tx_anomaly_label">PHÁT HIỆN BẤT THƯỜNG</string>
+    <string name="add_tx_anomaly_desc">Mô tả...</string>
+    <!-- Wallet Form Dialog Strings -->
+    <string name="wallet_form_default_name">Tên Ví Tài Khoản</string>
+    <string name="wallet_form_balance_label">SỐ DƯ</string>
+    <string name="wallet_form_header_info">THÔNG TIN TÀI KHOẢN</string>
+    <string name="wallet_form_hint_name">Tên Ví / Tài khoản (ví dụ: Techcombank, MoMo)</string>
+    <string name="wallet_form_hint_type">Loại tài khoản / Ví</string>
+    <string name="wallet_form_hint_balance">Số dư ban đầu (VND)</string>
+    <string name="wallet_form_desc_chip">Chip Thẻ</string>
+    <!-- Health Score Statuses -->
+    <string name="health_status_excellent">Trạng thái: Xuất sắc</string>
+    <string name="health_desc_excellent">Thói quen chi tiêu cực kỳ tốt. Hãy tiếp tục duy trì nhé!</string>
+    <string name="health_status_good">Trạng thái: Tốt</string>
+    <string name="health_desc_good">Thói quen tích lũy của bạn tốt hơn phần lớn người dùng.</string>
+    <string name="health_status_fair">Trạng thái: Trung bình</string>
+    <string name="health_desc_fair">Bạn đang chi tiêu khá sát giới hạn. Nên cân nhắc tiết giảm.</string>
+    <string name="health_status_warning">Trạng thái: Cảnh báo</string>
+    <string name="health_desc_warning">Bạn đã chi tiêu vượt quá giới hạn ngân sách nhiều hạng mục. Hãy thắt chặt chi tiêu!</string>
+
+    <!-- Burn Rate Results -->
+    <string name="burn_rate_over_speed">⚠️ CHI TIÊU VƯỢT TIẾN ĐỘ!</string>
+    <string name="burn_rate_safe_speed">✅ TỐC ĐỘ CHI TIÊU AN TOÀN</string>
+
+    <!-- Smart Insight Offline AI Text Templates -->
+    <string name="insight_budget_warning_over">⚠️ Cảnh báo chi tiêu: Bạn đã vượt hạn mức ngân sách ở các danh mục: %1$s. Hãy cắt giảm chi tiêu khẩn cấp để đảm bảo an toàn tài chính!</string>
+    <string name="insight_budget_warning_near">⚠️ Cảnh báo tốc độ: Bạn sắp chạm hạn mức ngân sách ở danh mục: %1$s. Nên hạn chế mua sắm thêm ở các mục này.</string>
+    <string name="insight_speed_warning">⚠️ Cảnh báo tốc độ chi tiêu: Bạn đã dùng %1$.0f%% ngân sách tháng này trong khi mới đi qua %2$.0f%% thời gian của tháng (%3$d/%4$d ngày). Tốc độ chi tiêu này là QUÁ NHANH!</string>
+    <string name="insight_all_completed">🎉 Chúc mừng! Bạn đã hoàn thành xuất sắc tất cả mục tiêu tích lũy đặt ra. Hãy tiếp tục thiết lập những mục tiêu mới tiếp theo nhé!</string>
+    <string name="insight_savings_superior">🌟 Tiết kiệm vượt trội: Bạn mới chỉ dùng hết %1$.1f%% ngân sách tháng này. Kế hoạch kiểm soát chi tiêu của bạn đang vô cùng xuất sắc!</string>
+    <string name="insight_ai_suggestion">💡 Gợi ý AI: Tháng này bạn dự kiến có khoảng +%1$sđ dòng tiền nhàn rỗi. Tích lũy vào mục tiêu \'%2$s\' sẽ giúp bạn hoàn thành kế hoạch sớm hơn!</string>
+    <string name="insight_financial_advice_stable">💡 Lời khuyên tài chính: Bạn đang chi tiêu ổn định. Tuy nhiên dòng tiền nhàn rỗi tháng này khá thấp, hãy tối ưu thêm chi tiêu không thiết yếu nhé.</string>
+    <string name="insight_financial_advice_empty">💡 Lời khuyên tài chính: Bạn chưa thiết lập ngân sách và mục tiêu cá nhân. Hãy tạo ngay để AI bắt đầu phân tích hành vi và tối ưu điểm sức khỏe tài chính của bạn!</string>
+    <!-- Analytics Strings -->
+    <string name="analytics_tab_analysis">Phân Tích</string>
+    <string name="analytics_tab_budget">Ngân Sách</string>
+    <string name="analytics_tab_goals">Mục Tiêu</string>
+    <string name="analytics_ai_insight_header">AI SMART INSIGHT</string>
+    <string name="analytics_ai_insight_loading">\"Đang tải phân tích thông minh từ AI...\"</string>
+    <string name="analytics_burn_rate_title">Đo Lường Tốc Độ Chi Tiêu (Burn Rate)</string>
+    <string name="analytics_burn_rate_desc">Nhấn nút để chạy thuật toán kiểm tra tốc độ rút số dư ví offline của bạn.</string>
+    <string name="analytics_burn_rate_btn">Chạy Thuật Tạo Phân Tích</string>
+    <string name="analytics_category_budgets_title">Ngân Sách Theo Hạng Mục</string>
+    <string name="analytics_add_budget_btn">+ Thêm Mới Ngân Sách Hạng Mục</string>
+    <string name="analytics_savings_progress_title">TỔNG TIẾN TRÌNH TÍCH LŨY</string>
+    <string name="analytics_ai_suggestions_title">AI SAVINGS SUGGESTION (GỢI Ý TỪ AI)</string>
+    <string name="analytics_ai_suggestions_idle_cash">💡 Dòng tiền nhàn rỗi dự kiến tháng này: +%1$sđ</string>
+    <string name="analytics_ai_suggestions_auto_allocate">💡 Tự động phân bổ bằng AI (Một click)</string>
+    <string name="analytics_personal_goals_title">Danh Sách Mục Tiêu Cá Nhân</string>
+    <string name="analytics_add_goal_btn">+ Thiết Lập Mục Tiêu Tích Lũy Mới</string>
+    <string name="analytics_goal_progress_desc">Đã đạt %1$d%% mục tiêu chung</string>
+    <string name="analytics_goal_target_label">Mục tiêu: %1$sđ</string>
+    <string name="analytics_spending_trends">Xu hướng Chi tiêu</string>
+    <string name="analytics_calculating">Đang tính toán...</string>
+    <string name="analytics_weekly_comparison_desc">%1$s so với tuần trước</string>
+    <string name="analytics_weekly_no_spending_last">Tuần trước không chi tiêu</string>
+    <string name="analytics_weekly_no_spending_this">Không có chi tiêu tuần này</string>
+    <string name="analytics_daily_spending_axis">Chi tiêu ngày (đ)</string>
+    <string name="analytics_budget_status_on_track">Đúng Kế Hoạch</string>
+    <string name="analytics_budget_status_over">Vượt Hạn Mức</string>
+
+    <!-- Debt & Loan Additional -->
+    <string name="dl_error_load">Không thể tải dữ liệu nợ</string>
+    <string name="dl_error_conn">Lỗi kết nối máy chủ, hiển thị chế độ offline</string>
+    <string name="dl_term_month">% / tháng</string>
+    <string name="dl_term_year">% / năm</string>
+    <string name="dl_add_title">Thêm Ghi Chép Nợ</string>
+    <string name="dl_edit_title">Sửa Ghi Chép Nợ</string>
+    <string name="dl_btn_save">Lưu</string>
+    <string name="dl_btn_cancel">Hủy</string>
+    <string name="dl_validation_empty">Vui lòng nhập tên đối tác và số tiền!</string>
+    <string name="dl_validation_invalid">Số tiền không hợp lệ!</string>
+    <string name="dl_save_success">Đã lưu khoản nợ thành công!</string>
+    <string name="dl_save_error">Lỗi khi lưu khoản nợ</string>
+    <string name="dl_conn_error">Lỗi kết nối máy chủ</string>
+    <string name="dl_update_success">Đã cập nhật khoản nợ thành công!</string>
+    <string name="dl_update_error">Lỗi khi cập nhật khoản nợ</string>
+    <string name="dl_status_success">Đã cập nhật trạng thái thanh toán!</string>
+    <string name="dl_status_error">Lỗi cập nhật</string>
+    <string name="dl_delete_title">Xóa Ghi Chép Nợ</string>
+    <string name="dl_delete_message">Bạn có chắc chắn muốn xóa ghi chép nợ này không?</string>
+    <string name="dl_delete_btn">Xóa</string>
+    <string name="dl_delete_success">Đã xóa thành công!</string>
+    <string name="dl_delete_error">Không thể xóa ghi chép</string>
+    
+    <string name="dl_detail_type_label">Loại giao dịch: </string>
+    <string name="dl_type_debt">Tôi đi vay (DEBT)</string>
+    <string name="dl_type_loan">Tôi cho vay (LOAN)</string>
+    <string name="dl_detail_partner">Đối tác: </string>
+    <string name="dl_detail_amount">Số tiền: </string>
+    <string name="dl_detail_due">Hạn trả: </string>
+    <string name="dl_detail_interest">Lãi suất: </string>
+    <string name="dl_detail_note">Ghi chú: </string>
+    <string name="dl_detail_status">Trạng thái: </string>
+    <string name="dl_status_unpaid">CHƯA THANH TOÁN</string>
+    <string name="dl_status_paid">ĐÃ THANH TOÁN</string>
+    <string name="dl_detail_title">Chi tiết nợ</string>
+    <string name="dl_detail_mark_paid">Đánh dấu đã trả</string>
+    <string name="dl_detail_close">Đóng</string>
+
+    <string name="dl_interest_rate_label">Lãi suất: </string>
+    <string name="dl_interest_accumulated">Lãi tích lũy: </string>
+    <string name="dl_total_current_debt">Tổng nợ hiện tại: </string>
+    <string name="dl_due_prefix">Hạn: </string>
+    <string name="dl_note_prefix">Ghi chú: </string>
+    
+    <!-- Recurring Transactions Additional -->
+    <string name="rec_error_conn">Lỗi kết nối!</string>
+    <string name="rec_status_updated">Đã cập nhật trạng thái!</string>
+    <string name="rec_delete_title">Xác nhận xóa</string>
+    <string name="rec_delete_message">Bạn có chắc chắn muốn xóa lịch giao dịch này?</string>
+    <string name="rec_delete_btn">Xóa</string>
+    <string name="rec_delete_success">Đã xóa lịch giao dịch!</string>
+    <string name="rec_btn_schedule">Lên lịch</string>
+    <string name="rec_btn_update">Cập nhật</string>
+    <string name="rec_hint_expense">Danh mục chi tiêu</string>
+    <string name="rec_hint_income">Danh mục thu nhập</string>
+    <string name="rec_validation_empty">Vui lòng nhập đầy đủ hạng mục và số tiền!</string>
+    <string name="rec_validation_invalid">Số tiền không hợp lệ!</string>
+    <string name="rec_save_success">Đã lên lịch giao dịch thành công!</string>
+    <string name="rec_save_error">Lỗi tạo lịch giao dịch!</string>
+    <string name="rec_update_success">Đã cập nhật giao dịch định kỳ!</string>
+    <string name="rec_update_error">Lỗi cập nhật!</string>
+    <string name="rec_btn_cancel">Hủy</string>
+    <string name="rec_freq_prefix">Tần suất: </string>
+    <string name="rec_due_date_prefix">Ngày đến hạn tiếp theo: </string>
+    <string name="rec_status_active">Đang hoạt động</string>
+    <string name="rec_status_paused">Đã tạm dừng</string>
+    <string name="rec_default_name">Định kỳ</string>
+
+    <!-- Debt Dialog Layout -->
+    <string name="dl_type_selector_label">Phân loại giao dịch nợ</string>
+    <string name="dl_hint_partner">Tên đối tác (ví dụ: Anh Nam, Chị Vy)</string>
+    <string name="dl_hint_amount">Số tiền nợ/cho vay (VND)</string>
+    <string name="dl_hint_due_date">Hạn thanh toán trả nợ</string>
+    <string name="dl_hint_interest_rate">Lãi suất</string>
+    <string name="dl_hint_note">Ghi chú chi tiết khoản vay/nợ...</string>
+
+    <!-- Recurring Dialog Layout -->
+    <string name="rec_dialog_title">Lập Lịch Giao Dịch Định Kỳ</string>
+    <string name="rec_hint_wallet">Tài khoản / Ví</string>
+    <string name="rec_hint_amount">Số tiền (VND)</string>
+    <string name="rec_hint_frequency">Tần suất lặp lại</string>
+    <string name="rec_hint_due_date">Ngày bắt đầu/Ngày thanh toán tiếp</string>
+    <string name="rec_hint_note">Ghi chú</string>
+
+    <!-- Edit Transaction Dialog Layout -->
+    <string name="edit_tx_title">Chỉnh Sửa Giao Dịch</string>
+    <string name="edit_tx_type">Loại giao dịch</string>
+    <string name="edit_tx_amount">Số tiền (VND)</string>
+    <string name="edit_tx_wallet">Ví tài khoản</string>
+    <string name="edit_tx_category">Hạng mục chi tiêu</string>
+    <string name="edit_tx_date">Ngày giao dịch</string>
+    <string name="edit_tx_note">Ghi chú</string>
 </resources>

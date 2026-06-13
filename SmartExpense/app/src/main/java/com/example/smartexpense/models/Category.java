@@ -24,7 +24,9 @@ public class Category {
     public Integer getUserId() { return userId; }
     public void setUserId(Integer userId) { this.userId = userId; }
 
-    public String getName() { return name; }
+    public String getName() {
+        return com.example.smartexpense.api.CategoryCache.localizeCategoryName(name);
+    }
     public void setName(String name) { this.name = name; }
 
     public String getType() { return type; }
@@ -35,7 +37,7 @@ public class Category {
 
     @Override
     public String toString() {
-        return name != null ? name : "Category";
+        return getName() != null ? getName() : "Category";
     }
 }
 

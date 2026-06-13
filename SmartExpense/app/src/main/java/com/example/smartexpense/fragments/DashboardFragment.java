@@ -48,7 +48,7 @@ import retrofit2.Response;
 
 public class DashboardFragment extends Fragment {
 
-    private TextView tvGreetingName, tvTotalBalance, tvMonthlyIncome, tvMonthlyExpense;
+    private TextView tvGreetingLabel, tvGreetingName, tvTotalBalance, tvMonthlyIncome, tvMonthlyExpense;
     private TextView tvMonthlyNet;
     private TextView tvDashboardState;
     private View progressDashboard;
@@ -80,6 +80,7 @@ public class DashboardFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_dashboard, container, false);
 
+        tvGreetingLabel = view.findViewById(R.id.tv_greeting_label);
         tvGreetingName = view.findViewById(R.id.tv_greeting_name);
         tvTotalBalance = view.findViewById(R.id.tv_total_balance);
         tvMonthlyIncome = view.findViewById(R.id.tv_monthly_income);
@@ -155,9 +156,22 @@ public class DashboardFragment extends Fragment {
     public void loadDashboardData() {
         if (getContext() == null) return;
 
-        int userId = requireActivity()
-                .getSharedPreferences("smart_expense_prefs", Context.MODE_PRIVATE)
-                .getInt("user_id", 1);
+        android.content.SharedPreferences sp = requireActivity().getSharedPreferences("smart_expense_prefs", Context.MODE_PRIVATE);
+        int userId = sp.getInt("user_id", 1);
+        String userName = sp.getString("user_name", "Alex Johnson");
+        if (tvGreetingName != null) {
+            tvGreetingName.setText(userName);
+        }
+        if (tvGreetingLabel != null) {
+            int hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY);
+            if (hour >= 0 && hour < 12) {
+                tvGreetingLabel.setText(R.string.dashboard_greeting_morning);
+            } else if (hour >= 12 && hour < 18) {
+                tvGreetingLabel.setText(R.string.dashboard_greeting_afternoon);
+            } else {
+                tvGreetingLabel.setText(R.string.dashboard_greeting_evening);
+            }
+        }
 
         setDashboardLoading(true);
 
@@ -182,14 +196,14 @@ public class DashboardFragment extends Fragment {
                 if (response.isSuccessful() && response.body() != null) {
                     bindDashboard(response.body());
                 } else {
-                    setDashboardError("Không tải được dashboard");
+                    setDashboardError(getString(R.string.dashboard_error_load));
                 }
             }
 
             @Override
             public void onFailure(Call<DashboardResponse> call, Throwable t) {
                 setDashboardLoading(false);
-                setDashboardError("Lỗi mạng khi tải dashboard");
+                setDashboardError(getString(R.string.dashboard_error_network));
             }
         });
 
@@ -220,14 +234,14 @@ public class DashboardFragment extends Fragment {
                     updateWalletsState();
                     updateGuidanceVisibility();
                 } else {
-                    setWalletsError("Không tải được danh sách ví");
+                    setWalletsError(getString(R.string.dashboard_error_load_wallets));
                 }
             }
 
             @Override
             public void onFailure(Call<List<Wallet>> call, Throwable t) {
                 setWalletsLoading(false);
-                setWalletsError("Lỗi mạng khi tải ví");
+                setWalletsError(getString(R.string.dashboard_error_network_wallets));
             }
         });
     }
@@ -243,7 +257,7 @@ public class DashboardFragment extends Fragment {
         tvMonthlyExpense.setText("-" + formatter.format(expense) + "đ");
         if (tvMonthlyNet != null) {
             String prefix = net.compareTo(BigDecimal.ZERO) >= 0 ? "+" : "";
-            tvMonthlyNet.setText("Chênh lệch tháng này: " + prefix + formatter.format(net) + "đ");
+            tvMonthlyNet.setText(getString(R.string.dashboard_monthly_net, prefix + formatter.format(net) + "đ"));
         }
 
         recentTransactionList.clear();
@@ -265,11 +279,11 @@ public class DashboardFragment extends Fragment {
     }
 
     private String formatTopExpenseCategories(List<TopExpenseCategory> items) {
-        if (items == null || items.isEmpty()) return "<i>Chưa có dữ liệu</i>";
+        if (items == null || items.isEmpty()) return "<i>" + getString(R.string.dashboard_no_data_italic) + "</i>";
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < items.size(); i++) {
             TopExpenseCategory c = items.get(i);
-            String name = c.getCategoryName() != null ? c.getCategoryName() : "Hạng mục";
+            String name = c.getCategoryName() != null ? c.getCategoryName() : getString(R.string.dashboard_category_placeholder);
             BigDecimal spent = c.getTotalSpent() != null ? c.getTotalSpent() : BigDecimal.ZERO;
             sb.append("<font color='#0B1C30'><b>")
               .append(i + 1)
@@ -284,19 +298,19 @@ public class DashboardFragment extends Fragment {
     }
 
     private String formatBudgetWarnings(List<BudgetWarning> items) {
-        if (items == null || items.isEmpty()) return "<font color='#27C38A'><b>✓ Không có cảnh báo hạn mức</b></font>";
+        if (items == null || items.isEmpty()) return "<font color='#27C38A'><b>" + getString(R.string.dashboard_no_limit_warning) + "</b></font>";
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < items.size(); i++) {
             BudgetWarning w = items.get(i);
-            String name = w.getCategoryName() != null ? w.getCategoryName() : "Hạng mục";
+            String name = w.getCategoryName() != null ? w.getCategoryName() : getString(R.string.dashboard_category_placeholder);
             BigDecimal percent = w.getSpentPercent() != null ? w.getSpentPercent() : BigDecimal.ZERO;
             String status = w.getStatus() != null ? w.getStatus() : "";
 
             String color = "#F59E0B"; // orange for warning
-            String statusText = "Sắp chạm hạn mức";
+            String statusText = getString(R.string.dashboard_approaching_limit);
             if ("OVER_LIMIT".equalsIgnoreCase(status) || percent.compareTo(new BigDecimal("100")) >= 0) {
                 color = "#BA1A1A"; // crimson for over limit
-                statusText = "Vượt ngân sách";
+                statusText = getString(R.string.dashboard_over_budget);
             }
 
             sb.append("<font color='").append(color).append("'><b>• ").append(name).append("</b>: ")
@@ -340,7 +354,7 @@ public class DashboardFragment extends Fragment {
             emptyView.setLayoutParams(new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT, (int) (72 * getResources().getDisplayMetrics().density)));
             emptyView.setGravity(android.view.Gravity.CENTER);
-            emptyView.setText("Không có cảnh báo nào. Hệ thống đang ổn định.");
+            emptyView.setText(getString(R.string.dashboard_stable_system));
             emptyView.setTextColor(getResources().getColor(R.color.text_secondary));
             emptyView.setTextSize(12);
             layoutAlerts.addView(emptyView);
@@ -431,7 +445,7 @@ public class DashboardFragment extends Fragment {
 
     private void updateCardPreview(String name, String type, String balanceStr, RelativeLayout layoutBg, TextView tvType, TextView tvName, TextView tvBalance) {
         if (tvName != null) {
-            tvName.setText(name.isEmpty() ? "Tên Ví Tài Khoản" : name);
+            tvName.setText(name.isEmpty() ? getString(R.string.dashboard_default_wallet_name) : name);
         }
         if (tvType != null) {
             tvType.setText(type.isEmpty() ? "BANK ACCOUNT" : type.toUpperCase());
