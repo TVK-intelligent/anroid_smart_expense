@@ -392,6 +392,16 @@ public class DashboardFragment extends Fragment {
             tvLabel.setText(isAnomaly ? "ALERT" : "SPEED");
             tvLabel.setTextColor(getResources().getColor(isAnomaly ? R.color.crimson_expense : R.color.amber_warning));
 
+            item.setOnClickListener(v -> {
+                if (getContext() != null) {
+                    new android.app.AlertDialog.Builder(getContext())
+                            .setTitle(noti.getTitle())
+                            .setMessage(noti.getContent())
+                            .setPositiveButton("Đóng", (dialog, which) -> dialog.dismiss())
+                            .show();
+                }
+            });
+
             layoutAlerts.addView(item);
 
             // Trigger Push Notification for new unread notifications
